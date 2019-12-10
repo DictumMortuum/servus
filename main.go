@@ -10,9 +10,8 @@ func startpageHandler(c *gin.Context) {
 }
 
 func main() {
-	files := assetFS()
-	r := gin.Default()
-	r.StaticFS("/assets", files)
+	r := gin.New()
+	r.StaticFS("/assets", assetFS())
 	r.GET("/startpage", startpageHandler)
-	r.Run(":1234")
+	r.Run("127.0.0.1:1234")
 }
