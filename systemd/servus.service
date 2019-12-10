@@ -2,7 +2,7 @@
 Description=servus personal assistant service
 
 [Install]
-WantedBy=multi-user.target[Service]
+WantedBy=multi-user.target
 
 [Service]
 Type=simple
