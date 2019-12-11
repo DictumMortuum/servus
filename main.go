@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/DictumMortuum/servus/calendar"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +14,7 @@ func calendarHandler(c *gin.Context) {
 	file, _ := c.FormFile("file")
 	c.SaveUploadedFile(file, "/tmp/cal")
 	tmp := calendar.Get("/tmp/cal")
-	c.String(200, fmt.Sprintf("%v", tmp))
+	c.JSON(200, gin.H{"days": tmp})
 }
 
 func main() {

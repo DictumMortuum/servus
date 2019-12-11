@@ -12,5 +12,6 @@ bindata:
 install:
 	mkdir -p $(PREFIX)/bin
 	cp -f servus $(PREFIX)/bin
+
+install-service:
 	cp -f systemd/servus.service /etc/systemd/system/
-	
