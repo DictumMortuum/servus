@@ -9,8 +9,9 @@ function startTime() {
   var m = today.getMinutes();
   var M = today.getMonth();
   var d = today.getDate();
+  h = checkTime(h);
   m = checkTime(m);
-  document.getElementById('clock').innerHTML = h + " " + m;
+  document.getElementById('clock').innerHTML = h + ":" + m;
   document.getElementById('date').innerHTML = monthNames[M] + " " + d;
   var t = setTimeout(startTime, 500);
 }
