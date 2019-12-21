@@ -49,7 +49,6 @@ form {
 input {
   border: none;
   padding: 10px;
-  width: 50%;
   background-color: var(--nord1);
 }
 
@@ -68,8 +67,4 @@ input {
 
 .item-2 {
   width: 16.6%;
-}
-
-#clock {
-  font-size: 10rem;
 }

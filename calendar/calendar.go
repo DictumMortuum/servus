@@ -1,64 +1,26 @@
 package calendar
 
 import (
-	"github.com/tealeg/xlsx"
-	"regexp"
-	"strconv"
+	"bytes"
+	"fmt"
 )
 
-func findHeader(file *xlsx.File) (int, int, int) {
-	for i, sheet := range file.Sheets {
-		for j, row := range sheet.Rows {
-			for k, cell := range row.Cells {
-				s := cell.String()
-
-				if s == "ΦΥΤΡΟΥ" {
-					return i, j, k
-				}
-			}
-		}
-	}
-	return -1, -1, -1
+type Vcalendar struct {
+	Events []Vevent
 }
 
-func filterRow(row *xlsx.Row) []string {
-	ret := []string{}
+func (v Vcalendar) String() string {
+	buf := bytes.NewBufferString("")
 
-	for _, cell := range row.Cells {
-		s := cell.String()
+	fmt.Fprintf(buf, "BEGIN:VCALENDAR\n")
+	fmt.Fprintf(buf, "VERSION:2.0\n")
+	fmt.Fprintf(buf, "PRODID:-//dictummortuum.com//servus//EN\n")
 
-		if s == "3673" || s == "ΦΥΤΡΟΥ" || s == "ΘΕΩΝΗ" || s == "ΤΑΜΙΑΣ" || s == "" {
-			continue
-		}
-
-		ret = append(ret, s)
+	for _, event := range v.Events {
+		fmt.Fprintf(buf, "%s", event)
 	}
 
-	return ret
-}
+	fmt.Fprintf(buf, "END:VCALENDAR\n")
 
-func transform(row []string) []string {
-	ret := []string{}
-	re := regexp.MustCompile("[MHΜΗ]{2}([0-9][0-9])")
-
-	for _, cell := range row {
-		s := re.FindStringSubmatch(cell)
-
-		if s == nil {
-			ret = append(ret, "ΡΕΠΟ")
-		} else {
-			i, _ := strconv.Atoi(s[1])
-			ret = append(ret, strconv.Itoa(i))
-		}
-	}
-
-	return ret
-}
-
-func Get(filename string) []string {
-	xlFile, _ := xlsx.OpenFile(filename)
-	i, j, _ := findHeader(xlFile)
-	target := xlFile.Sheets[i].Rows[j]
-	calendar := filterRow(target)
-	return transform(calendar)
+	return buf.String()
 }
