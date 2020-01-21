@@ -3,7 +3,9 @@ package main
 import (
 	"github.com/DictumMortuum/servus/calendar"
 	"github.com/gin-gonic/gin"
+	"io"
 	"io/ioutil"
+	"os"
 )
 
 func staticPage(path string) func(*gin.Context) {
@@ -23,7 +25,15 @@ func calendarHandler(c *gin.Context) {
 }
 
 func main() {
-	r := gin.New()
+	mode := os.Getenv("GIN_MODE")
+
+	if mode == "release" {
+		gin.DisableConsoleColor()
+		f, _ := os.Create("/var/log/servus.log")
+		gin.DefaultWriter = io.MultiWriter(f)
+	}
+
+	r := gin.Default()
 	r.StaticFS("/assets", assetFS())
 	r.GET("/startpage", staticPage("html/index.html"))
 	r.GET("/calendar", staticPage("html/calendar.html"))
