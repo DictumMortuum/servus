@@ -7,13 +7,33 @@ import (
 	"strconv"
 )
 
+func checkCellForName(s string) bool {
+	re1 := regexp.MustCompile("Ω")
+	re2 := regexp.MustCompile("Φ")
+	re3 := regexp.MustCompile("Σ")
+
+	if re1.FindStringSubmatch(s) != nil {
+		return true
+	}
+
+	if re2.FindStringSubmatch(s) != nil {
+		return true
+	}
+
+	if re3.FindStringSubmatch(s) != nil {
+		return true
+	}
+
+	return false
+}
+
 func findHeader(file *xlsx.File) (int, int, int) {
 	for i, sheet := range file.Sheets {
 		for j, row := range sheet.Rows {
 			for k, cell := range row.Cells {
 				s := cell.String()
 
-				if s == "ΦΥΤΡΟΥ" {
+				if s == "ΦΥΤΡΟΥ" || s == "ΦΥTΡΟΥ" || s == "3673" {
 					return i, j, k
 				}
 			}
@@ -29,7 +49,7 @@ func filterRow(row *xlsx.Row) []string {
 	for _, cell := range row.Cells {
 		s := cell.String()
 
-		if s == "3673" || s == "ΦΥΤΡΟΥ" || s == "ΘΕΩΝΗ" || s == "ΤΑΜΙΑΣ" || s == "" {
+		if s == "3673" || checkCellForName(s) || s == "" {
 			continue
 		}
 
@@ -47,7 +67,9 @@ func transform(row []string) []string {
 		s := re.FindStringSubmatch(cell)
 
 		if s == nil {
-			ret = append(ret, "ΡΕΠΟ")
+			if !checkCellForName(cell) {
+				ret = append(ret, "ΡΕΠΟ")
+			}
 		} else {
 			i, _ := strconv.Atoi(s[1])
 			ret = append(ret, strconv.Itoa(i))
