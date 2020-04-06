@@ -1,12 +1,12 @@
 PREFIX=/usr/local
 
-build: format
-	go build
-
 format:
 	gofmt -s -w .
 
-install:
+build: format
+	go build
+
+install: build
 	mkdir -p $(PREFIX)/bin
 	cp -f servus $(PREFIX)/bin
 
