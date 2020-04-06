@@ -1,13 +1,10 @@
 PREFIX=/usr/local
 
-build: bindata format
+build: format
 	go build
 
 format:
 	gofmt -s -w .
-
-bindata:
-	go-bindata-assetfs -nometadata html assets
 
 install:
 	mkdir -p $(PREFIX)/bin
