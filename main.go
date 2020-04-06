@@ -27,6 +27,6 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.POST("/calendar/generate", calendarHandler)
+	r.POST("/calendar", calendarHandler)
 	r.Run("127.0.0.1:1234")
 }
