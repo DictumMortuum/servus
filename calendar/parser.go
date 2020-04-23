@@ -11,6 +11,7 @@ func checkCellForName(s string) bool {
 	re1 := regexp.MustCompile("Ω")
 	re2 := regexp.MustCompile("Φ")
 	re3 := regexp.MustCompile("Σ")
+	re4 := regexp.MustCompile("ΤΑΜ")
 
 	if re1.FindStringSubmatch(s) != nil {
 		return true
@@ -21,6 +22,10 @@ func checkCellForName(s string) bool {
 	}
 
 	if re3.FindStringSubmatch(s) != nil {
+		return true
+	}
+
+	if re4.FindStringSubmatch(s) != nil {
 		return true
 	}
 
