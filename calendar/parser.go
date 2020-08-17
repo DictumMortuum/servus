@@ -2,10 +2,21 @@ package calendar
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/tealeg/xlsx"
+	"io/ioutil"
 	"regexp"
 	"strconv"
 )
+
+func Handler(c *gin.Context) {
+	file, _ := c.FormFile("files")
+	c.SaveUploadedFile(file, "/tmp/cal")
+	data := Get("/tmp/cal")
+	buffer := []byte(data.String())
+	ioutil.WriteFile("/tmp/cal.ics", buffer, 0600)
+	c.FileAttachment("/tmp/cal.ics", "cal.ics")
+}
 
 func checkCellForName(s string) bool {
 	re1 := regexp.MustCompile("Ω")

@@ -2,22 +2,12 @@ package main
 
 import (
 	"github.com/DictumMortuum/servus/calendar"
-	"github.com/DictumMortuum/servus/youtube"
+	"github.com/DictumMortuum/servus/links"
 	"github.com/gin-gonic/gin"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 )
-
-func calendarHandler(c *gin.Context) {
-	file, _ := c.FormFile("files")
-	c.SaveUploadedFile(file, "/tmp/cal")
-	data := calendar.Get("/tmp/cal")
-	buffer := []byte(data.String())
-	ioutil.WriteFile("/tmp/cal.ics", buffer, 0600)
-	c.FileAttachment("/tmp/cal.ics", "cal.ics")
-}
 
 func main() {
 	mode := os.Getenv("GIN_MODE")
@@ -34,7 +24,7 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.POST("/calendar", calendarHandler)
-	r.GET("/youtube/:url", youtube.Handler)
+	r.POST("/calendar", calendar.Handler)
+	r.POST("/links", links.Handler)
 	r.Run("127.0.0.1:1234")
 }

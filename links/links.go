@@ -1,4 +1,4 @@
-package youtube
+package links
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,9 +7,9 @@ import (
 )
 
 func Handler(c *gin.Context) {
-	url := c.Param("url")
+	url := c.PostForm("url")
 
-	f, err := os.OpenFile("/var/lib/servus/youtube.list", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/var/lib/servus/links.list", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
