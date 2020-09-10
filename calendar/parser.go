@@ -1,21 +1,58 @@
 package calendar
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/DictumMortuum/servus/db"
 	"github.com/gin-gonic/gin"
 	"github.com/tealeg/xlsx"
-	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 )
 
-func Handler(c *gin.Context) {
+const create_event = `
+insert into tcalendar (
+	uuid,
+	date,
+	shift,
+	summary,
+	cr_date,
+	sequence
+) values (
+	UUID(),
+	?,
+	?,
+	?,
+	NOW(),
+	0
+) on duplicate key update
+	shift=?,
+	summary=?,
+	cr_date=NOW(),
+	sequence=sequence+1`
+
+func ParseHandler(c *gin.Context) {
 	file, _ := c.FormFile("files")
 	c.SaveUploadedFile(file, "/tmp/cal")
-	data := Get("/tmp/cal")
-	buffer := []byte(data.String())
-	ioutil.WriteFile("/tmp/cal.ics", buffer, 0600)
-	c.FileAttachment("/tmp/cal.ics", "cal.ics")
+
+	db, err := db.Conn()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	defer db.Close()
+
+	for day, shift := range transform("/tmp/cal") {
+		err = createEvent(db, c, day, shift)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }
 
 func checkCellForName(s string) bool {
@@ -75,7 +112,11 @@ func filterRow(row *xlsx.Row) []string {
 	return ret
 }
 
-func transform(row []string) []string {
+func transform(file string) []string {
+	xlFile, _ := xlsx.OpenFile(file)
+	i, j, _ := findHeader(xlFile)
+	target := xlFile.Sheets[i].Rows[j]
+	row := filterRow(target)
 	ret := []string{}
 	re := regexp.MustCompile("[MHΜΗ]{2}([0-9][0-9])")
 
@@ -95,36 +136,33 @@ func transform(row []string) []string {
 	return ret
 }
 
-func Get(filename string) Vcalendar {
-	xlFile, _ := xlsx.OpenFile(filename)
-	i, j, _ := findHeader(xlFile)
-	target := xlFile.Sheets[i].Rows[j]
-	calendar := filterRow(target)
+func createEvent(db *sql.DB, c *gin.Context, day int, shift string) error {
+	stmt, err := db.Prepare(create_event)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
-	events := []Vevent{}
+	var summary string
 
-	for day, shift := range transform(calendar) {
-		var v Vevent
-		s, _ := strconv.Atoi(shift)
-
-		if shift == "ΡΕΠΟ" {
-			v = Vevent{
-				dtstart(s, day),
-				dtstart(s, day),
-				"Ρεπό",
-			}
-		} else {
-			v = Vevent{
-				dtstart(s, day),
-				dtend(s, day),
-				fmt.Sprintf("Βάρδια %s", shift),
-			}
-		}
-
-		events = append(events, v)
+	if shift == "ΡΕΠΟ" {
+		summary = "Ρεπό"
+	} else {
+		summary = fmt.Sprintf("Βάρδια %s", shift)
 	}
 
-	return Vcalendar{
-		events,
+	year := c.PostForm("year")
+	month := c.PostForm("month")
+	m, _ := strconv.Atoi(month)
+	y, _ := strconv.Atoi(year)
+	date := time.Date(y, time.Month(m), day+1, 0, 0, 0, 0, time.UTC)
+
+	s, _ := strconv.Atoi(shift)
+
+	_, err = stmt.Exec(date, s, summary, s, summary)
+	if err != nil {
+		return err
 	}
+
+	return nil
 }

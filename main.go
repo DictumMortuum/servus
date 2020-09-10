@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/DictumMortuum/servus/calendar"
+	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/gin-gonic/gin"
 	"io"
@@ -18,13 +19,19 @@ func main() {
 		gin.DefaultWriter = io.MultiWriter(f)
 	}
 
-	err := os.MkdirAll("/var/lib/servus", 0755)
+	err := config.Read("/etc/servusrc")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.MkdirAll("/var/lib/servus", 0755)
 	if err != nil {
 		log.Println(err)
 	}
 
 	r := gin.Default()
-	r.POST("/calendar", calendar.Handler)
+	r.GET("/calendar/generate", calendar.GenerateHandler)
+	r.POST("/calendar/parse", calendar.ParseHandler)
 	r.POST("/links", links.Handler)
 	r.Run("127.0.0.1:1234")
 }
