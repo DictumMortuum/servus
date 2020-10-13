@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>{{ .title }}</title>
+    <style>
+      {{ template "snackbar.css" .}}
+    </style>
+    {{ if .redirect }}
+    <meta http-equiv="refresh" content="3; URL=/calendar" />
+    {{ end }}
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+      <a class="navbar-brand" href="#">{{ .title }}</a>
+
+      <div class="col-auto ml-auto">
+        {{ if .primary.enabled }}
+        <a class="btn btn-primary" href="#" data-toggle="modal" data-target="#modal-primary">
+          {{ .primary.desc }}
+        </a>
+        {{ end }}
+        <a class="btn btn-secondary" href="#" data-toggle="modal" data-target="#modal-options">
+          Options
+        </a>
+      </div>
+    </nav>
+    <main class="container-fluid" role="main">

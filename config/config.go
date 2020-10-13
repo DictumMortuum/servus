@@ -9,6 +9,8 @@ type Config struct {
 	Database struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
+		Server   string `yaml:"server"`
+		Port     string `yaml:"port"`
 	} `yaml:"database"`
 }
 
@@ -31,4 +33,8 @@ func Read(path string) error {
 	}
 
 	return nil
+}
+
+func (c *Config) GetMariaDBConnection(db string) string {
+	return c.Database.Username + ":" + c.Database.Password + "@tcp(" + c.Database.Server + ":" + c.Database.Port + ")/" + db
 }

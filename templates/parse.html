@@ -1,0 +1,53 @@
+{{ template "header.tmpl" .}}
+
+<!--
+<div class="row">
+  {{range .calendar}}
+  <div class="col-2 mb-3">
+    <div class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col">
+            <div class="card-title mb-0">{{ .Date }}</div>
+          </div>
+          <div class="col text-right">
+            <a href="#" class="card-link">edit</a>
+          </div>
+        </div>
+      </div>
+      <div class="card-body {{ if (lt .Shift 0) }}text-white bg-primary{{ end }}">
+        <h5 class="card-subtitle">{{ .Summary }}</h5>
+      </div>
+    </div>
+  </div>
+  {{end}}
+</div>
+-->
+
+<!--
+<div class="btn-group mr-2" role="group" aria-label="First group">
+  {{range .calendar}}
+  <button type="button" class="btn btn-secondary">{{ .Date | formatDate }}</button>
+  {{end}}
+</div>
+-->
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th scope="col">Date</th>
+      <th scope="col">Shift</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .calendar}}
+    <tr class="{{ .Shift | formatShiftColor }}">
+      <td>{{ .Date | formatDate }}</td>
+      <td>{{ .Shift | formatShift }}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+
+{{ template "upload.html" .}}
+{{ template "footer.tmpl" .}}
