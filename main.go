@@ -8,6 +8,7 @@ import (
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/DictumMortuum/servus/util"
+	"github.com/DictumMortuum/servus/zerotier"
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"io"
@@ -23,7 +24,7 @@ func main() {
 		gin.DisableConsoleColor()
 		f, _ := os.Create("/var/log/servus.log")
 		gin.DefaultWriter = io.MultiWriter(f)
-		templates = "/usr/share/servus/*"
+		templates = "/opt/domus/servus/templates/*"
 	}
 
 	err := config.Read("/etc/servusrc")
@@ -47,6 +48,11 @@ func main() {
 		cal.POST("/parse", parse.Handler)
 		cal.POST("/validate", validate.Validate)
 		cal.GET("/", parse.Render)
+	}
+
+	zt := r.Group("/zerotier")
+	{
+		zt.GET("/member/:member", zerotier.PostNode)
 	}
 
 	r.POST("/links", links.Handler)

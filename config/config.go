@@ -12,6 +12,10 @@ type Config struct {
 		Server   string `yaml:"server"`
 		Port     string `yaml:"port"`
 	} `yaml:"database"`
+	Zerotier struct {
+		Token   string `yaml:"token"`
+		Network string `yaml:"network"`
+	} `yaml:"zerotier"`
 }
 
 var (
