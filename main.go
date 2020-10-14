@@ -56,5 +56,5 @@ func main() {
 	}
 
 	r.POST("/links", links.Handler)
-	r.Run("127.0.0.1:1234")
+	r.Run("0.0.0.0:1234")
 }
