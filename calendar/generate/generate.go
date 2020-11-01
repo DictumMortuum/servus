@@ -32,6 +32,7 @@ DTSTAMP:{{ .Dtstamp }}
 DTSTART:{{ .Dtstart }}
 DTEND:{{ .Dtend }}
 SUMMARY:{{ .Summary }}
+DESCRIPTION:{{ .Description }}
 END:VEVENT{{end}}
 END:VCALENDAR
 `))

@@ -46,6 +46,7 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		date,
 		shift,
 		summary,
+		description,
 		cr_date,
 		sequence
 	) values (
@@ -53,11 +54,13 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		:date,
 		:shift,
 		:summary,
+		:description,
 		NOW(),
 		0
 	) on duplicate key update
 		shift=:shift,
 		summary=:summary,
+		description=:description,
 		cr_date=NOW(),
 		sequence=sequence+1`
 

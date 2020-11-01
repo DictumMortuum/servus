@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/tealeg/xlsx/v3"
 	"time"
 )
 
@@ -13,8 +14,12 @@ type CalendarRow struct {
 	Date         time.Time `db:"date"`
 	Shift        int       `db:"shift"`
 	Summary      string    `db:"summary"`
+	Description  string    `db:"description"`
 	CreationDate time.Time `db:"cr_date"`
 	Seq          int       `db:"sequence"`
+	Row          *xlsx.Row
+	X            int
+	Y            int
 }
 
 func (c *CalendarRow) Dtstamp() string {

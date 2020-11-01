@@ -42,9 +42,11 @@ func parseXlsx(form formData) error {
 	for _, person := range sheet.People {
 		if person.Id == "3673" {
 			for _, day := range person.Calendar {
+				coworkers := calendar.GetCoworkers(day, sheet.Header)
 				day.Date = day.GetDate(y, m)
 				day.Shift = calendar.RawToShift(day.Raw)
 				day.Summary = calendar.FormatShift(day.Shift)
+				day.Description = calendar.FormatCoworkers(coworkers)
 
 				err := db.CreateEvent(database, day)
 				if err != nil {

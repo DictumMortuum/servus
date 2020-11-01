@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -46,6 +47,21 @@ func FormatShift(shift int) string {
 		return "Αργία"
 	} else {
 		return "Άγνωστο"
+	}
+}
+
+func FormatCoworkers(coworkers []string) string {
+	l := len(coworkers)
+	var col []string
+
+	for _, coworker := range coworkers {
+		col = append(col, strings.Title(strings.ToLower(strings.TrimSpace(coworker))))
+	}
+
+	if l == 0 {
+		return ""
+	} else {
+		return strings.Join(col, ", ")
 	}
 }
 

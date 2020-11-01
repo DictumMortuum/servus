@@ -46,13 +46,18 @@ func (c *Person) New(row *xlsx.Row, header XlsxHeader) error {
 	}
 
 	for j := skips; j < row.Sheet.MaxCol; j++ {
-		cell, _ := row.GetCell(j).FormattedValue()
+		cell := row.GetCell(j)
+		raw, _ := cell.FormattedValue()
+		i := row.GetCoordinate()
 
 		if header.Info[j-4].Enabled {
 			c.Calendar = append(c.Calendar, db.CalendarRow{
 				Index:   header.Info[j-4].Index,
 				DayName: header.Info[j-4].Name,
-				Raw:     cell,
+				Raw:     raw,
+				Row:     row,
+				X:       i,
+				Y:       j,
 			})
 		} else {
 			skips++
@@ -60,6 +65,27 @@ func (c *Person) New(row *xlsx.Row, header XlsxHeader) error {
 	}
 
 	return nil
+}
+
+func GetCoworkers(d db.CalendarRow, header XlsxHeader) []string {
+	coworkers := []string{}
+	sheet := d.Row.Sheet
+
+	for i := header.RowIndex + 1; i < sheet.MaxRow; i++ {
+		temp, _ := sheet.Cell(i, d.Y)
+		t, _ := temp.FormattedValue()
+
+		if i != d.X {
+			if d.Raw == t && RawToShift(d.Raw) >= 0 {
+				var person Person
+				r, _ := sheet.Row(i)
+				r.ReadStruct(&person)
+				coworkers = append(coworkers, person.Name+" "+person.Surname)
+			}
+		}
+	}
+
+	return coworkers
 }
 
 func (h *XlsxHeader) New(row *xlsx.Row) error {
