@@ -6,6 +6,7 @@ import (
 	"github.com/DictumMortuum/servus/calendar/parse"
 	"github.com/DictumMortuum/servus/calendar/validate"
 	"github.com/DictumMortuum/servus/config"
+	"github.com/DictumMortuum/servus/gas"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/DictumMortuum/servus/util"
 	"github.com/DictumMortuum/servus/zerotier"
@@ -36,6 +37,7 @@ func main() {
 
 	r.SetFuncMap(template.FuncMap{
 		"formatDate":       util.FormatDate,
+		"formatDay":        util.FormatDay,
 		"formatShift":      calendar.FormatShift,
 		"formatShiftColor": calendar.FormatShiftColor,
 	})
@@ -53,6 +55,13 @@ func main() {
 	zt := r.Group("/zerotier")
 	{
 		zt.GET("/member/:member", zerotier.PostNode)
+	}
+
+	gs := r.Group("/gas")
+	{
+		gs.GET("/", gas.Render)
+		gs.POST("/fuel", gas.AddFuelStats)
+		//gs.POST("/fuelstats", gas.AddFuelStats)
 	}
 
 	r.POST("/links", links.Handler)

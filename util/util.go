@@ -36,3 +36,7 @@ func Success(c *gin.Context, payload *map[string]interface{}) {
 func FormatDate(t time.Time) string {
 	return t.Format("02-01-2006")
 }
+
+func FormatDay(t time.Time) string {
+	return t.Format("Monday")
+}

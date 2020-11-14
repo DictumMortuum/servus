@@ -105,7 +105,8 @@ func Render(c *gin.Context) {
 			"desc":    "Upload xlsx",
 		},
 		"secondary": map[string]interface{}{
-			"enabled": false,
+			"enabled": true,
+			"desc":    "Options",
 		},
 		"error": cookie,
 	}

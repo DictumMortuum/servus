@@ -36,6 +36,7 @@
   <thead>
     <tr>
       <th scope="col">Date</th>
+      <th scope="col">Day</th>
       <th scope="col">Shift</th>
       <th scope="col">Coworkers</th>
     </tr>
@@ -44,6 +45,7 @@
     {{range .calendar}}
     <tr class="{{ .Shift | formatShiftColor }}">
       <td>{{ .Date | formatDate }}</td>
+      <td>{{ .Date | formatDay }}</td>
       <td>{{ .Shift | formatShift }}</td>
       <td>{{ .Description }}</td>
     </tr>

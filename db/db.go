@@ -31,7 +31,7 @@ func GetShifts(db *sqlx.DB) ([]CalendarRow, error) {
 func GetFutureShifts(db *sqlx.DB) ([]CalendarRow, error) {
 	retval := []CalendarRow{}
 
-	err := db.Select(&retval, "select * from tcalendar where date > NOW() - interval 0 day order by date")
+	err := db.Select(&retval, "select * from tcalendar where date >= NOW() - interval 0 day order by date")
 	if err != nil {
 		return nil, err
 	}
@@ -70,4 +70,35 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 	}
 
 	return nil
+}
+
+func GetGas(db *sqlx.DB) ([]FuelJoinRow, error) {
+	retval := []FuelJoinRow{}
+
+	sql := `select
+    f.fuel_id "tfuel.fuel_id",
+    f.date "tfuel.date",
+    f.cost_per_litre "tfuel.cost_per_litre",
+    f.litre "tfuel.litre",
+    f.cost "tfuel.cost",
+    f.location "tfuel.location",
+    s.fuel_stats_id "tfuelstats.fuel_stats_id",
+    s.fuel_id "tfuelstats.fuel_id",
+    s.km "tfuelstats.km",
+    s.litre_average "tfuelstats.litre_average",
+    s.duration "tfuelstats.duration",
+    s.kmh "tfuelstats.kmh"
+  from
+    tfuel as f,
+    tfuelstats s
+  where
+    f.fuel_id = s.fuel_id
+	`
+
+	err := db.Select(&retval, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	return retval, nil
 }

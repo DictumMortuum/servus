@@ -22,9 +22,11 @@
           {{ .primary.desc }}
         </a>
         {{ end }}
+        {{ if .secondary.enabled }}
         <a class="btn btn-secondary" href="#" data-toggle="modal" data-target="#modal-options">
-          Options
+          {{ .secondary.desc }}
         </a>
+        {{ end }}
       </div>
     </nav>
     <main class="container-fluid" role="main">
