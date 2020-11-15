@@ -72,6 +72,48 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 	return nil
 }
 
+func GetFuelIdsWithoutStats(db *sqlx.DB) ([]FuelRow, error) {
+	retval := []FuelRow{}
+
+	err := db.Select(&retval, "select * from tfuel where fuel_id not in (select fuel_id from tfuelstats) order by fuel_id")
+	if err != nil {
+		return nil, err
+	}
+
+	return retval, nil
+}
+
+func CreateFuelStats(db *sqlx.DB, row FuelStatsRow) error {
+	ids, err := GetFuelIdsWithoutStats(db)
+	if err != nil {
+		return err
+	}
+
+	row.FuelId = ids[0].Id
+
+	sql := `
+	insert into tfuelstats (
+		fuel_id,
+		km,
+		litre_average,
+		duration,
+		kmh
+	) values (
+		:fuel_id,
+		:km,
+		:litre_average,
+		:duration,
+		:kmh
+	)`
+
+	_, err = db.NamedExec(sql, &row)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetGas(db *sqlx.DB) ([]FuelJoinRow, error) {
 	retval := []FuelJoinRow{}
 

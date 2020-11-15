@@ -57,10 +57,10 @@ func main() {
 		zt.GET("/member/:member", zerotier.PostNode)
 	}
 
-	gs := r.Group("/gas")
+	gs := r.Group("/fuel")
 	{
 		gs.GET("/", gas.Render)
-		gs.POST("/fuel", gas.AddFuelStats)
+		gs.POST("/addstats", gas.AddFuelStats)
 		//gs.POST("/fuelstats", gas.AddFuelStats)
 	}
 

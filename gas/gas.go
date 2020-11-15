@@ -46,11 +46,21 @@ func AddFuelStats(c *gin.Context) {
 		return
 	}
 
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	err = db.CreateFuelStats(database, form)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
 	years := map[string]interface{}{
-		"a": form.Kilometers,
-		"b": form.LitreAverage,
-		"c": form.Duration,
-		"d": form.KilometersPerHour,
+		"data": form,
 	}
 
 	util.Success(c, &years)
