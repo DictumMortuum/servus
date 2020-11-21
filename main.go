@@ -61,7 +61,7 @@ func main() {
 	{
 		gs.GET("/", gas.Render)
 		gs.POST("/addstats", gas.AddFuelStats)
-		//gs.POST("/fuelstats", gas.AddFuelStats)
+		gs.POST("/add", gas.AddFuel)
 	}
 
 	r.POST("/links", links.Handler)

@@ -59,9 +59,38 @@ func AddFuelStats(c *gin.Context) {
 		return
 	}
 
-	years := map[string]interface{}{
+	payload := map[string]interface{}{
 		"data": form,
 	}
 
-	util.Success(c, &years)
+	util.Success(c, &payload)
+}
+
+func AddFuel(c *gin.Context) {
+	var form db.FuelRow
+
+	err := c.ShouldBind(&form)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	err = db.CreateFuel(database, form)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	payload := map[string]interface{}{
+		"data": form,
+	}
+
+	util.Success(c, &payload)
 }

@@ -114,6 +114,30 @@ func CreateFuelStats(db *sqlx.DB, row FuelStatsRow) error {
 	return nil
 }
 
+func CreateFuel(db *sqlx.DB, row FuelRow) error {
+	sql := `
+	insert into tfuelstats (
+		date,
+		cost_per_litre,
+		litre,
+		cost,
+		location
+	) values (
+		:date,
+		:cost_per_litre,
+		:litre,
+		:cost,
+		:location
+	)`
+
+	_, err := db.NamedExec(sql, &row)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetGas(db *sqlx.DB) ([]FuelJoinRow, error) {
 	retval := []FuelJoinRow{}
 

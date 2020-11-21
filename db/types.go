@@ -8,11 +8,11 @@ import (
 
 type FuelRow struct {
 	Id           int            `db:"fuel_id"`
-	Date         time.Time      `db:"date"`
-	CostPerLitre float64        `db:"cost_per_litre"`
-	Litre        float64        `db:"litre"`
-	Cost         float64        `db:"cost"`
-	Location     sql.NullString `db:"location"`
+	Date         time.Time      `db:"date" form:"date" binding:"required"`
+	CostPerLitre float64        `db:"cost_per_litre" form:"cost_per_litre" binding:"required"`
+	Litre        float64        `db:"litre" form:"litre" binding:"required"`
+	Cost         float64        `db:"cost" form:"cost" binding:"required"`
+	Location     sql.NullString `db:"location" form:"location" binding:"required"`
 }
 
 type FuelStatsRow struct {
