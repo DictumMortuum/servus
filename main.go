@@ -64,6 +64,6 @@ func main() {
 		gs.POST("/add", gas.AddFuel)
 	}
 
-	r.POST("/links", links.Handler)
+	r.POST("/links", links.AddLink)
 	r.Run("0.0.0.0:1234")
 }

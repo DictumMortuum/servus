@@ -29,6 +29,12 @@ type FuelJoinRow struct {
 	FuelStats FuelStatsRow `db:"tfuelstats"`
 }
 
+type LinkRow struct {
+	Url  string `db:"url" form:"url" binding:"required"`
+	Host string `db:"host" form:"host" binding:"required"`
+	User string `db:"user" form:"user" binding:"required"`
+}
+
 type CalendarRow struct {
 	Id           int `db:"calendar_id"`
 	Index        int

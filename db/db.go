@@ -168,3 +168,23 @@ func GetGas(db *sqlx.DB) ([]FuelJoinRow, error) {
 
 	return retval, nil
 }
+
+func CreateLink(db *sqlx.DB, row LinkRow) error {
+	sql := `
+	insert into tlink (
+		url,
+		host,
+		user
+	) values (
+		:url,
+		:host,
+		:user
+	)`
+
+	_, err := db.NamedExec(sql, &row)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

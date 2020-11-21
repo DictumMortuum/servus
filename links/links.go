@@ -2,32 +2,35 @@ package links
 
 import (
 	"github.com/DictumMortuum/servus/db"
+	"github.com/DictumMortuum/servus/util"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
-func Handler(c *gin.Context) {
-	url := c.PostForm("url")
+func AddLink(c *gin.Context) {
+	var form db.LinkRow
 
-	db, err := db.Conn()
+	err := c.ShouldBind(&form)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	defer db.Close()
-
-	stmt, err := db.Prepare("insert into tlink (url) values (?)")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(url)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.Error(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "OK"})
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	err = db.CreateLink(database, form)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	payload := map[string]interface{}{
+		"data": form,
+	}
+
+	util.Success(c, &payload)
 }
