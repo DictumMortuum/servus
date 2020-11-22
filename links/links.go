@@ -9,6 +9,8 @@ import (
 func AddLink(c *gin.Context) {
 	var form db.LinkRow
 
+	payload := map[string]interface{}{}
+
 	err := c.ShouldBind(&form)
 	if err != nil {
 		util.Error(c, err)
@@ -22,14 +24,21 @@ func AddLink(c *gin.Context) {
 	}
 	defer database.Close()
 
-	err = db.CreateLink(database, form)
+	exists, err := db.LinkExists(database, form)
 	if err != nil {
 		util.Error(c, err)
 		return
 	}
 
-	payload := map[string]interface{}{
-		"data": form,
+	payload["data"] = form
+	payload["exists"] = exists
+
+	if !exists {
+		err = db.CreateLink(database, form)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
 	}
 
 	util.Success(c, &payload)
