@@ -56,7 +56,7 @@ func GetNode(c *gin.Context) {
 
 func PostNode(c *gin.Context) {
 	network := config.App.Zerotier.Network
-	member := c.Param("member")
+	member := c.PostForm("member")
 
 	payload := map[string]interface{}{
 		"config": map[string]interface{}{
