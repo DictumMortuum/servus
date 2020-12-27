@@ -39,6 +39,62 @@ func GetFutureShifts(db *sqlx.DB) ([]CalendarRow, error) {
 	return retval, nil
 }
 
+func CreateRouter(db *sqlx.DB, data RouterRow) error {
+	sql := `
+	insert into trouter (
+		uptime,
+		date,
+		max_up,
+		max_down,
+		current_up,
+		current_down,
+		crc_up,
+		crc_down,
+		fec_up,
+		fec_down,
+		snr_up,
+		snr_down,
+		data_up,
+		data_down
+	) values (
+		:uptime,
+		:date,
+		:max_up,
+		:max_down,
+		:current_up,
+		:current_down,
+		:crc_up,
+		:crc_down,
+		:fec_up,
+		:fec_down,
+		:snr_up,
+		:snr_down,
+		:data_up,
+		:data_down
+	)`
+
+	_, err := db.NamedExec(sql, &data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RouterExists(db *sqlx.DB, row RouterRow) (bool, error) {
+	rows, err := db.NamedQuery(`select 1 from trouter where date=:date`, row)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 	sql := `
 	insert into tcalendar (

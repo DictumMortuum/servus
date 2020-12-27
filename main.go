@@ -8,6 +8,7 @@ import (
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/gas"
 	"github.com/DictumMortuum/servus/links"
+	"github.com/DictumMortuum/servus/router"
 	"github.com/DictumMortuum/servus/util"
 	"github.com/DictumMortuum/servus/zerotier"
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,7 @@ func main() {
 		gs.POST("/add", gas.AddFuel)
 	}
 
+	r.GET("/router", router.Get)
 	r.POST("/links", links.AddLink)
 	r.Run("0.0.0.0:1234")
 }

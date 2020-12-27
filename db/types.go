@@ -6,6 +6,23 @@ import (
 	"time"
 )
 
+type RouterRow struct {
+	Uptime      int64     `db:"uptime"`
+	Date        time.Time `db:"date"`
+	MaxUp       int       `db:"max_up"`
+	MaxDown     int       `db:"max_down"`
+	CurrentUp   int       `db:"current_up"`
+	CurrentDown int       `db:"current_down"`
+	CRCUp       int       `db:"crc_up"`
+	CRCDown     int       `db:"crc_down"`
+	FECUp       int       `db:"fec_up"`
+	FECDown     int       `db:"fec_down"`
+	SNRUp       int64     `db:"snr_up"`
+	SNRDown     int64     `db:"snr_down"`
+	DataUp      int64     `db:"data_up"`
+	DataDown    int64     `db:"data_down"`
+}
+
 type FuelRow struct {
 	Id           int            `db:"fuel_id"`
 	Date         time.Time      `db:"date" form:"date" binding:"required"`

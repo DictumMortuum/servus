@@ -25,6 +25,14 @@ func ErrorRedirect(c *gin.Context, endpoint string, err error) {
 	c.Redirect(http.StatusMovedPermanently, endpoint)
 }
 
+func Success2(c *gin.Context, payload interface{}) {
+	c.JSON(http.StatusOK, gin.H{
+		"status":   "OK",
+		"error":    nil,
+		"response": payload,
+	})
+}
+
 func Success(c *gin.Context, payload *map[string]interface{}) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   "OK",
