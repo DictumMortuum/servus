@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	TEMPORARY      = "/tmp/cal"
-	DAY_OFF        = -1
-	NORMAL_LEAVE   = -2
-	SICK_LEAVE     = -3
-	PUBLIC_HOLIDAY = -4
-	UNKNOWN_LEAVE  = -100
+	TEMPORARY       = "/tmp/cal"
+	DAY_OFF         = -1
+	NORMAL_LEAVE    = -2
+	SICK_LEAVE      = -3
+	PUBLIC_HOLIDAY  = -4
+	PERENNIAL_LEAVE = -5
+	UNKNOWN_LEAVE   = -100
 )
 
 func FormatShiftColor(shift int) string {
@@ -28,6 +29,8 @@ func FormatShiftColor(shift int) string {
 	} else if shift == SICK_LEAVE {
 		return "table-warning"
 	} else if shift == PUBLIC_HOLIDAY {
+		return "table-warning"
+	} else if shift == PERENNIAL_LEAVE {
 		return "table-warning"
 	} else {
 		return ""
@@ -45,6 +48,8 @@ func FormatShift(shift int) string {
 		return "Ασθένεια"
 	} else if shift == PUBLIC_HOLIDAY {
 		return "Αργία"
+	} else if shift == PERENNIAL_LEAVE {
+		return "Πολυετία"
 	} else {
 		return "Άγνωστο"
 	}
@@ -70,6 +75,7 @@ func RawToAbsence(raw string) int {
 	re2 := regexp.MustCompile("[ΚΑKA]{2}")
 	re3 := regexp.MustCompile("[ΑAΣΘ]{3}")
 	re4 := regexp.MustCompile("[KΚ]{1}")
+	re5 := regexp.MustCompile("[ΠOΟΛ]{3}")
 
 	if re1.MatchString(raw) {
 		return DAY_OFF
@@ -79,6 +85,8 @@ func RawToAbsence(raw string) int {
 		return SICK_LEAVE
 	} else if re4.MatchString(raw) {
 		return PUBLIC_HOLIDAY
+	} else if re5.MatchString(raw) {
+		return PERENNIAL_LEAVE
 	} else {
 		return UNKNOWN_LEAVE
 	}

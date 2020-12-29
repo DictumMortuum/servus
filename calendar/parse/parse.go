@@ -48,9 +48,16 @@ func parseXlsx(form formData) error {
 				day.Summary = calendar.FormatShift(day.Shift)
 				day.Description = calendar.FormatCoworkers(coworkers)
 
-				err := db.CreateEvent(database, day)
+				exists, err := db.EventExists(database, day)
 				if err != nil {
 					return err
+				}
+
+				if !exists {
+					err = db.CreateEvent(database, day)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}

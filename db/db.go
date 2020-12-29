@@ -31,7 +31,7 @@ func GetShifts(db *sqlx.DB) ([]CalendarRow, error) {
 func GetFutureShifts(db *sqlx.DB) ([]CalendarRow, error) {
 	retval := []CalendarRow{}
 
-	err := db.Select(&retval, "select * from tcalendar where date >= NOW() - interval 0 day order by date")
+	err := db.Select(&retval, "select * from tcalendar where date >= NOW() - interval 10 day order by date")
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +83,20 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 
 func RouterExists(db *sqlx.DB, row RouterRow) (bool, error) {
 	rows, err := db.NamedQuery(`select 1 from trouter where date=:date`, row)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func EventExists(db *sqlx.DB, day CalendarRow) (bool, error) {
+	rows, err := db.NamedQuery(`select 1 from tcalendar where date=:date and shift=:shift`, day)
 	if err != nil {
 		return false, err
 	}
