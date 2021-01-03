@@ -44,6 +44,7 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 	insert into trouter (
 		uptime,
 		date,
+		cr_date,
 		max_up,
 		max_down,
 		current_up,
@@ -59,6 +60,7 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 	) values (
 		:uptime,
 		:date,
+		NOW(),
 		:max_up,
 		:max_down,
 		:current_up,
