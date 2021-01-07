@@ -34,7 +34,7 @@ type params struct {
 }
 
 func Get(c *gin.Context) {
-	var retval db.RouterRow
+	var retval RouterRow
 	var p params
 
 	err := c.ShouldBind(&p)
@@ -191,7 +191,7 @@ func Get(c *gin.Context) {
 	update := true
 
 	if p.CheckUptime {
-		exists, err := db.RouterExists(database, retval)
+		exists, err := RouterExists(database, retval)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -200,7 +200,7 @@ func Get(c *gin.Context) {
 	}
 
 	if update {
-		err = db.CreateRouter(database, retval)
+		err = CreateRouter(database, retval)
 		if err != nil {
 			util.Error(c, err)
 			return

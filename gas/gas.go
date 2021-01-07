@@ -15,7 +15,7 @@ func Render(c *gin.Context) {
 	}
 	defer database.Close()
 
-	gas, err := db.GetGas(database)
+	gas, err := GetGas(database)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -38,7 +38,7 @@ func Render(c *gin.Context) {
 }
 
 func AddFuelStats(c *gin.Context) {
-	var form db.FuelStatsRow
+	var form FuelStatsRow
 
 	err := c.ShouldBind(&form)
 	if err != nil {
@@ -53,7 +53,7 @@ func AddFuelStats(c *gin.Context) {
 	}
 	defer database.Close()
 
-	err = db.CreateFuelStats(database, form)
+	err = CreateFuelStats(database, form)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -67,7 +67,7 @@ func AddFuelStats(c *gin.Context) {
 }
 
 func AddFuel(c *gin.Context) {
-	var form db.FuelRow
+	var form FuelRow
 
 	err := c.ShouldBind(&form)
 	if err != nil {
@@ -82,7 +82,7 @@ func AddFuel(c *gin.Context) {
 	}
 	defer database.Close()
 
-	err = db.CreateFuel(database, form)
+	err = CreateFuel(database, form)
 	if err != nil {
 		util.Error(c, err)
 		return
