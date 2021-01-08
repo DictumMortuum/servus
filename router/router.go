@@ -29,19 +29,8 @@ func ByteCountIEC(b int64) string {
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }*/
 
-type params struct {
-	CheckUptime bool `form:"check_uptime"`
-}
-
 func Get(c *gin.Context) {
 	var retval RouterRow
-	var p params
-
-	err := c.ShouldBind(&p)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
 
 	req, err := http.NewRequest("GET", "http://192.168.1.1/comm/wan_cfg.sjs", nil)
 	if err != nil {
@@ -188,18 +177,21 @@ func Get(c *gin.Context) {
 	}
 	defer database.Close()
 
-	update := true
+	id, err := RouterExists(database, retval)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
 
-	if p.CheckUptime {
-		exists, err := RouterExists(database, retval)
+	retval.Id = id
+
+	if id > 0 {
+		err = UpdateRouter(database, retval)
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
-		update = !exists
-	}
-
-	if update {
+	} else {
 		err = CreateRouter(database, retval)
 		if err != nil {
 			util.Error(c, err)
