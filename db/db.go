@@ -4,10 +4,13 @@ import (
 	"github.com/DictumMortuum/servus/config"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"net/url"
+	"time"
 )
 
 func Conn() (*sqlx.DB, error) {
-	url := config.App.GetMariaDBConnection("servus?parseTime=true")
+	zone, _ := time.Now().Zone()
+	url := config.App.GetMariaDBConnection("servus?parseTime=true&loc=" + url.QueryEscape(zone))
 	db, err := sqlx.Connect("mysql", url)
 
 	if err != nil {
