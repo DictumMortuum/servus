@@ -1,6 +1,7 @@
 package router
 
 import (
+	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -95,9 +96,19 @@ func UpdateRouter(db *sqlx.DB, data RouterRow) error {
 }
 
 func RouterExists(db *sqlx.DB, row RouterRow) (int64, error) {
-	var id int64
+	var id sql.NullInt64
 
-	stmt, err := db.PrepareNamed(`select max(id) from trouter where date=:date`)
+	sql := `
+	select
+		max(id)
+	from
+		trouter
+	where
+		date >= :date - interval 1 minute and
+		date <= :date + interval 1 minute
+	`
+
+	stmt, err := db.PrepareNamed(sql)
 	if err != nil {
 		return -1, err
 	}
@@ -107,5 +118,14 @@ func RouterExists(db *sqlx.DB, row RouterRow) (int64, error) {
 		return -1, err
 	}
 
-	return id, nil
+	retval, err := id.Value()
+	if err != nil {
+		return -1, err
+	}
+
+	if retval == nil {
+		return -1, err
+	}
+
+	return retval.(int64), nil
 }
