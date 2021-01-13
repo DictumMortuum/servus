@@ -77,5 +77,5 @@ func main() {
 	r.GET("/router", router.Get)
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
-	r.Run("0.0.0.0:1234")
+	r.Run("127.0.0.1:1234")
 }
