@@ -8,8 +8,10 @@ import (
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/gas"
 	"github.com/DictumMortuum/servus/links"
+	"github.com/DictumMortuum/servus/music"
 	"github.com/DictumMortuum/servus/router"
 	"github.com/DictumMortuum/servus/util"
+	"github.com/DictumMortuum/servus/weight"
 	"github.com/DictumMortuum/servus/zerotier"
 	"github.com/gin-gonic/gin"
 	"html/template"
@@ -66,7 +68,14 @@ func main() {
 		gs.POST("/add", gas.AddFuel)
 	}
 
+	ms := r.Group("/music")
+	{
+		ms.GET("/playlist/:playlist", music.Playlist)
+		ms.GET("/stop", music.Stop)
+	}
+
 	r.GET("/router", router.Get)
+	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
 	r.Run("0.0.0.0:1234")
 }
