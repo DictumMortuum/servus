@@ -36,20 +36,20 @@ type LinkRow struct {
 }
 
 type CalendarRow struct {
-	Id           int `db:"calendar_id"`
-	Index        int
-	Raw          string
-	DayName      string
-	Uuid         string    `db:"uuid"`
-	Date         time.Time `db:"date"`
-	Shift        int       `db:"shift"`
-	Summary      string    `db:"summary"`
-	Description  string    `db:"description"`
-	CreationDate time.Time `db:"cr_date"`
-	Seq          int       `db:"sequence"`
-	Row          *xlsx.Row
-	X            int
-	Y            int
+	Id           int       `db:"calendar_id" json:"id"`
+	Index        int       `json:"-"`
+	Raw          string    `json:"-"`
+	DayName      string    `json:"-"`
+	Uuid         string    `db:"uuid" json:"uuid"`
+	Date         time.Time `db:"date" json:"date"`
+	Shift        int       `db:"shift" json:"shift"`
+	Summary      string    `db:"summary" json:"summary"`
+	Description  string    `db:"description" json:"description"`
+	CreationDate time.Time `db:"cr_date" json:"cr_date"`
+	Seq          int       `db:"sequence" json:"sequence"`
+	Row          *xlsx.Row `json:"-"`
+	X            int       `json:"-"`
+	Y            int       `json:"-"`
 }
 
 func (c *CalendarRow) Dtstamp() string {

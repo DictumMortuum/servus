@@ -1,9 +1,16 @@
 package db
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/DictumMortuum/servus/config"
+	"github.com/DictumMortuum/servus/generic"
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"log"
+	"net/http"
+	"text/template"
 )
 
 func Conn() (*sqlx.DB, error) {
@@ -15,6 +22,62 @@ func Conn() (*sqlx.DB, error) {
 	}
 
 	return db, nil
+}
+
+func GetShiftList(c *gin.Context) {
+	err, args := generic.ParseArgs(c)
+	if err != nil {
+		generic.Fail(c, err)
+		return
+	}
+
+	db, err := Conn()
+	if err != nil {
+		generic.Fail(c, err)
+		return
+	}
+	defer db.Close()
+
+	log.Println(args)
+
+	var total int
+	err = db.Get(&total, "select count(*) from tcalendar where date >= NOW() - interval 1 day")
+	if err != nil {
+		generic.Fail(c, err)
+		return
+	}
+
+	sql := `
+select
+	*
+from
+	tcalendar
+where date >= NOW() - interval 1 day
+{{ if eq (len .Sort) 2 }}
+order by {{ index .Sort 0 }} {{ index .Sort 1 }}
+{{ end }}
+{{ if eq (len .Range) 2  }}
+limit {{ index .Range 0 }}, {{ .Page }}
+{{ end }}
+`
+
+	var tpl bytes.Buffer
+	t := template.Must(template.New("shiftlist").Parse(sql))
+	err = t.Execute(&tpl, args)
+	if err != nil {
+		generic.Fail(c, err)
+		return
+	}
+
+	data := []CalendarRow{}
+	err = db.Select(&data, tpl.String())
+	if err != nil {
+		generic.Fail(c, err)
+		return
+	}
+
+	c.Header("Content-Range", fmt.Sprintf("%d-%d/%d", args.Range[0], args.Range[1], total))
+	c.JSON(http.StatusOK, data)
 }
 
 func GetShifts(db *sqlx.DB) ([]CalendarRow, error) {
