@@ -199,5 +199,5 @@ func Get(c *gin.Context) {
 		}
 	}
 
-	util.Success2(c, &retval)
+	util.Success(c, &retval)
 }

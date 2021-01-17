@@ -36,5 +36,5 @@ func AddWeight(c *gin.Context) {
 		return
 	}
 
-	util.Success2(c, &data)
+	util.Success(c, &data)
 }

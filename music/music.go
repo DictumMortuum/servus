@@ -89,7 +89,7 @@ func Playlist(c *gin.Context) {
 		return
 	}
 
-	util.Success2(c, &retval)
+	util.Success(c, &retval)
 }
 
 func Stop(c *gin.Context) {
@@ -106,5 +106,5 @@ func Stop(c *gin.Context) {
 		return
 	}
 
-	util.Success2(c, &status)
+	util.Success(c, &status)
 }
