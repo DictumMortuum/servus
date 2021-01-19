@@ -30,9 +30,13 @@ func ByteCountIEC(b int64) string {
 }*/
 
 func Get(c *gin.Context) {
+	ip := c.DefaultQuery("ip", "192.168.2.1")
+	ppp := c.DefaultQuery("ppp", "ip")
+	ppp = strings.ToUpper(ppp)
+
 	var retval RouterRow
 
-	req, err := http.NewRequest("GET", "http://192.168.1.1/comm/wan_cfg.sjs", nil)
+	req, err := http.NewRequest("GET", "http://"+ip+"/comm/wan_cfg.sjs", nil)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -70,7 +74,7 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	data, err := vm.Run("PPP_ConnectionTable[0].TxBytes")
+	data, err := vm.Run(ppp + "_ConnectionTable[0].TxBytes")
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -78,7 +82,7 @@ func Get(c *gin.Context) {
 
 	retval.DataUp, _ = data.ToInteger()
 
-	data, err = vm.Run("PPP_ConnectionTable[0].RxBytes")
+	data, err = vm.Run(ppp + "_ConnectionTable[0].RxBytes")
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -86,7 +90,7 @@ func Get(c *gin.Context) {
 
 	retval.DataDown, _ = data.ToInteger()
 
-	data, err = vm.Run("PPP_ConnectionTable[0].UpTime")
+	data, err = vm.Run(ppp + "_ConnectionTable[0].UpTime")
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -97,7 +101,7 @@ func Get(c *gin.Context) {
 	t := time.Now().Add(time.Duration(-uptime) * time.Second)
 	retval.Date = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 
-	res2, err := http.Get("http://192.168.1.1/broadband/bd_dsl_detail.shtml?be=0&l0=2&l1=0&dtl=dt")
+	res2, err := http.Get("http://" + ip + "/broadband/bd_dsl_detail.shtml?be=0&l0=2&l1=0&dtl=dt")
 	if err != nil {
 		util.Error(c, err)
 		return
