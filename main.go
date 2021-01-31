@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/DictumMortuum/servus/boardgames"
 	"github.com/DictumMortuum/servus/calendar"
 	"github.com/DictumMortuum/servus/calendar/generate"
 	"github.com/DictumMortuum/servus/calendar/parse"
@@ -22,16 +23,18 @@ import (
 
 func main() {
 	mode := os.Getenv("GIN_MODE")
-	templates := "templates/*"
+	path_templates := "templates/*"
+	path_cfg := "servusrc"
 
 	if mode == "release" {
 		gin.DisableConsoleColor()
 		f, _ := os.Create("/var/log/servus.log")
 		gin.DefaultWriter = io.MultiWriter(f)
-		templates = "/opt/domus/servus/templates/*"
+		path_templates = "/opt/domus/servus/templates/*"
+		path_cfg = "/etc/servusrc"
 	}
 
-	err := config.Read("/etc/servusrc")
+	err := config.Read(path_cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,7 +48,7 @@ func main() {
 		"formatShiftColor": calendar.FormatShiftColor,
 	})
 
-	r.LoadHTMLGlob(templates)
+	r.LoadHTMLGlob(path_templates)
 
 	cal := r.Group("/calendar")
 	{
@@ -72,6 +75,11 @@ func main() {
 	{
 		ms.GET("/playlist/:playlist", music.Playlist)
 		ms.GET("/stop", music.Stop)
+	}
+
+	bg := r.Group("/boardgames")
+	{
+		bg.GET("/prices", boardgames.GetPrices)
 	}
 
 	r.GET("/router", router.Get)
