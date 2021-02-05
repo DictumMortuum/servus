@@ -14,6 +14,8 @@ type RouterRow struct {
 	MaxDown     int       `db:"max_down"`
 	CurrentUp   int       `db:"current_up"`
 	CurrentDown int       `db:"current_down"`
+	InitialUp   int       `db:"initial_up"`
+	InitialDown int       `db:"initial_down"`
 	CRCUp       int       `db:"crc_up"`
 	CRCDown     int       `db:"crc_down"`
 	FECUp       int       `db:"fec_up"`
@@ -34,6 +36,8 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 		max_down,
 		current_up,
 		current_down,
+		initial_up,
+		initial_down,
 		crc_up,
 		crc_down,
 		fec_up,
@@ -50,6 +54,8 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 		:max_down,
 		:current_up,
 		:current_down,
+		:initial_up,
+		:initial_down,
 		:crc_up,
 		:crc_down,
 		:fec_up,
