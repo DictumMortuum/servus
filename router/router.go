@@ -129,7 +129,7 @@ func Get(c *gin.Context) {
 		retval.CurrentUp, _ = strconv.Atoi(strings.TrimSpace(current[0]))
 		retval.CurrentDown, _ = strconv.Atoi(strings.TrimSpace(current[1]))
 		retval.InitialUp = retval.CurrentUp
-		retval.InitialDown = retval.InitialDown
+		retval.InitialDown = retval.CurrentDown
 	})
 
 	doc.Find("td[key=PAGE_BD_DSL_DETAIL_CE] + td").Each(func(i int, s *goquery.Selection) {
