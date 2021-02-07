@@ -8,6 +8,7 @@ import (
 	"github.com/DictumMortuum/servus/calendar/validate"
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/gas"
+	// "github.com/DictumMortuum/servus/generic"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/DictumMortuum/servus/music"
 	"github.com/DictumMortuum/servus/router"
@@ -15,11 +16,33 @@ import (
 	"github.com/DictumMortuum/servus/weight"
 	"github.com/DictumMortuum/servus/zerotier"
 	"github.com/gin-gonic/gin"
+	"github.com/itsjamie/gin-cors"
 	"html/template"
 	"io"
 	"log"
 	"os"
+	"time"
 )
+
+// SetConfig gin Middlware to push some config values
+func SetConfig() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("CorsOrigin", "*")
+		c.Set("Verbose", true)
+		c.Next()
+	}
+}
+
+// Options common response for rest options
+func Options(c *gin.Context) {
+	Origin := c.MustGet("CorsOrigin").(string)
+
+	c.Writer.Header().Set("Access-Control-Allow-Origin", Origin)
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET,DELETE,POST,PUT")
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	c.Next()
+}
 
 func main() {
 	mode := os.Getenv("GIN_MODE")
@@ -40,6 +63,16 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(SetConfig())
+	r.Use(cors.Middleware(cors.Config{
+		Origins:         "*",
+		Methods:         "GET, PUT, POST, DELETE",
+		RequestHeaders:  "Origin, Authorization, Content-Type, Bearer, range",
+		ExposedHeaders:  "x-total-count, Content-Range",
+		MaxAge:          50 * time.Second,
+		Credentials:     true,
+		ValidateHeaders: false,
+	}))
 
 	r.SetFuncMap(template.FuncMap{
 		"formatDate":       util.FormatDate,

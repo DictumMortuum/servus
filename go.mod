@@ -11,6 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/itsjamie/gin-cors v0.0.0-20160420130702-97b4a9da7933
 	github.com/jessevdk/go-assets v0.0.0-20160921144138-4f4301a06e15
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/jordic/goics v0.0.0-20181215212140-feb996c8e01f
