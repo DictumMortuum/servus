@@ -35,8 +35,8 @@ type DuelStatsRow struct {
 	ScienceVictory bool   `db:"science_victory" json:"science_victory"`
 }
 
-func CreateDuelPlay(db *sqlx.DB, data DuelPlaysRow) error {
-	_, err := db.NamedExec(`
+func createDuelPlay(db *sqlx.DB, data DuelPlaysRow) (int64, error) {
+	res, err := db.NamedExec(`
 	insert into tduelplays (
 		cr_date,
 		date
@@ -45,10 +45,15 @@ func CreateDuelPlay(db *sqlx.DB, data DuelPlaysRow) error {
 		:date
 	)`, &data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	id, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
 }
 
 func CreateDuelStats(db *sqlx.DB, data DuelStatsRow) error {

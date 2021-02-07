@@ -50,6 +50,17 @@ func GetPlayer(db *sqlx.DB, id int64) (*PlayersRow, error) {
 	return &retval, nil
 }
 
+func GetPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
+	var retval PlayersRow
+
+	err := db.QueryRowx(`select * from tboardgameplayers where name = ?`, name).StructScan(&retval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &retval, nil
+}
+
 func CreatePrice(db *sqlx.DB, data PriceRow) error {
 	sql := `
 	insert into tboardgameprices (
