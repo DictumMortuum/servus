@@ -20,6 +20,10 @@ type Config struct {
 		Server string `yaml:"server"`
 		Port   string `yaml:"port"`
 	}
+	Telegram struct {
+		Token string   `yaml:"token"`
+		Users []string `yaml:"users"`
+	}
 }
 
 var (

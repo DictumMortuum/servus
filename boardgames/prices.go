@@ -94,6 +94,12 @@ func GetPrices(c *gin.Context) {
 				util.Error(c, err)
 				return
 			}
+
+			msg := fmt.Sprintf("%f offers %s at %f from %f\n", data.Store, data.Boardgame, data.ReducedPrice, data.OriginalPrice)
+			err = util.TelegramMessage(msg)
+			if err != nil {
+				util.Error(c, err)
+			}
 		}
 
 		retval = append(retval, data)
