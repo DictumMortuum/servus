@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"github.com/DictumMortuum/servus/config"
 	tb "gopkg.in/tucnak/telebot.v2"
 )
@@ -14,6 +15,11 @@ func (r telegramRecipient) Recipient() string {
 }
 
 func TelegramMessage(message string) error {
+	if !config.App.Telegram.Enabled {
+		fmt.Println(message)
+		return nil
+	}
+
 	settings := tb.Settings{
 		Token: config.App.Telegram.Token,
 	}

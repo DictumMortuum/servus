@@ -95,7 +95,7 @@ func GetPrices(c *gin.Context) {
 				return
 			}
 
-			msg := fmt.Sprintf("%f offers %s at %f from %f\n", data.Store, data.Boardgame, data.ReducedPrice, data.OriginalPrice)
+			msg := fmt.Sprintf("%s offers %s at %.2f from %.2f\n", data.Store, data.Boardgame, data.ReducedPrice, data.OriginalPrice)
 			err = util.TelegramMessage(msg)
 			if err != nil {
 				util.Error(c, err)

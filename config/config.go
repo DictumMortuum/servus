@@ -21,8 +21,9 @@ type Config struct {
 		Port   string `yaml:"port"`
 	}
 	Telegram struct {
-		Token string   `yaml:"token"`
-		Users []string `yaml:"users"`
+		Enabled bool     `yaml:"enabled" default:"false"`
+		Token   string   `yaml:"token"`
+		Users   []string `yaml:"users"`
 	}
 }
 
