@@ -29,6 +29,23 @@ func ByteCountIEC(b int64) string {
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }*/
 
+func Latest(c *gin.Context) {
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	router, err := getLatestRouter(database)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	util.Success(c, &router)
+}
+
 func Get(c *gin.Context) {
 	ip := c.DefaultQuery("ip", "192.168.2.1")
 	ppp := c.DefaultQuery("ppp", "ip")

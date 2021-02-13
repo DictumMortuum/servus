@@ -10,6 +10,7 @@ type RouterRow struct {
 	Id          int64     `db:"id"`
 	Uptime      int64     `db:"uptime"`
 	Date        time.Time `db:"date"`
+	CrDate      time.Time `db:"cr_date"`
 	MaxUp       int       `db:"max_up"`
 	MaxDown     int       `db:"max_down"`
 	CurrentUp   int       `db:"current_up"`
@@ -134,4 +135,23 @@ func RouterExists(db *sqlx.DB, row RouterRow) (int64, error) {
 	}
 
 	return retval.(int64), nil
+}
+
+func getLatestRouter(db *sqlx.DB) (*RouterRow, error) {
+	var retval RouterRow
+
+	err := db.QueryRowx(`
+	select
+		*
+	from
+		trouter
+	order by
+		cr_date desc
+	limit 1
+	`).StructScan(&retval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &retval, nil
 }

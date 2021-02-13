@@ -89,7 +89,12 @@ func main() {
 		gn.GET("/expenses/:expense", gnucash.GetExpenseByMonth)
 	}
 
-	r.GET("/router", router.Get)
+	rt := r.Group("/router")
+	{
+		rt.GET("", router.Get)
+		rt.GET("/latest", router.Latest)
+	}
+
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
 	r.Run("127.0.0.1:1234")
