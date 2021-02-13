@@ -8,6 +8,7 @@ import (
 	"github.com/DictumMortuum/servus/calendar/validate"
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/gas"
+	"github.com/DictumMortuum/servus/gnucash"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/DictumMortuum/servus/music"
 	"github.com/DictumMortuum/servus/router"
@@ -81,6 +82,11 @@ func main() {
 	{
 		bg.GET("/prices", boardgames.GetPrices)
 		bg.GET("/duel", boardgames.GetDuel)
+	}
+
+	gn := r.Group("/gnucash")
+	{
+		gn.GET("/expenses/:expense", gnucash.GetExpenseByMonth)
 	}
 
 	r.GET("/router", router.Get)

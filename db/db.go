@@ -9,10 +9,14 @@ import (
 )
 
 func Conn() (*sqlx.DB, error) {
-	zone, _ := time.Now().Zone()
-	url := config.App.GetMariaDBConnection("servus?parseTime=true&loc=" + url.QueryEscape(zone))
-	db, err := sqlx.Connect("mysql", url)
+	return DatabaseConnect("servus")
+}
 
+func DatabaseConnect(database string) (*sqlx.DB, error) {
+	zone, _ := time.Now().Zone()
+	url := config.App.GetMariaDBConnection(database + "?parseTime=true&loc=" + url.QueryEscape(zone))
+
+	db, err := sqlx.Connect("mysql", url)
 	if err != nil {
 		return nil, err
 	}
