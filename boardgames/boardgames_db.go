@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type PlayersRow struct {
+	Id   int64  `db:"id"`
+	Name string `db:"name"`
+}
+
 type PriceRow struct {
 	Id            int64     `db:"id"`
 	CrDate        time.Time `db:"cr_date"`
@@ -16,6 +21,44 @@ type PriceRow struct {
 	ReducedPrice  float64   `db:"reduced_price"`
 	PriceDiff     float64   `db:"price_diff"`
 	Link          string    `db:"link"`
+}
+
+func CreatePlayer(db *sqlx.DB, data PlayersRow) error {
+	sql := `
+	insert into tboardgameplayers (
+		name
+	) values (
+		:name
+	)`
+
+	_, err := db.NamedExec(sql, &data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetPlayer(db *sqlx.DB, id int64) (*PlayersRow, error) {
+	var retval PlayersRow
+
+	err := db.QueryRowx(`select * from tboardgameplayers where id = ?`, id).StructScan(&retval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &retval, nil
+}
+
+func GetPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
+	var retval PlayersRow
+
+	err := db.QueryRowx(`select * from tboardgameplayers where name = ?`, name).StructScan(&retval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &retval, nil
 }
 
 func CreatePrice(db *sqlx.DB, data PriceRow) error {
@@ -77,7 +120,7 @@ func PriceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 	from
 		tboardgameprices
 	where
-		boardgame = :boardgame 
+		boardgame = :boardgame
 	and store = :store
 	`
 
