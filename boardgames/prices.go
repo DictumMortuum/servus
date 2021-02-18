@@ -20,8 +20,8 @@ func GetPrices(c *gin.Context) {
 	min := c.DefaultQuery("minimum", "10")
 	retval := []PriceRow{}
 
-	re_from := regexp.MustCompile("from €([0-9][0-9].[0-9][0-9])")
-	re_to := regexp.MustCompile("to €([0-9][0-9].[0-9][0-9])")
+	re_from := regexp.MustCompile("from €([0-9]+.[0-9]+)")
+	re_to := regexp.MustCompile("to €([0-9]+.[0-9]+)")
 	re_date := regexp.MustCompile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 	res, err := http.Get("https://boardgameprices.co.uk/item/pricedrops?order=" + order + "&country=" + country + "&minimum=" + min)
@@ -99,6 +99,7 @@ func GetPrices(c *gin.Context) {
 			err = util.TelegramMessage(msg)
 			if err != nil {
 				util.Error(c, err)
+				return
 			}
 		}
 
