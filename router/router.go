@@ -112,9 +112,19 @@ func Get(c *gin.Context) {
 		util.Error(c, err)
 		return
 	}
-
 	uptime, _ := data.ToInteger()
 	retval.Uptime = uptime
+
+	data, err = vm.Run("GetWanDSLStatus()")
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	// If the interface is bridged, it's not going to reset the uptime timer. So will do it manually here.
+	dsl, _ := data.ToInteger()
+	retval.Disconnected = dsl != 1
+
 	t := time.Now().Add(time.Duration(-uptime) * time.Second)
 	retval.Date = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 
@@ -134,11 +144,6 @@ func Get(c *gin.Context) {
 		util.Error(c, err)
 		return
 	}
-
-	doc.Find("td[key=PAGE_BD_DSL_DETAIL_STATUS] + td[key=STATUS_DISCONNECTED]").Each(func(i int, s *goquery.Selection) {
-		// If the interface is bridged, it's not going to reset the uptime timer. So will do it manually here.
-		retval.Disconnected = true
-	})
 
 	doc.Find("td[key=PAGE_BD_DSL_DETAIL_MAXBDWIDTH] + td").Each(func(i int, s *goquery.Selection) {
 		current := strings.Split(s.Text(), "/")
@@ -211,25 +216,29 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	rs, err := getRouter(database, id)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
-
-	if !retval.Disconnected || (retval.Disconnected && rs.Disconnected) {
-		// Update if:
-		// 1. the new status is not disconnected.
-		// 2. the new status is disconnected, but we've already created a status of type disconnected.
-		retval.Id = id
-		// else create a new router entry.
-	}
-
-	if retval.Id > 0 {
-		err = UpdateRouter(database, retval)
+	if id > 0 {
+		rs, err := getRouter(database, id)
 		if err != nil {
 			util.Error(c, err)
 			return
+		}
+
+		if !retval.Disconnected || (retval.Disconnected && rs.Disconnected) {
+			// Update if:
+			// 1. the new status is not disconnected.
+			// 2. the new status is disconnected, but we've already created a status of type disconnected.
+			retval.Id = id
+			err = UpdateRouter(database, retval)
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+		} else {
+			err = CreateRouter(database, retval)
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
 		}
 	} else {
 		err = CreateRouter(database, retval)
