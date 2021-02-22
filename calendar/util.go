@@ -14,6 +14,7 @@ const (
 	SICK_LEAVE      = -3
 	PUBLIC_HOLIDAY  = -4
 	PERENNIAL_LEAVE = -5
+	MARRIAGE_LEAVE  = -6
 	UNKNOWN_LEAVE   = -100
 )
 
@@ -31,6 +32,8 @@ func FormatShiftColor(shift int) string {
 	} else if shift == PUBLIC_HOLIDAY {
 		return "table-warning"
 	} else if shift == PERENNIAL_LEAVE {
+		return "table-warning"
+	} else if shift == MARRIAGE_LEAVE {
 		return "table-warning"
 	} else {
 		return ""
@@ -50,6 +53,8 @@ func FormatShift(shift int) string {
 		return "Αργία"
 	} else if shift == PERENNIAL_LEAVE {
 		return "Πολυετία"
+	} else if shift == MARRIAGE_LEAVE {
+		return "Άδεια γάμου"
 	} else {
 		return "Άγνωστο"
 	}
@@ -76,6 +81,7 @@ func RawToAbsence(raw string) int {
 	re3 := regexp.MustCompile("[ΑAΣΘ]{3}")
 	re4 := regexp.MustCompile("[KΚ]{1}")
 	re5 := regexp.MustCompile("[ΠOΟΛ]{3}")
+	re6 := regexp.MustCompile("[AΑΓ]{2}")
 
 	if re1.MatchString(raw) {
 		return DAY_OFF
@@ -87,6 +93,8 @@ func RawToAbsence(raw string) int {
 		return PUBLIC_HOLIDAY
 	} else if re5.MatchString(raw) {
 		return PERENNIAL_LEAVE
+	} else if re6.MatchString(raw) {
+		return MARRIAGE_LEAVE
 	} else {
 		return UNKNOWN_LEAVE
 	}
