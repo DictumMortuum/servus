@@ -7,24 +7,25 @@ import (
 )
 
 type RouterRow struct {
-	Id          int64     `db:"id"`
-	Uptime      int64     `db:"uptime"`
-	Date        time.Time `db:"date"`
-	CrDate      time.Time `db:"cr_date"`
-	MaxUp       int       `db:"max_up"`
-	MaxDown     int       `db:"max_down"`
-	CurrentUp   int       `db:"current_up"`
-	CurrentDown int       `db:"current_down"`
-	InitialUp   int       `db:"initial_up"`
-	InitialDown int       `db:"initial_down"`
-	CRCUp       int       `db:"crc_up"`
-	CRCDown     int       `db:"crc_down"`
-	FECUp       int       `db:"fec_up"`
-	FECDown     int       `db:"fec_down"`
-	SNRUp       int64     `db:"snr_up"`
-	SNRDown     int64     `db:"snr_down"`
-	DataUp      int64     `db:"data_up"`
-	DataDown    int64     `db:"data_down"`
+	Id           int64     `db:"id"`
+	Uptime       int64     `db:"uptime"`
+	Date         time.Time `db:"date"`
+	CrDate       time.Time `db:"cr_date"`
+	MaxUp        int       `db:"max_up"`
+	MaxDown      int       `db:"max_down"`
+	CurrentUp    int       `db:"current_up"`
+	CurrentDown  int       `db:"current_down"`
+	InitialUp    int       `db:"initial_up"`
+	InitialDown  int       `db:"initial_down"`
+	CRCUp        int       `db:"crc_up"`
+	CRCDown      int       `db:"crc_down"`
+	FECUp        int       `db:"fec_up"`
+	FECDown      int       `db:"fec_down"`
+	SNRUp        int64     `db:"snr_up"`
+	SNRDown      int64     `db:"snr_down"`
+	DataUp       int64     `db:"data_up"`
+	DataDown     int64     `db:"data_down"`
+	Disconnected bool      `db:"disconnected"`
 }
 
 func CreateRouter(db *sqlx.DB, data RouterRow) error {
@@ -46,7 +47,8 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 		snr_up,
 		snr_down,
 		data_up,
-		data_down
+		data_down,
+		disconnected
 	) values (
 		:uptime,
 		:date,
@@ -64,7 +66,8 @@ func CreateRouter(db *sqlx.DB, data RouterRow) error {
 		:snr_up,
 		:snr_down,
 		:data_up,
-		:data_down
+		:data_down,
+		:disconnected
 	)`
 
 	_, err := db.NamedExec(sql, &data)
@@ -91,7 +94,8 @@ func UpdateRouter(db *sqlx.DB, data RouterRow) error {
 		snr_up = :snr_up,
 		snr_down = :snr_down,
 		data_up = :data_up,
-		data_down = :data_down
+		data_down = :data_down,
+		disconnected = :disconnected
 	where id = :id`
 
 	_, err := db.NamedExec(sql, &data)
@@ -149,6 +153,24 @@ func getLatestRouter(db *sqlx.DB) (*RouterRow, error) {
 		cr_date desc
 	limit 1
 	`).StructScan(&retval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &retval, nil
+}
+
+func getRouter(db *sqlx.DB, id int64) (*RouterRow, error) {
+	var retval RouterRow
+
+	err := db.QueryRowx(`
+	select
+		*
+	from
+		trouter
+	where
+		id = ?
+	`, id).StructScan(&retval)
 	if err != nil {
 		return nil, err
 	}

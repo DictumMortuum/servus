@@ -135,6 +135,11 @@ func Get(c *gin.Context) {
 		return
 	}
 
+	doc.Find("td[key=PAGE_BD_DSL_DETAIL_STATUS] + td[key=STATUS_DISCONNECTED]").Each(func(i int, s *goquery.Selection) {
+		// If the interface is bridged, it's not going to reset the uptime timer. So will do it manually here.
+		retval.Disconnected = true
+	})
+
 	doc.Find("td[key=PAGE_BD_DSL_DETAIL_MAXBDWIDTH] + td").Each(func(i int, s *goquery.Selection) {
 		current := strings.Split(s.Text(), "/")
 		retval.MaxUp, _ = strconv.Atoi(strings.TrimSpace(current[0]))
@@ -206,9 +211,21 @@ func Get(c *gin.Context) {
 		return
 	}
 
-	retval.Id = id
+	rs, err := getRouter(database, id)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
 
-	if id > 0 {
+	if !retval.Disconnected || (retval.Disconnected && rs.Disconnected) {
+		// Update if:
+		// 1. the new status is not disconnected.
+		// 2. the new status is disconnected, but we've already created a status of type disconnected.
+		retval.Id = id
+		// else create a new router entry.
+	}
+
+	if retval.Id > 0 {
 		err = UpdateRouter(database, retval)
 		if err != nil {
 			util.Error(c, err)
