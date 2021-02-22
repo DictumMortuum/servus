@@ -87,6 +87,8 @@ func UpdateRouter(db *sqlx.DB, data RouterRow) error {
 		max_down = :max_down,
 		current_up = :current_up,
 		current_down = :current_down,
+		initial_up = IF(initial_up = 0, :current_up, :initial_up),
+		initial_down = IF(initial_down = 0, :current_down, :initial_down),
 		crc_up = :crc_up,
 		crc_down = :crc_down,
 		fec_up = :fec_up,
