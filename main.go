@@ -22,6 +22,12 @@ import (
 	"os"
 )
 
+func Version(c *gin.Context) {
+	util.Success(c, map[string]string{
+		"version": "1.0.0",
+	})
+}
+
 func main() {
 	mode := os.Getenv("GIN_MODE")
 	path_templates := "templates/*"
@@ -97,5 +103,6 @@ func main() {
 
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
+	r.GET("/version", Version)
 	r.Run("127.0.0.1:1234")
 }
