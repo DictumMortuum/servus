@@ -21,6 +21,8 @@ type PriceRow struct {
 	ReducedPrice  float64   `db:"reduced_price"`
 	PriceDiff     float64   `db:"price_diff"`
 	Link          string    `db:"link"`
+	TextSend      bool      `db:"text_send"`
+	Seq           int       `db:"seq"`
 }
 
 func CreatePlayer(db *sqlx.DB, data PlayersRow) error {
@@ -61,7 +63,7 @@ func GetPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
 	return &retval, nil
 }
 
-func CreatePrice(db *sqlx.DB, data PriceRow) error {
+func CreatePrice(db *sqlx.DB, data PriceRow) (int64, error) {
 	sql := `
 	insert into tboardgameprices (
 		cr_date,
@@ -71,7 +73,9 @@ func CreatePrice(db *sqlx.DB, data PriceRow) error {
 		original_price,
 		reduced_price,
 		price_diff,
-		link
+		link,
+		text_send,
+		seq
 	) values (
 		NOW(),
 		:date,
@@ -80,15 +84,22 @@ func CreatePrice(db *sqlx.DB, data PriceRow) error {
 		:original_price,
 		:reduced_price,
 		:price_diff,
-		NULL
+		NULL,
+		0,
+		0
 	)`
 
-	_, err := db.NamedExec(sql, &data)
+	res, err := db.NamedExec(sql, &data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	id, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
 }
 
 func UpdatePrice(db *sqlx.DB, data PriceRow) error {
@@ -100,7 +111,9 @@ func UpdatePrice(db *sqlx.DB, data PriceRow) error {
 		store = :store,
 		original_price = :original_price,
 		reduced_price = :reduced_price,
-		price_diff = :price_diff
+		price_diff = :price_diff,
+		text_send = 0,
+		seq = seq + 1
 	where id = :id`
 
 	_, err := db.NamedExec(sql, &data)
@@ -120,8 +133,9 @@ func PriceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 	from
 		tboardgameprices
 	where
-		boardgame = :boardgame
-	and store = :store
+		boardgame = :boardgame and
+		store = :store and
+		original_price - :original_price >= -1 and original_price - :original_price < 1
 	`
 
 	stmt, err := db.PrepareNamed(sql)
@@ -144,4 +158,21 @@ func PriceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 	}
 
 	return retval.(int64), nil
+}
+
+func sendTextForPrice(db *sqlx.DB, data PriceRow) error {
+	sql := `
+	update
+		tboardgameprices
+	set
+		text_send = 1
+	where
+		id = :id`
+
+	_, err := db.NamedExec(sql, &data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

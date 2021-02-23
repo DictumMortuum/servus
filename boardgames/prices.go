@@ -89,7 +89,7 @@ func GetPrices(c *gin.Context) {
 				return
 			}
 		} else {
-			err = CreatePrice(database, data)
+			id, err = CreatePrice(database, data)
 			if err != nil {
 				util.Error(c, err)
 				return
@@ -97,6 +97,14 @@ func GetPrices(c *gin.Context) {
 
 			msg := fmt.Sprintf("%s offers %s at %.2f from %.2f\n", data.Store, data.Boardgame, data.ReducedPrice, data.OriginalPrice)
 			err = util.TelegramMessage(msg)
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+
+			data.Id = id
+
+			err = sendTextForPrice(database, data)
 			if err != nil {
 				util.Error(c, err)
 				return

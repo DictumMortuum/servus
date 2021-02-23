@@ -24,7 +24,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "1.0.0",
+		"version": "1.1.0",
 	})
 }
 
