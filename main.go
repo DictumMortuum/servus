@@ -87,6 +87,7 @@ func main() {
 	bg := r.Group("/boardgames")
 	{
 		bg.GET("/prices", boardgames.GetPrices)
+		bg.GET("/prices/notify", boardgames.SendNotifications)
 		bg.GET("/duel", boardgames.GetDuel)
 	}
 

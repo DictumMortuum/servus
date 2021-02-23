@@ -14,6 +14,37 @@ import (
 	"time"
 )
 
+func SendNotifications(c *gin.Context) {
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	rs, err := getPricesWithoutTexts(database)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	for _, price := range rs {
+		err = util.TelegramMessage(price.Msg())
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		err = sendTextForPrice(database, price)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+	}
+
+	util.Success(c, rs)
+}
+
 func GetPrices(c *gin.Context) {
 	order := c.DefaultQuery("order", "date")
 	country := c.DefaultQuery("country", "GR")
@@ -74,7 +105,7 @@ func GetPrices(c *gin.Context) {
 			data.PriceDiff = data.OriginalPrice - data.ReducedPrice
 		}
 
-		id, err := PriceExists(database, data)
+		id, err := priceExists(database, data)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -83,28 +114,13 @@ func GetPrices(c *gin.Context) {
 		data.Id = id
 
 		if id > 0 {
-			err = UpdatePrice(database, data)
+			err = updatePrice(database, data)
 			if err != nil {
 				util.Error(c, err)
 				return
 			}
 		} else {
-			id, err = CreatePrice(database, data)
-			if err != nil {
-				util.Error(c, err)
-				return
-			}
-
-			msg := fmt.Sprintf("%s offers %s at %.2f from %.2f\n", data.Store, data.Boardgame, data.ReducedPrice, data.OriginalPrice)
-			err = util.TelegramMessage(msg)
-			if err != nil {
-				util.Error(c, err)
-				return
-			}
-
-			data.Id = id
-
-			err = sendTextForPrice(database, data)
+			_, err = createPrice(database, data)
 			if err != nil {
 				util.Error(c, err)
 				return
