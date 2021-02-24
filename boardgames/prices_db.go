@@ -71,7 +71,6 @@ func updatePrice(db *sqlx.DB, data PriceRow) error {
 		original_price = :original_price,
 		reduced_price = :reduced_price,
 		price_diff = :price_diff,
-		text_send = 0,
 		seq = seq + 1
 	where id = :id`
 
@@ -95,7 +94,7 @@ func priceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 		boardgame = :boardgame and
 		store = :store and
 		original_price = :original_price and
-		reduced_price - :reduce_price
+		reduced_price = :reduced_price
 	`
 
 	stmt, err := db.PrepareNamed(sql)
