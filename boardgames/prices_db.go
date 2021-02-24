@@ -94,7 +94,8 @@ func priceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 	where
 		boardgame = :boardgame and
 		store = :store and
-		original_price - :original_price >= -1 and original_price - :original_price < 1
+		original_price = :original_price and
+		reduced_price - :reduce_price
 	`
 
 	stmt, err := db.PrepareNamed(sql)
