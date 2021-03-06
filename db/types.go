@@ -21,6 +21,7 @@ type CalendarRow struct {
 	Description  string    `db:"description"`
 	CreationDate time.Time `db:"cr_date"`
 	Seq          int       `db:"sequence"`
+	Updated      bool      `db:"updated"`
 	Row          *xlsx.Row
 	X            int
 	Y            int

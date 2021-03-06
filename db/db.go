@@ -93,6 +93,7 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		description,
 		cr_date,
 		sequence
+		updated
 	) values (
 		UUID(),
 		:date,
@@ -100,13 +101,15 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		:summary,
 		:description,
 		NOW(),
+		0,
 		0
 	) on duplicate key update
 		shift=:shift,
 		summary=:summary,
 		description=:description,
 		cr_date=NOW(),
-		sequence=sequence+1`
+		sequence=sequence+1,
+		updated=1`
 
 	_, err := db.NamedExec(sql, &day)
 	if err != nil {
