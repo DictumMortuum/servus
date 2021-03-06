@@ -3,6 +3,7 @@ package parse
 import (
 	"github.com/DictumMortuum/servus/calendar"
 	"github.com/DictumMortuum/servus/db"
+	"github.com/DictumMortuum/servus/util"
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"net/http"
@@ -158,4 +159,29 @@ func Render(c *gin.Context) {
 	state["calendar"] = calendar
 
 	c.HTML(http.StatusOK, "parse.html", state)
+}
+
+func SyncToNextcloud(c *gin.Context) {
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	rs, err := db.GetShiftsWithoutNextcloudEntry(database)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	for _, event := range rs {
+		err = event.ToCalDavServer()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+	}
+
+	util.Success(c, rs)
 }

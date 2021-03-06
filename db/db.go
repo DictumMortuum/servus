@@ -46,6 +46,29 @@ func GetFutureShifts(db *sqlx.DB) ([]CalendarRow, error) {
 	return retval, nil
 }
 
+func GetShiftsWithoutNextcloudEntry(db *sqlx.DB) ([]CalendarRow, error) {
+	retval := []CalendarRow{}
+
+	sql := `select
+		t.*
+	from
+		tcalendar t
+	left join
+		nextcloud.oc_calendarobjects n on t.uuid = n.uid
+	where
+		n.uid is null
+	order by date
+	limit 5
+	`
+
+	err := db.Select(&retval, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	return retval, nil
+}
+
 func EventExists(db *sqlx.DB, day CalendarRow) (bool, error) {
 	rows, err := db.NamedQuery(`select 1 from tcalendar where date=:date and shift=:shift`, day)
 	if err != nil {

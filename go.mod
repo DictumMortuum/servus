@@ -5,6 +5,8 @@ go 1.13
 require (
 	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/andybalholm/cascadia v1.2.0 // indirect
+	github.com/dolanor/caldav-go v0.2.1 // indirect
+	github.com/emersion/go-webdav v0.3.0 // indirect
 	github.com/fhs/gompd v1.0.1
 	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/gin-gonic/gin v1.6.3

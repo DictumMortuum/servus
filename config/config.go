@@ -25,6 +25,11 @@ type Config struct {
 		Token   string   `yaml:"token"`
 		Users   []string `yaml:"users"`
 	}
+	Calendar struct {
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+		Server   string `yaml:"server"`
+	} `yaml:"calendar"`
 }
 
 var (

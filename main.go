@@ -24,7 +24,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "1.1.0",
+		"version": "1.2.0",
 	})
 }
 
@@ -61,6 +61,7 @@ func main() {
 	{
 		cal.GET("/generate", generate.Handler)
 		cal.POST("/parse", parse.Handler)
+		cal.GET("/sync", parse.SyncToNextcloud)
 		cal.POST("/validate", validate.Validate)
 		cal.GET("/", parse.Render)
 	}
