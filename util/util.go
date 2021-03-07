@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+func Default(f func() ([]interface{}, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		rs, err := f()
+		if err != nil {
+			Error(c, err)
+			return
+		}
+
+		Success(c, &rs)
+	}
+}
+
 func Render(c *gin.Context, data gin.H, templateName string) {
 	//switch c.Request.Header.Get("Accept") {
 	//case "application/json":

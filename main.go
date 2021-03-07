@@ -89,8 +89,22 @@ func main() {
 	{
 		bg.GET("/prices", boardgames.GetPrices)
 		bg.GET("/prices/notify", boardgames.SendNotifications)
-		bg.GET("/prices/update", boardgames.GetUpdates)
-		bg.GET("/duel", boardgames.GetDuel)
+		bg.GET("/duel", func(c *gin.Context) {
+			rs, err := boardgames.GetDuel()
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+			util.Success(c, &rs)
+		})
+		bg.GET("/wingspan", func(c *gin.Context) {
+			rs, err := boardgames.GetWingspan()
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+			util.Success(c, &rs)
+		})
 	}
 
 	gn := r.Group("/gnucash")

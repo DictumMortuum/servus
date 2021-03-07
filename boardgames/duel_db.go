@@ -2,26 +2,14 @@ package boardgames
 
 import (
 	"github.com/jmoiron/sqlx"
-	"time"
 )
-
-type DuelRow struct {
-	Play    DuelPlaysRow   `json:"play"`
-	Players []DuelStatsRow `json:"players"`
-}
-
-type DuelPlaysRow struct {
-	Id         int64     `db:"id" json:"id"`
-	CrDate     time.Time `db:"cr_date" json:"cr_date"`
-	Date       time.Time `db:"date" json:"date"`
-	Expansions string    `db:"expansions" json:"expansions"`
-}
 
 type DuelStatsRow struct {
 	Id             int64  `db:"id" json:"id"`
-	PlayId         int64  `db:"play_id"`
-	PlayerId       int64  `db:"player_id"`
-	PlayerName     string `json:"player"`
+	PlayId         int64  `db:"play_id" json:"play_id"`
+	PlayerId       int64  `db:"player_id" json:"player_id"`
+	PlayerName     string `db:"player_name" json:"player"`
+	Expansions     string `db:"expansions" json:"expansions"`
 	BluePoints     int    `db:"blue_points" json:"blue"`
 	GreenPoints    int    `db:"green_points" json:"green"`
 	YellowPoints   int    `db:"yellow_points" json:"yellow"`
@@ -35,28 +23,36 @@ type DuelStatsRow struct {
 	ScienceVictory bool   `db:"science_victory" json:"science_victory"`
 }
 
-func createDuelPlay(db *sqlx.DB, data DuelPlaysRow) (int64, error) {
-	res, err := db.NamedExec(`
-	insert into tduelplays (
-		cr_date,
-		date
-	) values (
-		NOW(),
-		:date
-	)`, &data)
+func getDuels(db *sqlx.DB) ([]DuelStatsRow, error) {
+	var rs []DuelStatsRow
+
+	sql := `
+  select
+    s.*,
+    p.Name as player_name,
+    IFNULL(exp.pantheon_points, 0) as pantheon_points,
+    IF(exp.pantheon_points is not null, "pantheon", "") as expansions
+  from
+    tduelstats s
+  join
+    tboardgames g on g.name = "7 wonders duel"
+  join
+    tboardgameplayers p on s.player_id = p.id
+  join
+    tboardgameplays pl on s.play_id = pl.id
+  left join
+    tduelpantheonexpansion exp on exp.stats_id = s.id
+	order by play_id, s.id`
+
+	err := db.Select(&rs, sql)
 	if err != nil {
-		return -1, err
+		return rs, err
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		return -1, err
-	}
-
-	return id, nil
+	return rs, nil
 }
 
-func CreateDuelStats(db *sqlx.DB, data DuelStatsRow) error {
+func createDuelStats(db *sqlx.DB, data DuelStatsRow) error {
 	_, err := db.NamedExec(`
 	insert into tduelstats (
 		play_id,
@@ -90,72 +86,4 @@ func CreateDuelStats(db *sqlx.DB, data DuelStatsRow) error {
 	}
 
 	return nil
-}
-
-func getDuel(db *sqlx.DB, id int64) (*DuelRow, error) {
-	var retval DuelRow
-	var stats []DuelStatsRow
-
-	err := db.QueryRowx(`
-	select
-		dp.*,
-		IF(dpe.pantheon_points is not null, "pantheon", "") as expansions
-	from
-		tduelplays dp
-	join
-		tduelstats ds on dp.id = ds.play_id
-	left join
-		tduelpantheonexpansion dpe on dpe.stats_id = ds.id
-	where
-		dp.id = ?`, id).StructScan(&retval.Play)
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Select(&stats, `
-	select
-		ds.*,
-		IFNULL(dpe.pantheon_points, 0) as pantheon_points
-	from
-		tduelstats ds
-	left join
-		tduelpantheonexpansion dpe on dpe.stats_id = ds.id
-	where
-		ds.play_id = ?`, id)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, stat := range stats {
-		player, err := GetPlayer(db, stat.PlayerId)
-		if err != nil {
-			return nil, err
-		}
-
-		stat.PlayerName = player.Name
-		retval.Players = append(retval.Players, stat)
-	}
-
-	return &retval, nil
-}
-
-func getDuels(db *sqlx.DB) ([]DuelRow, error) {
-	retval := []DuelRow{}
-	var plays []DuelPlaysRow
-
-	err := db.Select(&plays, `select * from tduelplays`)
-	if err != nil {
-		return retval, err
-	}
-
-	for _, play := range plays {
-		duel, err := getDuel(db, play.Id)
-		if err != nil {
-			return retval, err
-		}
-
-		retval = append(retval, *duel)
-	}
-
-	return retval, nil
 }

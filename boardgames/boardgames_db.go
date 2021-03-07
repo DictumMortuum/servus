@@ -2,6 +2,7 @@ package boardgames
 
 import (
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type PlayersRow struct {
@@ -9,7 +10,14 @@ type PlayersRow struct {
 	Name string `db:"name"`
 }
 
-func CreatePlayer(db *sqlx.DB, data PlayersRow) error {
+type PlaysRow struct {
+	Id        int64     `db:"id" json:"id"`
+	CrDate    time.Time `db:"cr_date" json:"cr_date"`
+	Date      time.Time `db:"date" json:"date"`
+	Boardgame string    `db:"boardgame"`
+}
+
+func createPlayer(db *sqlx.DB, data PlayersRow) error {
 	sql := `
 	insert into tboardgameplayers (
 		name
@@ -25,7 +33,7 @@ func CreatePlayer(db *sqlx.DB, data PlayersRow) error {
 	return nil
 }
 
-func GetPlayer(db *sqlx.DB, id int64) (*PlayersRow, error) {
+func getPlayer(db *sqlx.DB, id int64) (*PlayersRow, error) {
 	var retval PlayersRow
 
 	err := db.QueryRowx(`select * from tboardgameplayers where id = ?`, id).StructScan(&retval)
@@ -36,7 +44,7 @@ func GetPlayer(db *sqlx.DB, id int64) (*PlayersRow, error) {
 	return &retval, nil
 }
 
-func GetPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
+func getPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
 	var retval PlayersRow
 
 	err := db.QueryRowx(`select * from tboardgameplayers where name = ?`, name).StructScan(&retval)
@@ -45,4 +53,26 @@ func GetPlayerByName(db *sqlx.DB, name string) (*PlayersRow, error) {
 	}
 
 	return &retval, nil
+}
+
+func createDuelPlay(db *sqlx.DB, data PlaysRow) (int64, error) {
+	res, err := db.NamedExec(`
+	insert into tboardgameplays (
+		cr_date,
+		date
+	) values (
+		NOW(),
+		:date,
+		:boardgame
+	)`, &data)
+	if err != nil {
+		return -1, err
+	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
 }
