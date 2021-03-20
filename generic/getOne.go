@@ -1,54 +1,75 @@
-/*
-getList 	GET http://my.api.url/posts?sort=["title","ASC"]&range=[0, 24]&filter={"title":"bar"}
-getOne 	GET http://my.api.url/posts/123
-getMany 	GET http://my.api.url/posts?filter={"id":[123,456,789]}
-getManyReference 	GET http://my.api.url/posts?filter={"author_id":345}
-create 	POST http://my.api.url/posts
-update 	PUT http://my.api.url/posts/123
-updateMany 	Multiple calls to PUT http://my.api.url/posts/123
-delete 	DELETE http://my.api.url/posts/123
-deleteMany 	Multiple calls to DELETE http://my.api.url/posts/123
-
-dataProvider.getOne('posts', { id: 123 })
-.then(response => console.log(response));
-// {
-//     data: { id: 123, title: "hello, world" }
-// }
-
-    getOne: (resource, params) =>
-        httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
-            data: json,
-        })),
-*/
-
 package generic
 
 import (
+	"github.com/DictumMortuum/servus/db"
+	"github.com/DictumMortuum/servus/util"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"net/http"
+	"strconv"
 )
 
-func GetOneSample(id string) (error, map[string]interface{}) {
-	m := map[string]interface{}{
-		"id":    id,
-		"title": "hello, world",
-	}
-
-	return nil, m
-}
-
-func GetOne(f func(string) (error, map[string]interface{})) func(*gin.Context) {
+func GetOne(f func(*sqlx.DB, int64) (interface{}, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
-		id := c.Params.ByName("id")
+		arg := c.Params.ByName("id")
 
-		err, data := f(id)
+		id, err := strconv.ParseInt(arg, 10, 64)
 		if err != nil {
-			Fail(c, err)
+			util.Error(c, err)
+			return
+		}
+
+		database, err := db.Conn()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+		defer database.Close()
+
+		data, err := f(database, id)
+		if err != nil {
+			util.Error(c, err)
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"data": data,
+		})
+	}
+}
+
+func GetMany(f func(*sqlx.DB, []int64) (interface{}, int, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		req := c.Request.URL.Query()
+		args := req["id"]
+		ids := []int64{}
+
+		for _, raw := range args {
+			id, err := strconv.ParseInt(raw, 10, 64)
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+
+			ids = append(ids, id)
+		}
+
+		database, err := db.Conn()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+		defer database.Close()
+
+		data, length, err := f(database, ids)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data":  data,
+			"total": length,
 		})
 	}
 }

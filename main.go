@@ -8,8 +8,8 @@ import (
 	"github.com/DictumMortuum/servus/calendar/validate"
 	"github.com/DictumMortuum/servus/config"
 	"github.com/DictumMortuum/servus/gas"
+	"github.com/DictumMortuum/servus/generic"
 	"github.com/DictumMortuum/servus/gnucash"
-	// "github.com/DictumMortuum/servus/generic"
 	"github.com/DictumMortuum/servus/links"
 	"github.com/DictumMortuum/servus/music"
 	"github.com/DictumMortuum/servus/router"
@@ -138,6 +138,8 @@ func main() {
 			}
 			util.Success(c, &rs)
 		})
+		bg.GET("/test/:id", generic.GetOne(boardgames.GetPlayer))
+		bg.GET("/test", generic.GetMany(boardgames.GetManyPlayers))
 	}
 
 	gn := r.Group("/gnucash")
