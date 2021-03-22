@@ -65,7 +65,7 @@ func GetPrices(c *gin.Context) {
 	order := c.DefaultQuery("order", "date")
 	country := c.DefaultQuery("country", "GR")
 	min := c.DefaultQuery("minimum", "10")
-	retval := []PriceRow{}
+	retval := []PriceModel{}
 
 	re_from := regexp.MustCompile("from €([0-9]+.[0-9]+)")
 	re_to := regexp.MustCompile("to €([0-9]+.[0-9]+)")
@@ -96,7 +96,7 @@ func GetPrices(c *gin.Context) {
 	defer database.Close()
 
 	doc.Find("#searchresultlist .searchinfocontainer.multicell").Each(func(i int, s *goquery.Selection) {
-		var data PriceRow
+		var data PriceModel
 		data.Boardgame = s.Find(".searchcell .name").Text()
 		data.Store = strings.TrimSpace(s.Find(".searchcell .storename").Text())
 		raw := s.Text()

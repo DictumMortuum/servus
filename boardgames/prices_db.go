@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type PriceRow struct {
+type PriceModel struct {
 	Id            int64     `db:"id"`
 	CrDate        time.Time `db:"cr_date"`
 	Date          time.Time `db:"date"`
@@ -20,11 +20,11 @@ type PriceRow struct {
 	Seq           int       `db:"seq"`
 }
 
-func (p PriceRow) Msg() string {
+func (p PriceModel) Msg() string {
 	return fmt.Sprintf("%s offers %s at %.2f from %.2f\n", p.Store, p.Boardgame, p.ReducedPrice, p.OriginalPrice)
 }
 
-func createPrice(db *sqlx.DB, data PriceRow) (int64, error) {
+func createPrice(db *sqlx.DB, data PriceModel) (int64, error) {
 	sql := `
 	insert into tboardgameprices (
 		cr_date,
@@ -61,7 +61,7 @@ func createPrice(db *sqlx.DB, data PriceRow) (int64, error) {
 	return id, nil
 }
 
-func updatePrice(db *sqlx.DB, data PriceRow) error {
+func updatePrice(db *sqlx.DB, data PriceModel) error {
 	sql := `
 	update tboardgameprices set
 		cr_date = :cr_date,
@@ -82,7 +82,7 @@ func updatePrice(db *sqlx.DB, data PriceRow) error {
 	return nil
 }
 
-func priceExists(db *sqlx.DB, row PriceRow) (int64, error) {
+func priceExists(db *sqlx.DB, row PriceModel) (int64, error) {
 	var id sql.NullInt64
 
 	sql := `
@@ -119,7 +119,7 @@ func priceExists(db *sqlx.DB, row PriceRow) (int64, error) {
 	return retval.(int64), nil
 }
 
-func sendTextForPrice(db *sqlx.DB, data PriceRow) error {
+func sendTextForPrice(db *sqlx.DB, data PriceModel) error {
 	sql := `
 	update
 		tboardgameprices
@@ -136,7 +136,7 @@ func sendTextForPrice(db *sqlx.DB, data PriceRow) error {
 	return nil
 }
 
-func getPricesWithoutTexts(db *sqlx.DB) ([]PriceRow, error) {
+func getPricesWithoutTexts(db *sqlx.DB) ([]PriceModel, error) {
 	sql := `
 	select
 		*
@@ -148,8 +148,8 @@ func getPricesWithoutTexts(db *sqlx.DB) ([]PriceRow, error) {
 	return getPrices(db, sql)
 }
 
-func getPrices(db *sqlx.DB, sql string) ([]PriceRow, error) {
-	rs := []PriceRow{}
+func getPrices(db *sqlx.DB, sql string) ([]PriceModel, error) {
+	rs := []PriceModel{}
 
 	err := db.Select(&rs, sql)
 	if err != nil {

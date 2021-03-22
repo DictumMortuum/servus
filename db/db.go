@@ -20,6 +20,10 @@ func DatabaseConnect(database string) (*sqlx.DB, error) {
 	return db, nil
 }
 
+func RsIsEmpty(err error) bool {
+	return err.Error() == "sql: no rows in result set"
+}
+
 func GetShifts(db *sqlx.DB) ([]CalendarRow, error) {
 	retval := []CalendarRow{}
 

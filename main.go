@@ -27,7 +27,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "1.2.1",
+		"version": "2.0.0",
 	})
 }
 
@@ -138,9 +138,25 @@ func main() {
 			}
 			util.Success(c, &rs)
 		})
-		bg.GET("/test/:id", generic.GetOne(boardgames.GetPlayer))
-		bg.GET("/test", generic.GetMany(boardgames.GetManyPlayers))
 	}
+
+	generic.Register(
+		bg.Group("/game"),
+		boardgames.GetBoardgame,
+		boardgames.GetBoardgameList,
+		boardgames.CreateBoardgame,
+		boardgames.UpdateBoardgame,
+		boardgames.DeleteBoardgame,
+	)
+
+	generic.Register(
+		bg.Group("/player"),
+		boardgames.GetPlayer,
+		boardgames.GetPlayerList,
+		boardgames.CreatePlayer,
+		boardgames.UpdatePlayer,
+		boardgames.DeletePlayer,
+	)
 
 	gn := r.Group("/gnucash")
 	{

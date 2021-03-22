@@ -4,7 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type DuelStatsRow struct {
+type DuelModel struct {
 	Id             int64  `db:"id" json:"id"`
 	PlayId         int64  `db:"play_id" json:"play_id"`
 	PlayerId       int64  `db:"player_id" json:"player_id"`
@@ -23,8 +23,8 @@ type DuelStatsRow struct {
 	ScienceVictory bool   `db:"science_victory" json:"science_victory"`
 }
 
-func getDuels(db *sqlx.DB) ([]DuelStatsRow, error) {
-	var rs []DuelStatsRow
+func getDuels(db *sqlx.DB) ([]DuelModel, error) {
+	var rs []DuelModel
 
 	sql := `
   select
@@ -52,7 +52,7 @@ func getDuels(db *sqlx.DB) ([]DuelStatsRow, error) {
 	return rs, nil
 }
 
-func createDuelStats(db *sqlx.DB, data DuelStatsRow) error {
+func createDuelStats(db *sqlx.DB, data DuelModel) error {
 	_, err := db.NamedExec(`
 	insert into tduelstats (
 		play_id,
