@@ -4,8 +4,6 @@ import (
 	"github.com/DictumMortuum/servus/config"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"net/url"
-	"time"
 )
 
 func Conn() (*sqlx.DB, error) {
@@ -13,9 +11,7 @@ func Conn() (*sqlx.DB, error) {
 }
 
 func DatabaseConnect(database string) (*sqlx.DB, error) {
-	zone, _ := time.Now().Zone()
-	url := config.App.GetMariaDBConnection(database + "?parseTime=true&loc=" + url.QueryEscape(zone))
-
+	url := config.App.GetMariaDBConnection(database)
 	db, err := sqlx.Connect("mysql", url)
 	if err != nil {
 		return nil, err
@@ -93,7 +89,6 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		description,
 		cr_date,
 		sequence
-		updated
 	) values (
 		UUID(),
 		:date,
@@ -101,7 +96,6 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 		:summary,
 		:description,
 		NOW(),
-		0,
 		0
 	) on duplicate key update
 		shift=:shift,

@@ -2,10 +2,13 @@ package config
 
 import (
 	"gopkg.in/yaml.v2"
+	"net/url"
 	"os"
+	"strings"
 )
 
 type Config struct {
+	Timezone string `yaml:"timezone"`
 	Database struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
@@ -54,7 +57,21 @@ func Read(path string) error {
 }
 
 func (c *Config) GetMariaDBConnection(db string) string {
-	return c.Database.Username + ":" + c.Database.Password + "@tcp(" + c.Database.Server + ":" + c.Database.Port + ")/" + db
+	rs := []string{
+		c.Database.Username,
+		":",
+		c.Database.Password,
+		"@tcp(",
+		c.Database.Server,
+		":",
+		c.Database.Port,
+		")/",
+		db,
+		"?parseTime=true",
+		"&loc=" + url.QueryEscape(c.Timezone),
+	}
+
+	return strings.Join(rs, "")
 }
 
 func (c *Config) GetMPDConnection() string {
