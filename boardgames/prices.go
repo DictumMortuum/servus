@@ -14,6 +14,22 @@ import (
 	"time"
 )
 
+func GetUpdates(c *gin.Context) {
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	raw, err := util.GetUpdates(database)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	util.Success(c, raw)
+}
+
 func SendNotifications(c *gin.Context) {
 	database, err := db.Conn()
 	if err != nil {
@@ -29,7 +45,7 @@ func SendNotifications(c *gin.Context) {
 	}
 
 	for _, price := range rs {
-		err = util.TelegramMessage(price.Msg())
+		err = util.TelegramMessage(database, price.Msg())
 		if err != nil {
 			util.Error(c, err)
 			return

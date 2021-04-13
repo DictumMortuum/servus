@@ -89,6 +89,7 @@ func main() {
 	{
 		bg.GET("/prices", boardgames.GetPrices)
 		bg.GET("/prices/notify", boardgames.SendNotifications)
+		bg.GET("/prices/update", boardgames.GetUpdates)
 		bg.GET("/duel", boardgames.GetDuel)
 	}
 

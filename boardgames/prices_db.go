@@ -64,8 +64,8 @@ func createPrice(db *sqlx.DB, data PriceRow) (int64, error) {
 func updatePrice(db *sqlx.DB, data PriceRow) error {
 	sql := `
 	update tboardgameprices set
-		cr_date = NOW(),
-		date = :date,
+		cr_date = :cr_date,
+		date = NOW(),
 		boardgame = :boardgame,
 		store = :store,
 		original_price = :original_price,
