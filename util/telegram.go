@@ -31,6 +31,11 @@ type telegramUpdates struct {
 			Id   int               `json:"message_id"`
 			From telegramRecipient `json:"from"`
 		} `json:"message"`
+		Chat struct {
+			Member struct {
+				Status string `json:"status"`
+			} `json:"new_chat_member"`
+		} `json:"my_chat_member,omitempty"`
 	} `json:"result"`
 }
 
@@ -136,9 +141,11 @@ func GetUpdates(db *sqlx.DB) (*telegramUpdates, error) {
 	}
 
 	for _, user := range rs.Rs {
-		_, err := createUser(db, user.Message.From)
-		if err != nil {
-			return nil, err
+		if user.Chat.Member.Status != "kicked" {
+			_, err := createUser(db, user.Message.From)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
