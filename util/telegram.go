@@ -1,6 +1,7 @@
 package util
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/DictumMortuum/servus/config"
@@ -77,6 +78,40 @@ func introduceUser(db *sqlx.DB, data telegramRecipient) error {
 	return nil
 }
 
+func userExists(db *sqlx.DB, data telegramRecipient) (int64, error) {
+	var id sql.NullInt64
+
+	sql := `
+	select
+		id
+	from
+		tboardgamepricesusers
+	where
+		user_id = :user_id
+	`
+
+	stmt, err := db.PrepareNamed(sql)
+	if err != nil {
+		return -1, err
+	}
+
+	err = stmt.Get(&id, data)
+	if err != nil {
+		return -1, nil
+	}
+
+	retval, err := id.Value()
+	if err != nil {
+		return -1, err
+	}
+
+	if retval == nil {
+		return -1, err
+	}
+
+	return retval.(int64), nil
+}
+
 func createUser(db *sqlx.DB, data telegramRecipient) (int64, error) {
 	sql := `
 	insert into tboardgamepricesusers (
@@ -142,7 +177,17 @@ func GetUpdates(db *sqlx.DB) (*telegramUpdates, error) {
 
 	for _, user := range rs.Rs {
 		if user.Chat.Member.Status != "kicked" {
-			_, err := createUser(db, user.Message.From)
+			id, err := userExists(db, user.Message.From)
+			if err != nil {
+				return nil, err
+			}
+
+			if id != -1 {
+				fmt.Println(id, "exists")
+				continue
+			}
+
+			_, err = createUser(db, user.Message.From)
 			if err != nil {
 				return nil, err
 			}
