@@ -1,21 +1,22 @@
 package main
 
 import (
-	"github.com/DictumMortuum/servus/boardgames"
-	"github.com/DictumMortuum/servus/calendar"
-	"github.com/DictumMortuum/servus/calendar/generate"
-	"github.com/DictumMortuum/servus/calendar/parse"
-	"github.com/DictumMortuum/servus/calendar/validate"
-	"github.com/DictumMortuum/servus/config"
-	"github.com/DictumMortuum/servus/gas"
-	"github.com/DictumMortuum/servus/generic"
-	"github.com/DictumMortuum/servus/gnucash"
-	"github.com/DictumMortuum/servus/links"
-	"github.com/DictumMortuum/servus/music"
-	"github.com/DictumMortuum/servus/router"
-	"github.com/DictumMortuum/servus/util"
-	"github.com/DictumMortuum/servus/weight"
-	"github.com/DictumMortuum/servus/zerotier"
+	"github.com/DictumMortuum/servus/pkg/boardgames"
+	"github.com/DictumMortuum/servus/pkg/calendar"
+	"github.com/DictumMortuum/servus/pkg/calendar/generate"
+	"github.com/DictumMortuum/servus/pkg/calendar/parse"
+	"github.com/DictumMortuum/servus/pkg/calendar/validate"
+	"github.com/DictumMortuum/servus/pkg/config"
+	"github.com/DictumMortuum/servus/pkg/gas"
+	"github.com/DictumMortuum/servus/pkg/generic"
+	"github.com/DictumMortuum/servus/pkg/gnucash"
+	"github.com/DictumMortuum/servus/pkg/links"
+	"github.com/DictumMortuum/servus/pkg/music"
+	"github.com/DictumMortuum/servus/pkg/prices"
+	"github.com/DictumMortuum/servus/pkg/router"
+	"github.com/DictumMortuum/servus/pkg/util"
+	"github.com/DictumMortuum/servus/pkg/weight"
+	"github.com/DictumMortuum/servus/pkg/zerotier"
 	"github.com/gin-gonic/gin"
 	"github.com/itsjamie/gin-cors"
 	"html/template"
@@ -136,6 +137,22 @@ func main() {
 				util.Error(c, err)
 				return
 			}
+			util.Success(c, &rs)
+		})
+		bg.GET("/gamerules", func(c *gin.Context) {
+			rs := prices.ParseGameRules()
+			util.Success(c, &rs)
+		})
+		bg.GET("/vgames", func(c *gin.Context) {
+			rs := prices.ParseVGames()
+			util.Success(c, &rs)
+		})
+		bg.GET("/fantasygate", func(c *gin.Context) {
+			rs := prices.ParseFantasyGate()
+			util.Success(c, &rs)
+		})
+		bg.GET("/mysterybay", func(c *gin.Context) {
+			rs := prices.ParseMysteryBay()
 			util.Success(c, &rs)
 		})
 	}
