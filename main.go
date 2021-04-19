@@ -1,31 +1,55 @@
 package main
 
 import (
-	"github.com/DictumMortuum/servus/boardgames"
-	"github.com/DictumMortuum/servus/calendar"
-	"github.com/DictumMortuum/servus/calendar/generate"
-	"github.com/DictumMortuum/servus/calendar/parse"
-	"github.com/DictumMortuum/servus/calendar/validate"
-	"github.com/DictumMortuum/servus/config"
-	"github.com/DictumMortuum/servus/gas"
-	"github.com/DictumMortuum/servus/gnucash"
-	"github.com/DictumMortuum/servus/links"
-	"github.com/DictumMortuum/servus/music"
-	"github.com/DictumMortuum/servus/router"
-	"github.com/DictumMortuum/servus/util"
-	"github.com/DictumMortuum/servus/weight"
-	"github.com/DictumMortuum/servus/zerotier"
+	"github.com/DictumMortuum/servus/pkg/boardgames"
+	"github.com/DictumMortuum/servus/pkg/calendar"
+	"github.com/DictumMortuum/servus/pkg/calendar/generate"
+	"github.com/DictumMortuum/servus/pkg/calendar/parse"
+	"github.com/DictumMortuum/servus/pkg/calendar/validate"
+	"github.com/DictumMortuum/servus/pkg/config"
+	"github.com/DictumMortuum/servus/pkg/gas"
+	"github.com/DictumMortuum/servus/pkg/generic"
+	"github.com/DictumMortuum/servus/pkg/gnucash"
+	"github.com/DictumMortuum/servus/pkg/links"
+	"github.com/DictumMortuum/servus/pkg/music"
+	"github.com/DictumMortuum/servus/pkg/prices"
+	"github.com/DictumMortuum/servus/pkg/router"
+	"github.com/DictumMortuum/servus/pkg/util"
+	"github.com/DictumMortuum/servus/pkg/weight"
+	"github.com/DictumMortuum/servus/pkg/zerotier"
 	"github.com/gin-gonic/gin"
+	"github.com/itsjamie/gin-cors"
 	"html/template"
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "1.2.1",
+		"version": "2.0.0",
 	})
+}
+
+// SetConfig gin Middlware to push some config values
+func SetConfig() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("CorsOrigin", "*")
+		c.Set("Verbose", true)
+		c.Next()
+	}
+}
+
+// Options common response for rest options
+func Options(c *gin.Context) {
+	Origin := c.MustGet("CorsOrigin").(string)
+
+	c.Writer.Header().Set("Access-Control-Allow-Origin", Origin)
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET,DELETE,POST,PUT")
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	c.Next()
 }
 
 func main() {
@@ -47,6 +71,16 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(SetConfig())
+	r.Use(cors.Middleware(cors.Config{
+		Origins:         "*",
+		Methods:         "GET, PUT, POST, DELETE",
+		RequestHeaders:  "Origin, Authorization, Content-Type, Bearer, range",
+		ExposedHeaders:  "x-total-count, Content-Range",
+		MaxAge:          50 * time.Second,
+		Credentials:     true,
+		ValidateHeaders: false,
+	}))
 
 	r.SetFuncMap(template.FuncMap{
 		"formatDate":       util.FormatDate,
@@ -87,11 +121,54 @@ func main() {
 
 	bg := r.Group("/boardgames")
 	{
-		bg.GET("/prices", boardgames.GetPrices)
-		bg.GET("/prices/notify", boardgames.SendNotifications)
-		bg.GET("/prices/update", boardgames.GetUpdates)
+		bg.GET("/prices/notify", prices.SendMessages)
+		bg.GET("/prices/msg", prices.CreateMessages)
+		bg.GET("/prices/new", prices.GetUpdates)
 		bg.GET("/duel", boardgames.GetDuel)
+		bg.GET("/gamerules", prices.ParseGameRules)
+		bg.GET("/vgames", prices.ParseVGames)
+		bg.GET("/fantasygate", prices.ParseFantasyGate)
+		bg.GET("/mysterybay", prices.ParseMysteryBay)
+		bg.GET("/boardgameprices", prices.ParseBoardgameprices)
+		bg.GET("/atlas/:id/:atlas", boardgames.UpdateAtlasId)
+		bg.GET("/unmap/:id", boardgames.Unmap)
 	}
+
+	generic.Register(
+		bg.Group("/game"),
+		boardgames.GetBoardgame,
+		boardgames.GetBoardgameList,
+		boardgames.CreateBoardgame,
+		boardgames.UpdateBoardgame,
+		boardgames.DeleteBoardgame,
+	)
+
+	generic.Register(
+		bg.Group("/player"),
+		boardgames.GetPlayer,
+		boardgames.GetPlayerList,
+		boardgames.CreatePlayer,
+		boardgames.UpdatePlayer,
+		boardgames.DeletePlayer,
+	)
+
+	generic.Register(
+		bg.Group("/play"),
+		boardgames.GetPlay,
+		boardgames.GetPlayList,
+		boardgames.CreatePlay,
+		boardgames.UpdatePlay,
+		boardgames.DeletePlay,
+	)
+
+	generic.Register(
+		bg.Group("/store"),
+		boardgames.GetStore,
+		boardgames.GetStoreList,
+		boardgames.CreateStore,
+		boardgames.UpdateStore,
+		boardgames.DeleteStore,
+	)
 
 	gn := r.Group("/gnucash")
 	{
