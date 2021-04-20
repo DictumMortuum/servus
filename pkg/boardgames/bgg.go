@@ -8,14 +8,33 @@ import (
 	"net/http"
 )
 
+type Rank struct {
+	XMLName xml.Name `xml:"rank"`
+	Type    string   `xml:"name,attr"`
+	Name    string   `xml:"friendlyname,attr"`
+	Value   string   `xml:"value,attr"`
+}
+
 type Bayes struct {
 	XMLName xml.Name `xml:"bayesaverage"`
 	Value   string   `xml:"value,attr"`
 }
 
+type Average struct {
+	XMLName xml.Name `xml:"average"`
+	Value   string   `xml:"value,attr"`
+}
+
+type Ranks struct {
+	XMLName xml.Name `xml:"ranks"`
+	Ranks   []Rank   `xml:"rank"`
+}
+
 type Ratings struct {
 	XMLName      xml.Name `xml:"ratings"`
 	Bayesaverage Bayes    `xml:"bayesaverage"`
+	Average      Average  `xml:"average"`
+	Ranks        Ranks    `xml:"ranks"`
 }
 
 type Stats struct {

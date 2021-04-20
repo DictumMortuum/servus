@@ -18,6 +18,18 @@ var (
 	price        = regexp.MustCompile("([0-9]+.[0-9]+)")
 )
 
+func getPriceString(raw string) float64 {
+	raw = strings.ReplaceAll(raw, ",", ".")
+	match := price.FindStringSubmatch(raw)
+
+	if len(match) > 0 {
+		price, _ := strconv.ParseFloat(match[1], 64)
+		return price
+	} else {
+		return 0.0
+	}
+}
+
 func getPrice(e *colly.HTMLElement, selector string) float64 {
 	raw := e.ChildText(selector)
 	raw = strings.ReplaceAll(raw, ",", ".")
@@ -165,12 +177,19 @@ func createPrices(data []models.BoardgamePrice) ([]models.BoardgamePrice, error)
 			Name: price.Boardgame,
 		}
 
+		atlas, err := boardgames.AtlasSearch(game)
+		if err != nil {
+			return nil, err
+		}
+		if len(atlas) == 0 {
+			// do not create the game if there are no atlas entries
+			continue
+		}
+
 		id, err := db.InsertIfNotExists(database, game)
 		if err != nil {
 			return nil, err
 		}
-
-		boardgames.AtlasSearch(game)
 
 		price.BoardgameId = *id
 

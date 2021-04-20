@@ -23,18 +23,32 @@ func GetBoardgame(db *sqlx.DB, id int64) (interface{}, error) {
 	}
 
 	for i, item := range rs.Atlas {
-		tmp, err := BggRank(item)
-		if err != nil {
-			return nil, err
+		if item.BggId > 0 {
+			tmp, err := BggRank(item)
+			if err != nil {
+				return nil, err
+			}
+
+			rs.Atlas[i].Ranks = map[string]models.BggRank{}
+
+			if len(tmp.Items) > 0 {
+				for _, rank := range tmp.Items[0].Statistics.Ratings.Ranks.Ranks {
+					v, _ := strconv.ParseInt(rank.Value, 10, 64)
+
+					if v > 0 {
+						rs.Atlas[i].Ranks[rank.Type] = models.BggRank{
+							Type:  rank.Name,
+							Value: v,
+						}
+					}
+				}
+
+				v, _ := strconv.ParseFloat(tmp.Items[0].Statistics.Ratings.Bayesaverage.Value, 64)
+				rs.Atlas[i].Bayesaverage = v
+				v, _ = strconv.ParseFloat(tmp.Items[0].Statistics.Ratings.Average.Value, 64)
+				rs.Atlas[i].Average = v
+			}
 		}
-
-		if len(tmp.Items) > 0 {
-			log.Println(tmp.Items[0].Statistics.Ratings.Bayesaverage.Value)
-			rs.Atlas[i].Rank = tmp.Items[0].Statistics.Ratings.Bayesaverage.Value
-		}
-
-		log.Println(item)
-
 	}
 
 	return rs, nil

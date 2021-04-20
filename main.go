@@ -28,7 +28,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "2.0.0",
+		"version": "2.1.0",
 	})
 }
 
@@ -129,6 +129,7 @@ func main() {
 		bg.GET("/vgames", prices.ParseVGames)
 		bg.GET("/fantasygate", prices.ParseFantasyGate)
 		bg.GET("/mysterybay", prices.ParseMysteryBay)
+		bg.GET("/kaissa", prices.ParseKaissa)
 		bg.GET("/boardgameprices", prices.ParseBoardgameprices)
 		bg.GET("/atlas/:id/:atlas", boardgames.UpdateAtlasId)
 		bg.GET("/unmap/:id", boardgames.Unmap)
