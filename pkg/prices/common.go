@@ -177,7 +177,7 @@ func createPrices(data []models.BoardgamePrice) ([]models.BoardgamePrice, error)
 			Name: price.Boardgame,
 		}
 
-		atlas, err := boardgames.AtlasSearch(game)
+		atlas, err := boardgames.AtlasSearch2(game)
 		if err != nil {
 			return nil, err
 		}

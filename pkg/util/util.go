@@ -34,7 +34,7 @@ func Render(c *gin.Context, data gin.H, templateName string) {
 }
 
 func Error(c *gin.Context, err error) {
-	c.JSON(http.StatusBadRequest, gin.H{
+	c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 		"status":   "BAD",
 		"error":    err.Error(),
 		"response": nil,

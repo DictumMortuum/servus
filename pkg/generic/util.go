@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-func ParseArgs(c *gin.Context) models.Args {
+func ParseArgs(c *gin.Context) models.QueryBuilder {
 	args := c.Request.URL.Query()
-	rs := models.Args{
+	rs := models.QueryBuilder{
 		Page: 5,
 	}
 

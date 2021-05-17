@@ -14,6 +14,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/music"
 	"github.com/DictumMortuum/servus/pkg/prices"
 	"github.com/DictumMortuum/servus/pkg/router"
+	"github.com/DictumMortuum/servus/pkg/scraper"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/DictumMortuum/servus/pkg/weight"
 	"github.com/DictumMortuum/servus/pkg/zerotier"
@@ -28,7 +29,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "2.1.0",
+		"version": "3.0.0",
 	})
 }
 
@@ -66,6 +67,11 @@ func main() {
 	}
 
 	err := config.Read(path_cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	apiCache, err := CacheInit()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,52 +130,54 @@ func main() {
 		bg.GET("/prices/notify", prices.SendMessages)
 		bg.GET("/prices/msg", prices.CreateMessages)
 		bg.GET("/prices/new", prices.GetUpdates)
-		bg.GET("/duel", boardgames.GetDuel)
-		bg.GET("/gamerules", prices.ParseGameRules)
-		bg.GET("/vgames", prices.ParseVGames)
-		bg.GET("/fantasygate", prices.ParseFantasyGate)
-		bg.GET("/mysterybay", prices.ParseMysteryBay)
-		bg.GET("/kaissa", prices.ParseKaissa)
-		bg.GET("/boardgameprices", prices.ParseBoardgameprices)
-		bg.GET("/atlas/:id/:atlas", boardgames.UpdateAtlasId)
-		bg.GET("/unmap/:id", boardgames.Unmap)
+		bg.POST("/search/:hash", CacheCheck(apiCache), boardgames.AtlasSearch)
+		bg.POST("/get/:hash", CacheCheck(apiCache), boardgames.BggGet)
 	}
 
-	generic.Register(
-		bg.Group("/game"),
-		boardgames.GetBoardgame,
-		boardgames.GetBoardgameList,
-		boardgames.CreateBoardgame,
-		boardgames.UpdateBoardgame,
-		boardgames.DeleteBoardgame,
-	)
+	rest := r.Group("/rest/v1")
+	{
+		games := boardgames.Boardgame{}
+		rest.GET("/boardgame/:id", generic.GET(games))
+		rest.GET("/boardgame", generic.GETLIST(games))
+		rest.POST("/boardgame", generic.POST(games))
+		rest.PUT("/boardgame/:id", generic.PUT(games))
+		rest.DELETE("/boardgame/:id", generic.DELETE(games))
 
-	generic.Register(
-		bg.Group("/player"),
-		boardgames.GetPlayer,
-		boardgames.GetPlayerList,
-		boardgames.CreatePlayer,
-		boardgames.UpdatePlayer,
-		boardgames.DeletePlayer,
-	)
+		store := boardgames.Store{}
+		rest.GET("/store/:id", generic.GET(store))
+		rest.GET("/store", generic.GETLIST(store))
+		rest.POST("/store", generic.POST(store))
+		rest.PUT("/store/:id", generic.PUT(store))
+		rest.DELETE("/store/:id", generic.DELETE(store))
 
-	generic.Register(
-		bg.Group("/play"),
-		boardgames.GetPlay,
-		boardgames.GetPlayList,
-		boardgames.CreatePlay,
-		boardgames.UpdatePlay,
-		boardgames.DeletePlay,
-	)
+		data := scraper.Data{}
+		rest.GET("/scrape/:id", generic.GET(data))
+		rest.GET("/scrape", generic.GETLIST(data))
+		rest.POST("/scrape", generic.POST(data))
+		rest.PUT("/scrape/:id", generic.PUT(data))
+		rest.DELETE("/scrape/:id", generic.DELETE(data))
 
-	generic.Register(
-		bg.Group("/store"),
-		boardgames.GetStore,
-		boardgames.GetStoreList,
-		boardgames.CreateStore,
-		boardgames.UpdateStore,
-		boardgames.DeleteStore,
-	)
+		player := boardgames.Player{}
+		rest.GET("/player/:id", generic.GET(player))
+		rest.GET("/player", generic.GETLIST(player))
+		rest.POST("/player", generic.POST(player))
+		rest.PUT("/player/:id", generic.PUT(player))
+		rest.DELETE("/player/:id", generic.DELETE(player))
+
+		play := boardgames.Play{}
+		rest.GET("/play/:id", generic.GET(play))
+		rest.GET("/play", generic.GETLIST(play))
+		rest.POST("/play", generic.POST(play))
+		rest.PUT("/play/:id", generic.PUT(play))
+		rest.DELETE("/play/:id", generic.DELETE(play))
+
+		stats := boardgames.Stats{}
+		rest.GET("/stats/:id", generic.GET(stats))
+		rest.GET("/stats", generic.GETLIST(stats))
+		rest.POST("/stats", generic.POST(stats))
+		rest.PUT("/stats/:id", generic.PUT(stats))
+		rest.DELETE("/stats/:id", generic.DELETE(stats))
+	}
 
 	gn := r.Group("/gnucash")
 	{
@@ -182,8 +190,34 @@ func main() {
 		rt.GET("/latest", router.Latest)
 	}
 
+	sc := r.Group("/scrape")
+	{
+		sc.POST("/data", scraper.CreateDataMapping)
+
+		vgames := scraper.VgamesScraper{"V Games"}
+		sc.GET("/vgames", scraper.Scrape(vgames))
+		sc.GET("/vgames/prices", scraper.ScrapePrices(vgames))
+
+		gamerules := scraper.GameRulesScraper{"The Game Rules"}
+		sc.GET("/gamerules", scraper.Scrape(gamerules))
+		sc.GET("/gamerules/prices", scraper.ScrapePrices(gamerules))
+
+		mysterybay := scraper.MysteryBayScraper{"Mystery Bay"}
+		sc.GET("/mystery", scraper.Scrape(mysterybay))
+		sc.GET("/mystery/prices", scraper.ScrapePrices(mysterybay))
+
+		kaissa := scraper.KaissaScraper{"Kaissa Amarousiou"}
+		sc.GET("/kaissa", scraper.Scrape(kaissa))
+		sc.GET("/kaissa/prices", scraper.ScrapePrices(kaissa))
+
+		fantasygate := scraper.FantasyGateScraper{"Fantasy Gate"}
+		sc.GET("/fantasygate", scraper.Scrape(fantasygate))
+		sc.GET("/fantasygate/prices", scraper.ScrapePrices(fantasygate))
+	}
+
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
 	r.GET("/version", Version)
+	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")
 }

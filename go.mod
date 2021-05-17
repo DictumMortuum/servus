@@ -11,6 +11,7 @@ require (
 	github.com/emersion/go-webdav v0.3.0 // indirect
 	github.com/fhs/gompd v1.0.1
 	github.com/frankban/quicktest v1.11.3 // indirect
+	github.com/gin-contrib/cache v1.1.0 // indirect
 	github.com/gin-gonic/gin v1.7.1
 	github.com/go-playground/validator/v10 v10.5.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
@@ -28,6 +29,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac
 	github.com/shabbyrobe/xmlwriter v0.0.0-20210324110748-440e98cf0c87 // indirect
@@ -43,6 +45,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
+	gopkg.in/guregu/null.v3 v3.5.0 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/tucnak/telebot.v2 v2.3.5
 	gopkg.in/yaml.v2 v2.4.0

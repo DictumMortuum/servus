@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 )
@@ -9,9 +8,9 @@ import (
 type BoardgamePrice struct {
 	Id            int64         `db:"id"`
 	CrDate        time.Time     `db:"cr_date"`
-	BoardgameId   sql.NullInt64 `db:"boardgame_id"`
+	BoardgameId   JsonNullInt64 `db:"boardgame_id"`
 	Boardgame     string        `db:"boardgame" json:"boardgame"`
-	StoreId       sql.NullInt64 `db:"store_id"`
+	StoreId       JsonNullInt64 `db:"store_id"`
 	Store         string        `db:"store" json:"store"`
 	OriginalPrice float64       `db:"original_price"`
 	ReducedPrice  float64       `db:"reduced_price"`

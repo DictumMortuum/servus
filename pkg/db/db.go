@@ -119,7 +119,7 @@ func CreateEvent(db *sqlx.DB, day CalendarRow) error {
 	return nil
 }
 
-func Insert(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, error) {
+func Insert(db *sqlx.DB, data models.Insertable) (*models.JsonNullInt64, error) {
 	rs, err := db.NamedExec(data.Insert(), data)
 	if err != nil {
 		return nil, err
@@ -130,14 +130,14 @@ func Insert(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, error) {
 		return nil, err
 	}
 
-	return &sql.NullInt64{
+	return &models.JsonNullInt64{
 		Int64: id,
 		Valid: true,
 	}, nil
 }
 
-func Exists(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, error) {
-	var id sql.NullInt64
+func Exists(db *sqlx.DB, data models.Insertable) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
 
 	stmt, err := db.PrepareNamed(data.Exists())
 	if err != nil {
@@ -155,7 +155,7 @@ func Exists(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, error) {
 	return &id, nil
 }
 
-func InsertIfNotExists(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, error) {
+func InsertIfNotExists(db *sqlx.DB, data models.Insertable) (*models.JsonNullInt64, error) {
 	id, err := Exists(db, data)
 	if err != nil {
 		return nil, err
@@ -166,9 +166,11 @@ func InsertIfNotExists(db *sqlx.DB, data models.Insertable) (*sql.NullInt64, err
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	return id, nil
+		return id, nil
+	} else {
+		return nil, nil
+	}
 }
 
 func InsertMsg(db *sqlx.DB, data models.Sendable) (bool, error) {

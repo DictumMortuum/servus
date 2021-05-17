@@ -7,26 +7,12 @@ import (
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	// "log"
 	"net/http"
 	"strconv"
 )
 
-func Register(
-	router *gin.RouterGroup,
-	get func(*sqlx.DB, int64) (interface{}, error),
-	getlist func(*sqlx.DB, models.Args) (interface{}, int, error),
-	create func(*sqlx.DB, map[string]interface{}) (interface{}, error),
-	update func(*sqlx.DB, int64, map[string]interface{}) (interface{}, error),
-	delete func(*sqlx.DB, int64) (interface{}, error),
-) {
-	router.GET("/:id", _get(get))
-	router.GET("", _getlist(getlist))
-	router.POST("", _create(create))
-	router.PUT("/:id", _update(update))
-	router.DELETE("/:id", _delete(delete))
-}
-
-func _get(f func(*sqlx.DB, int64) (interface{}, error)) func(*gin.Context) {
+func GET(p models.Getable) func(*gin.Context) {
 	return func(c *gin.Context) {
 		arg := c.Params.ByName("id")
 
@@ -43,19 +29,17 @@ func _get(f func(*sqlx.DB, int64) (interface{}, error)) func(*gin.Context) {
 		}
 		defer database.Close()
 
-		data, err := f(database, id)
+		data, err := p.Get(database, id)
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": data,
-		})
+		c.JSON(http.StatusOK, data)
 	}
 }
 
-func _getlist(f func(*sqlx.DB, models.Args) (interface{}, int, error)) func(*gin.Context) {
+func GETLIST(p models.Getlistable) func(*gin.Context) {
 	return func(c *gin.Context) {
 		args := ParseArgs(c)
 
@@ -66,21 +50,39 @@ func _getlist(f func(*sqlx.DB, models.Args) (interface{}, int, error)) func(*gin
 		}
 		defer database.Close()
 
-		data, length, err := f(database, args)
+		var count int
+		err = database.Get(&count, "select count(*) from "+p.GetTable())
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 
-		c.Header("X-Total-Count", fmt.Sprintf("%d", length))
-		c.JSON(http.StatusOK, gin.H{
-			"data":  data,
-			"total": length,
-		})
+		sql, err := args.List("select * from " + p.GetTable())
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		query, ids, err := sqlx.In(sql.String(), args.Id)
+		if err != nil {
+			query = sql.String()
+		} else {
+			query = database.Rebind(query)
+		}
+
+		var rs interface{}
+		rs, err = p.GetList(database, query, ids...)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		c.Header("X-Total-Count", fmt.Sprintf("%d", count))
+		c.JSON(http.StatusOK, rs)
 	}
 }
 
-func _create(f func(*sqlx.DB, map[string]interface{}) (interface{}, error)) func(*gin.Context) {
+func POST(p models.Createable) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var args map[string]interface{}
 		c.BindJSON(&args)
@@ -92,19 +94,31 @@ func _create(f func(*sqlx.DB, map[string]interface{}) (interface{}, error)) func
 		}
 		defer database.Close()
 
-		data, err := f(database, args)
+		qb := models.QueryBuilder{
+			Columns: []string{},
+		}
+
+		for key := range args {
+			qb.Columns = append(qb.Columns, key)
+		}
+
+		sql, err := qb.Insert(p.GetTable())
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": data,
-		})
+		data, err := p.Create(database, sql.String(), args)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, data)
 	}
 }
 
-func _update(f func(*sqlx.DB, int64, map[string]interface{}) (interface{}, error)) func(*gin.Context) {
+func PUT(p models.Updateable) func(*gin.Context) {
 	return func(c *gin.Context) {
 		var args map[string]interface{}
 		c.BindJSON(&args)
@@ -123,19 +137,31 @@ func _update(f func(*sqlx.DB, int64, map[string]interface{}) (interface{}, error
 		}
 		defer database.Close()
 
-		data, err := f(database, id, args)
+		qb := models.QueryBuilder{
+			Columns: []string{},
+		}
+
+		for key := range args {
+			qb.Columns = append(qb.Columns, key)
+		}
+
+		sql, err := qb.Update(p.GetTable())
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": data,
-		})
+		data, err := p.Update(database, sql.String(), id, args)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, data)
 	}
 }
 
-func _delete(f func(*sqlx.DB, int64) (interface{}, error)) func(*gin.Context) {
+func DELETE(p models.Deleteable) func(*gin.Context) {
 	return func(c *gin.Context) {
 		arg := c.Params.ByName("id")
 
@@ -152,14 +178,19 @@ func _delete(f func(*sqlx.DB, int64) (interface{}, error)) func(*gin.Context) {
 		}
 		defer database.Close()
 
-		data, err := f(database, id)
+		qb := models.QueryBuilder{}
+		sql, err := qb.Update(p.GetTable())
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": data,
-		})
+		data, err := p.Delete(database, sql.String(), id)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, data)
 	}
 }

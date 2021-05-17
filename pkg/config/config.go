@@ -36,6 +36,11 @@ type Config struct {
 	Atlas struct {
 		ClientId string `yaml:"client_id"`
 	} `yaml:"atlas"`
+	Cache struct {
+		Expiration int    `yaml:"expiration"`
+		Cleanup    int    `yaml:"cleanup"`
+		Path       string `yaml:"path"`
+	} `yaml:"cache"`
 }
 
 var (

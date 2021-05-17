@@ -7,6 +7,7 @@ type BggRank struct {
 
 type AtlasResult struct {
 	Id            string             `json:"id"`
+	Name          string             `json:"name"`
 	ThumbUrl      string             `json:"thumb_url"`
 	ImageUrl      string             `json:"image_url"`
 	BggId         int                `json:"bgg_id"`

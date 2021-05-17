@@ -2,254 +2,93 @@ package boardgames
 
 import (
 	"errors"
-	DB "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
-	"github.com/DictumMortuum/servus/pkg/util"
-	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"log"
-	"strconv"
 )
 
-func GetBoardgame(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getBoardgame(db, id)
+type Boardgame struct{}
+
+func (obj Boardgame) GetTable() string {
+	return "tboardgames"
+}
+
+func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
+	var rs models.Boardgame
+
+	err := db.QueryRowx(`select * from tboardgames where id = ?`, id).StructScan(&rs)
 	if err != nil {
 		return nil, err
 	}
 
-	rs.Atlas, err = AtlasSearch(*rs)
+	return &rs, nil
+}
+
+func (obj Boardgame) Get(db *sqlx.DB, id int64) (interface{}, error) {
+	return getBoardgame(db, id)
+}
+
+func (obj Boardgame) GetList(db *sqlx.DB, query string, args ...interface{}) (interface{}, error) {
+	var rs []models.Boardgame
+
+	err := db.Select(&rs, query, args...)
 	if err != nil {
 		return nil, err
-	}
-
-	for i, item := range rs.Atlas {
-		if item.BggId > 0 {
-			tmp, err := BggRank(item)
-			if err != nil {
-				return nil, err
-			}
-
-			rs.Atlas[i].Ranks = map[string]models.BggRank{}
-
-			if len(tmp.Items) > 0 {
-				for _, rank := range tmp.Items[0].Statistics.Ratings.Ranks.Ranks {
-					v, _ := strconv.ParseInt(rank.Value, 10, 64)
-
-					if v > 0 {
-						rs.Atlas[i].Ranks[rank.Type] = models.BggRank{
-							Type:  rank.Name,
-							Value: v,
-						}
-					}
-				}
-
-				v, _ := strconv.ParseFloat(tmp.Items[0].Statistics.Ratings.Bayesaverage.Value, 64)
-				rs.Atlas[i].Bayesaverage = v
-				v, _ = strconv.ParseFloat(tmp.Items[0].Statistics.Ratings.Average.Value, 64)
-				rs.Atlas[i].Average = v
-			}
-		}
 	}
 
 	return rs, nil
 }
 
-func GetBoardgameList(db *sqlx.DB, args models.Args) (interface{}, int, error) {
-	var rs []models.Boardgame
+func (obj Boardgame) Create(db *sqlx.DB, query string, data map[string]interface{}) (interface{}, error) {
+	var rs models.Boardgame
 
-	sql, err := args.List(`
-	select
-		*
-	from
-		tboardgames
-	`)
-	if err != nil {
-		return nil, -1, err
-	}
-
-	if len(args.Id) > 0 {
-		query, ids, err := sqlx.In(sql.String(), args.Id)
-		if err != nil {
-			return nil, -1, err
-		}
-
-		err = db.Select(&rs, db.Rebind(query), ids...)
-		if err != nil {
-			return nil, -1, err
-		}
-	} else {
-		err = db.Select(&rs, sql.String())
-		if err != nil {
-			return nil, -1, err
-		}
-	}
-
-	return rs, len(rs), nil
-}
-
-func CreateBoardgame(db *sqlx.DB, data map[string]interface{}) (interface{}, error) {
-	var player models.Boardgame
-
-	if val, ok := data["name"]; ok {
-		player.Name = val.(string)
+	if val, ok := data["id"]; ok {
+		rs.Id = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
-	sql := `
-	insert into tboardgames (
-		name
-	) values (
-		:name
-	)`
+	if val, ok := data["name"]; ok {
+		rs.Name = val.(string)
+	} else {
+		return nil, errors.New("please provide a 'name' parameter")
+	}
 
-	rs, err := db.NamedExec(sql, &player)
+	_, err := db.NamedExec(query, &rs)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := rs.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	player.Id = id
-
-	return player, nil
+	return rs, nil
 }
 
-func UpdateBoardgame(db *sqlx.DB, id int64, data map[string]interface{}) (interface{}, error) {
-	player, err := getPlayer(db, id)
+func (obj Boardgame) Update(db *sqlx.DB, query string, id int64, data map[string]interface{}) (interface{}, error) {
+	rs, err := getBoardgame(db, id)
 	if err != nil {
 		return nil, err
 	}
 
 	if val, ok := data["name"]; ok {
-		player.Name = val.(string)
+		rs.Name = val.(string)
 	}
 
-	sql := `
-	update
-		tboardgames
-	set
-		name = :name
-	where
-		id = :id`
-
-	_, err = db.NamedExec(sql, &player)
+	_, err = db.NamedExec(query, &rs)
 	if err != nil {
 		return nil, err
 	}
 
-	return player, nil
+	return rs, nil
 }
 
-func DeleteBoardgame(db *sqlx.DB, id int64) (interface{}, error) {
-	player, err := getPlayer(db, id)
+func (obj Boardgame) Delete(db *sqlx.DB, query string, id int64) (interface{}, error) {
+	rs, err := getBoardgame(db, id)
 	if err != nil {
 		return nil, err
 	}
 
-	sql := `
-	delete from
-		tboardgames
-	where
-		id = :id`
-
-	_, err = db.NamedExec(sql, &player)
+	_, err = db.NamedExec(query, &rs)
 	if err != nil {
 		return nil, err
 	}
 
-	return player, nil
-}
-
-func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
-	var retval models.Boardgame
-
-	err := db.QueryRowx(`select * from tboardgames where id = ?`, id).StructScan(&retval)
-	if err != nil {
-		return nil, err
-	}
-
-	return &retval, nil
-}
-
-func updateAtlasId(ids, atlas_id string) error {
-	database, err := DB.Conn()
-	if err != nil {
-		return err
-	}
-	defer database.Close()
-
-	id, err := strconv.ParseInt(ids, 10, 64)
-	if err != nil {
-		return err
-	}
-
-	sql := `
-	update
-		tboardgames
-	set
-		atlas_id = ?
-	where
-		id = ?`
-
-	_, err = database.Exec(sql, atlas_id, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func UpdateAtlasId(c *gin.Context) {
-	arg1 := c.Params.ByName("id")
-	arg2 := c.Params.ByName("atlas")
-	log.Println(arg2)
-	err := updateAtlasId(arg1, arg2)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
-	util.Success(c, &arg1)
-}
-
-func Unmap(c *gin.Context) {
-	arg1 := c.Params.ByName("id")
-
-	err := unmap(arg1)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
-	util.Success(c, &arg1)
-}
-
-func unmap(ids string) error {
-	database, err := DB.Conn()
-	if err != nil {
-		return err
-	}
-	defer database.Close()
-
-	id, err := strconv.ParseInt(ids, 10, 64)
-	if err != nil {
-		return err
-	}
-
-	sql := `
-	update
-		tboardgames
-	set
-		unmapped = 1
-	where
-		id = ?`
-
-	_, err = database.Exec(sql, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return rs, nil
 }
