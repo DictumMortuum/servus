@@ -132,6 +132,7 @@ func main() {
 		bg.GET("/prices/new", prices.GetUpdates)
 		bg.POST("/search/:hash", CacheCheck(apiCache), boardgames.AtlasSearch)
 		bg.POST("/get/:hash", CacheCheck(apiCache), boardgames.BggGet)
+		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), boardgames.BggSearch)
 	}
 
 	rest := r.Group("/rest/v1")

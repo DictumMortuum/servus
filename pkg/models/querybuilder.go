@@ -103,19 +103,7 @@ func (obj QueryBuilder) Update(table string) (*bytes.Buffer, error) {
 }
 
 func (obj QueryBuilder) Delete(table string) (*bytes.Buffer, error) {
-	sql := `
-	delete from
-		` + table + `
-	where
-		id = :id
-	`
-
 	var tpl bytes.Buffer
-	t := template.Must(template.New("update").Parse(sql))
-	err := t.Execute(&tpl, obj.Columns)
-	if err != nil {
-		return nil, err
-	}
-
+	tpl.WriteString("delete from " + table + " where id = :id")
 	return &tpl, nil
 }

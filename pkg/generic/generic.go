@@ -179,7 +179,7 @@ func DELETE(p models.Deleteable) func(*gin.Context) {
 		defer database.Close()
 
 		qb := models.QueryBuilder{}
-		sql, err := qb.Update(p.GetTable())
+		sql, err := qb.Delete(p.GetTable())
 		if err != nil {
 			util.Error(c, err)
 			return

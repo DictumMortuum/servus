@@ -14,14 +14,11 @@ type Json map[string]interface{}
 func (obj *Json) Scan(val interface{}) error {
 	switch v := val.(type) {
 	case []byte:
-		json.Unmarshal(v, &obj)
-		return nil
+		return json.Unmarshal(v, &obj)
 	case string:
-		json.Unmarshal([]byte(v), &obj)
-		return nil
+		return json.Unmarshal([]byte(v), &obj)
 	case nil:
-		json.Unmarshal(nil, &obj)
-		return nil
+		return json.Unmarshal(nil, &obj)
 	default:
 		return errors.New(fmt.Sprintf("Unsupported type: %T", v))
 	}

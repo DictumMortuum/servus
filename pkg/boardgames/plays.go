@@ -43,27 +43,44 @@ func (obj Play) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 	var rs models.Play
 
 	if val, ok := data["date"]; ok {
-		t, err := time.Parse("2006-01-02T15:04:05-0700", val.(string))
+		//"Mon Jan 02 2006 15:04:05 GMT-0700 (MST)"
+		t, err := time.Parse("2006-01-02", val.(string))
+		// t, err := time.Parse("01-02-2006", val.(string))
 		if err != nil {
 			return nil, err
 		}
 
 		rs.Date = t
+
+		// t, err := strconv.ParseInt(val.(string), 10, 64)
+		// if err != nil {
+		// 	return nil, err
+		// }
+
+		// rs.Date = time.Unix(t, 0)
+	} else {
+		rs.Date = time.Now()
 	}
 
 	if val, ok := data["boardgame_id"]; ok {
-		rs.Id = int64(val.(float64))
+		rs.BoardgameId = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'boardgame_id' parameter")
 	}
 
 	rs.CrDate = time.Now()
 
-	_, err := db.NamedExec(query, &rs)
+	row, err := db.NamedExec(query, &rs)
 	if err != nil {
 		return nil, err
 	}
 
+	id, err := row.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	rs.Id = id
 	return rs, nil
 }
 

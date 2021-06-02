@@ -53,8 +53,11 @@ func (obj Stats) Create(db *sqlx.DB, query string, data map[string]interface{}) 
 		return nil, errors.New("please provide a 'player_id' parameter")
 	}
 
-	if val, ok := data["json"]; ok {
-		stats.Data.Scan(val)
+	if val, ok := data["data"]; ok {
+		err := stats.Data.Scan(val)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		return nil, errors.New("please provide a 'json' parameter")
 	}
@@ -87,7 +90,7 @@ func (obj Stats) Update(db *sqlx.DB, query string, id int64, data map[string]int
 		rs.PlayerId = int64(val.(float64))
 	}
 
-	if val, ok := data["json"]; ok {
+	if val, ok := data["data"]; ok {
 		rs.Data.Scan(val)
 	}
 
