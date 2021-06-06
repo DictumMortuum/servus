@@ -67,6 +67,7 @@ func GetScores(c *gin.Context) {
 // |    822 | Carcassonne                    |
 // |  14996 | Ticket to ride: Europe         |
 // | 110327 | Lords of Waterdeep             |
+// | 127023 | Kemet                          |
 // | 163412 | Patchwork                      |
 // | 170042 | Raiders of the north sea       |
 // | 170216 | Blood rage                     |
@@ -78,10 +79,11 @@ func GetScores(c *gin.Context) {
 // | 256916 | Concordia Venus                |
 // | 266192 | Wingspan                       |
 // | 266810 | Paladins of the West Kingdom   |
+// | 271320 | Castles of Burgundy            |
 // | 283863 | The Magnificent                |
 // | 312484 | Lost ruins of Arnak            |
 // +--------+--------------------------------+
-// 17 rows in set (0.002 sec)
+// 19 rows in set (0.002 sec)
 
 func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	switch boardgame_id {
@@ -118,6 +120,10 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 	case 236457:
 		return ArchitectsScore, ArchitectsSort
 	case 170216:
+		return DefaultScore, DefaultSort
+	case 127023:
+		return KemetScore, KemetSort
+	case 271320:
 		return DefaultScore, DefaultSort
 	default:
 		return nil, nil
@@ -484,6 +490,42 @@ func ArchitectsSort(stats []models.Stats) func(i, j int) bool {
 			}
 
 			return virtue1 < virtue2
+		}
+
+		return score1 < score2
+	}
+}
+
+func KemetScore(stats models.Stats) float64 {
+	keys := []string{"temple_temporary", "temple_permanent", "temple_allgods", "battle", "tile", "pyramid", "sanctuary", "sphinx"}
+
+	score := 0.0
+	for _, key := range keys {
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
+	}
+
+	return score
+}
+
+func KemetSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		score1 := KemetScore(stats[i])
+		score2 := KemetScore(stats[j])
+
+		if int64(score1) == int64(score2) {
+			battle1 := stats[i].Data["battle"].(float64)
+			battle2 := stats[j].Data["battle"].(float64)
+
+			if int64(battle1) == int64(battle2) {
+				order1 := stats[i].Data["order"].(float64)
+				order2 := stats[j].Data["order"].(float64)
+
+				return order1 > order2
+			}
+
+			return battle1 < battle2
 		}
 
 		return score1 < score2
