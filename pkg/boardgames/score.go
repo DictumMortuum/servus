@@ -22,7 +22,7 @@ func GetScores(c *gin.Context) {
 	defer db.Close()
 
 	var plays []models.Play
-	err = db.Select(&plays, "select * from tboardgameplays")
+	err = db.Select(&plays, "select * from tboardgameplays order by date, id")
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -52,9 +52,9 @@ func GetScores(c *gin.Context) {
 		rs = append(rs, retval{play, retval2})
 	}
 
-	sort.Slice(rs, func(i, j int) bool {
-		return rs[i].Play.Date.Before(rs[j].Play.Date)
-	})
+	// sort.Slice(rs, func(i, j int) bool {
+	// 	return rs[i].Play.Date.Before(rs[j].Play.Date)
+	// })
 
 	util.Success(c, rs)
 }
