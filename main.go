@@ -29,7 +29,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "3.0.0",
+		"version": "3.0.1",
 	})
 }
 

@@ -1,34 +1,13 @@
 package gnucash
 
 import (
-	"encoding/json"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
 
 type ExpensesRow struct {
-	RawMonth string  `db:"month"`
-	Sum      float64 `db:"sum"`
-}
-
-func (e ExpensesRow) Month() (*time.Time, error) {
-	time, err := time.Parse("2006-01", e.RawMonth)
-	if err != nil {
-		return nil, err
-	}
-	return &time, nil
-}
-
-func (e ExpensesRow) MarshalJSON() ([]byte, error) {
-	month, _ := e.Month()
-
-	return json.Marshal(struct {
-		Month time.Time `json:"month"`
-		Sum   float64   `json:"sum"`
-	}{
-		Month: *month,
-		Sum:   e.Sum,
-	})
+	Date time.Time `db:"start_of_month"`
+	Sum  float64   `db:"sum"`
 }
 
 func getExpenseByMonth(db *sqlx.DB, name string) ([]ExpensesRow, error) {
@@ -36,7 +15,7 @@ func getExpenseByMonth(db *sqlx.DB, name string) ([]ExpensesRow, error) {
 
 	err := db.Select(&rs, `
 	select
-		DATE_FORMAT(t.post_date, '%Y-%m') as month,
+		DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
 		sum(1.0*s.value_num/s.value_denom) as sum
 	from
 		transactions t,
