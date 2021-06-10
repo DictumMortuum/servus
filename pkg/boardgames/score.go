@@ -73,6 +73,7 @@ func GetScores(c *gin.Context) {
 // | 170216 | Blood rage                     |
 // | 173346 | 7 Wonders Duel                 |
 // | 183394 | Viticulture essential edition  |
+// | 199792 | Everdell                       |
 // | 230802 | Azul                           |
 // | 236457 | Architects of the west kingdom |
 // | 237182 | Root                           |
@@ -83,7 +84,7 @@ func GetScores(c *gin.Context) {
 // | 283863 | The Magnificent                |
 // | 312484 | Lost ruins of Arnak            |
 // +--------+--------------------------------+
-// 19 rows in set (0.002 sec)
+// 20 rows in set (0.002 sec)
 
 func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	switch boardgame_id {
@@ -124,6 +125,8 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 	case 127023:
 		return KemetScore, KemetSort
 	case 271320:
+		return DefaultScore, DefaultSort
+	case 199792:
 		return DefaultScore, DefaultSort
 	default:
 		return nil, nil
