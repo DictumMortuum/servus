@@ -4,6 +4,8 @@ import (
 	"github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
+	"math"
+	"net/http"
 	"time"
 )
 
@@ -67,4 +69,34 @@ func GetExpenseByMonth(c *gin.Context) {
 			"perday":   count / float64(days),
 		},
 	})
+}
+
+func GetTopExpenses(c *gin.Context) {
+	database, err := db.DatabaseConnect("gnucash")
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer database.Close()
+
+	rs, err := getTopExpenses(database)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	count := 0.0
+	for _, item := range rs {
+		count += item.Average
+	}
+
+	// util.Success(c, &map[string]interface{}{
+	state := map[string]interface{}{
+		"data": rs,
+		"calc": map[string]interface{}{
+			"total_month": math.Round(count),
+		},
+	}
+
+	c.HTML(http.StatusOK, "chart.html", state)
 }

@@ -219,6 +219,7 @@ func main() {
 
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
+	r.GET("/expenses", gnucash.GetTopExpenses)
 	r.GET("/version", Version)
 	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")

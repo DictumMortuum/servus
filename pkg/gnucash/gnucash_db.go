@@ -35,3 +35,38 @@ func getExpenseByMonth(db *sqlx.DB, name string) ([]ExpensesRow, error) {
 
 	return rs, nil
 }
+
+type TopExpensesRow struct {
+	Name    string  `db:"name" json:"name"`
+	Total   float64 `db:"total" json:"total"`
+	Average float64 `db:"average" json:"average"`
+}
+
+func getTopExpenses(db *sqlx.DB) ([]TopExpensesRow, error) {
+	rs := []TopExpensesRow{}
+
+	err := db.Select(&rs, `
+	select
+		a.name,
+		TRUNCATE(sum(1.0*s.value_num/s.value_denom), 2) as total,
+		TRUNCATE(sum(1.0*s.value_num/s.value_denom)/TIMESTAMPDIFF(MONTH, "2019-03-03", NOW()), 2) as average
+	from
+		transactions t,
+		splits s,
+		accounts a
+	where
+		t.guid = s.tx_guid and
+		a.guid = s.account_guid and
+		a.account_type= "EXPENSE" and
+		t.post_date > '2019-03-03 00:00:00' and
+		a.code != "tax"
+	group by 1
+	order by 2 desc, 1
+	limit 15
+	`)
+	if err != nil {
+		return rs, err
+	}
+
+	return rs, nil
+}
