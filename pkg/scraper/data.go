@@ -51,9 +51,17 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 		return nil, errors.New("please provide a 'store_id' parameter")
 	}
 
-	game.BoardgameId = models.JsonNullInt64{
-		Int64: -1,
-		Valid: false,
+	if val, ok := data["boardgame_id"]; ok {
+		game.BoardgameId = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
+	} else {
+		game.BoardgameId = models.JsonNullInt64{
+			Int64: -1,
+			Valid: false,
+		}
+		//return nil, errors.New("please provide a 'boardgame_id' parameter")
 	}
 
 	if val, ok := data["title"]; ok {
@@ -100,26 +108,43 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 }
 
 func (obj Data) Update(db *sqlx.DB, query string, id int64, data map[string]interface{}) (interface{}, error) {
-	rs, err := getData(db, id)
+	game, err := getData(db, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := data["boardgame_id"]; ok {
-		rs.StoreId = models.JsonNullInt64{
+	if val, ok := data["store_id"]; ok {
+		game.StoreId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
 		}
-	} else {
-		return nil, errors.New("please provide a 'boardgame_id' parameter")
 	}
 
-	_, err = db.NamedExec(query, &rs)
+	if val, ok := data["boardgame_id"]; ok {
+		game.BoardgameId = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
+	}
+
+	if val, ok := data["title"]; ok {
+		game.Title = val.(string)
+	}
+
+	if val, ok := data["link"]; ok {
+		game.Link = val.(string)
+	}
+
+	if val, ok := data["sku"]; ok {
+		game.SKU = val.(string)
+	}
+
+	_, err = db.NamedExec(query, &game)
 	if err != nil {
 		return nil, err
 	}
 
-	return rs, nil
+	return game, nil
 }
 
 func (obj Data) Delete(db *sqlx.DB, query string, id int64) (interface{}, error) {

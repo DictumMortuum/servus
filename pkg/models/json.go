@@ -30,6 +30,13 @@ func (obj Json) Value() (driver.Value, error) {
 
 type JsonNullInt64 sql.NullInt64
 
+func NewJsonNullInt64(i int64) JsonNullInt64 {
+	return JsonNullInt64{
+		Int64: i,
+		Valid: true,
+	}
+}
+
 func (obj *JsonNullInt64) Scan(val interface{}) error {
 	switch v := val.(type) {
 	case []byte:

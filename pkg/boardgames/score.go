@@ -69,6 +69,7 @@ func GetScores(c *gin.Context) {
 // | 110327 | Lords of Waterdeep             |
 // | 127023 | Kemet                          |
 // | 163412 | Patchwork                      |
+// | 169786 | Scythe                         |
 // | 170042 | Raiders of the north sea       |
 // | 170216 | Blood rage                     |
 // | 173346 | 7 Wonders Duel                 |
@@ -84,7 +85,7 @@ func GetScores(c *gin.Context) {
 // | 283863 | The Magnificent                |
 // | 312484 | Lost ruins of Arnak            |
 // +--------+--------------------------------+
-// 20 rows in set (0.002 sec)
+// 21 rows in set (0.002 sec)
 
 func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	switch boardgame_id {
@@ -128,6 +129,10 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return DefaultScore, DefaultSort
 	case 199792:
 		return DefaultScore, DefaultSort
+	case 169786:
+		return DefaultScore, DefaultSort
+	case 296151:
+		return ViscountsScore, ViscountsSort
 	default:
 		return nil, nil
 	}
@@ -495,6 +500,27 @@ func ArchitectsSort(stats []models.Stats) func(i, j int) bool {
 			return virtue1 < virtue2
 		}
 
+		return score1 < score2
+	}
+}
+
+// {"build": 19, "castle": 28, "transcribe": 0, "castle_leader": 5, "deeds": 10, "dept": -2, "poverty": 12 }
+
+func ViscountsScore(stats models.Stats) float64 {
+	keys := []string{"build", "castle", "transcribe", "castle_leader", "deeds", "dept", "poverty"}
+
+	score := 0.0
+	for _, key := range keys {
+		score += stats.Data[key].(float64)
+	}
+
+	return score
+}
+
+func ViscountsSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		score1 := ViscountsScore(stats[i])
+		score2 := ViscountsScore(stats[j])
 		return score1 < score2
 	}
 }
