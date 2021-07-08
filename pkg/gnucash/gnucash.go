@@ -79,7 +79,7 @@ func GetTopExpenses(c *gin.Context) {
 	}
 	defer database.Close()
 
-	rs, err := getTopExpenses(database)
+	rs, err := getTopExpenses(database, "2020-01-01 00:00:00")
 	if err != nil {
 		util.Error(c, err)
 		return

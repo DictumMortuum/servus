@@ -42,14 +42,14 @@ type TopExpensesRow struct {
 	Average float64 `db:"average" json:"average"`
 }
 
-func getTopExpenses(db *sqlx.DB) ([]TopExpensesRow, error) {
+func getTopExpenses(db *sqlx.DB, date string) ([]TopExpensesRow, error) {
 	rs := []TopExpensesRow{}
 
 	err := db.Select(&rs, `
 	select
 		a.name,
 		TRUNCATE(sum(1.0*s.value_num/s.value_denom), 2) as total,
-		TRUNCATE(sum(1.0*s.value_num/s.value_denom)/TIMESTAMPDIFF(MONTH, "2019-03-03", NOW()), 2) as average
+		TRUNCATE(sum(1.0*s.value_num/s.value_denom)/TIMESTAMPDIFF(MONTH, ?, NOW()), 2) as average
 	from
 		transactions t,
 		splits s,
@@ -58,12 +58,12 @@ func getTopExpenses(db *sqlx.DB) ([]TopExpensesRow, error) {
 		t.guid = s.tx_guid and
 		a.guid = s.account_guid and
 		a.account_type= "EXPENSE" and
-		t.post_date > '2019-03-03 00:00:00' and
+		t.post_date > ? and
 		a.code != "tax"
 	group by 1
 	order by 2 desc, 1
 	limit 15
-	`)
+	`, date, date)
 	if err != nil {
 		return rs, err
 	}
