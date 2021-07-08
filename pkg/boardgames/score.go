@@ -447,14 +447,16 @@ func PatchworkSort(stats []models.Stats) func(i, j int) bool {
 	}
 }
 
-// {"armor":6,"loot":0,"points":99,"valkyrie":15}
+// {"armor":6,"loot":5,"points":59,"valkyrie":7,"cards": 2}
 
 func RaidersScore(stats models.Stats) float64 {
-	keys := []string{"armor", "loot", "points", "valkyrie"}
+	keys := []string{"armor", "loot", "points", "valkyrie", "cards"}
 
 	score := 0.0
 	for _, key := range keys {
-		score += stats.Data[key].(float64)
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
 	}
 
 	return score
