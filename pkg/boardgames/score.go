@@ -69,11 +69,13 @@ func GetScores(c *gin.Context) {
 // | 110327 | Lords of Waterdeep             |
 // | 127023 | Kemet                          |
 // | 163412 | Patchwork                      |
+// | 164928 | Orléans                        |
 // | 169786 | Scythe                         |
 // | 170042 | Raiders of the north sea       |
 // | 170216 | Blood rage                     |
 // | 173346 | 7 Wonders Duel                 |
 // | 183394 | Viticulture essential edition  |
+// | 198994 | Hero Realms                    |
 // | 199792 | Everdell                       |
 // | 230802 | Azul                           |
 // | 236457 | Architects of the west kingdom |
@@ -83,9 +85,10 @@ func GetScores(c *gin.Context) {
 // | 266810 | Paladins of the West Kingdom   |
 // | 271320 | Castles of Burgundy            |
 // | 283863 | The Magnificent                |
+// | 296151 | Viscounts of the West Kingdom  |
 // | 312484 | Lost ruins of Arnak            |
 // +--------+--------------------------------+
-// 21 rows in set (0.002 sec)
+// 24 rows in set (0.001 sec)
 
 func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	switch boardgame_id {
@@ -133,6 +136,10 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return DefaultScore, DefaultSort
 	case 296151:
 		return ViscountsScore, ViscountsSort
+	case 164928:
+		return OrleansScore, OrleansSort
+	case 198994:
+		return HealthScore, HealthSort
 	default:
 		return nil, nil
 	}
@@ -149,6 +156,16 @@ func PlaceScore(stats models.Stats) float64 {
 func DefaultSort(stats []models.Stats) func(i, j int) bool {
 	return func(i, j int) bool {
 		return DefaultScore(stats[i]) < DefaultScore(stats[j])
+	}
+}
+
+func HealthScore(stats models.Stats) float64 {
+	return stats.Data["health"].(float64)
+}
+
+func HealthSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		return HealthScore(stats[i]) < HealthScore(stats[j])
 	}
 }
 
@@ -557,6 +574,43 @@ func KemetSort(stats []models.Stats) func(i, j int) bool {
 			}
 
 			return battle1 < battle2
+		}
+
+		return score1 < score2
+	}
+}
+
+// {"grain": 3, "cheese": 6, "wine": 0, "wool": 12, "brocade": 10, "coin": 37, "citizen": 24, "buildings": 24}
+
+func OrleansScore(stats models.Stats) float64 {
+	keys := []string{"grain", "cheese", "wine", "wool", "brocade", "coin", "citizen", "buildings"}
+
+	score := 0.0
+	for _, key := range keys {
+		score += stats.Data[key].(float64)
+	}
+
+	return score
+}
+
+func OrleansSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		score1 := OrleansScore(stats[i])
+		score2 := OrleansScore(stats[j])
+
+		if int64(score1) == int64(score2) {
+
+			track1 := 99.0
+			if val, ok := stats[i].Data["track"].(float64); ok {
+				track1 = val
+			}
+
+			track2 := 99.0
+			if val, ok := stats[j].Data["track"].(float64); ok {
+				track2 = val
+			}
+
+			return track1 > track2
 		}
 
 		return score1 < score2
