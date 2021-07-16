@@ -36,6 +36,33 @@ func getExpenseByMonth(db *sqlx.DB, name string) ([]ExpensesRow, error) {
 	return rs, nil
 }
 
+func getTotalExpenseByMonth(db *sqlx.DB) ([]ExpensesRow, error) {
+	rs := []ExpensesRow{}
+
+	err := db.Select(&rs, `
+	select
+		a.name
+		DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
+		sum(1.0*s.value_num/s.value_denom) as sum
+	from
+		transactions t,
+		splits s,
+		accounts a
+	where
+		t.guid = s.tx_guid and
+		a.guid = s.account_guid and
+		a.account_type= "EXPENSE" and
+		a.code != "tax"
+	group by 1,2
+	order by 1,2
+	`)
+	if err != nil {
+		return rs, err
+	}
+
+	return rs, nil
+}
+
 type TopExpensesRow struct {
 	Name    string  `db:"name" json:"name"`
 	Total   float64 `db:"total" json:"total"`

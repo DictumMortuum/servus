@@ -90,7 +90,6 @@ func GetTopExpenses(c *gin.Context) {
 		count += item.Average
 	}
 
-	// util.Success(c, &map[string]interface{}{
 	state := map[string]interface{}{
 		"data": rs,
 		"calc": map[string]interface{}{
