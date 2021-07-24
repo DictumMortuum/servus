@@ -140,6 +140,8 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return OrleansScore, OrleansSort
 	case 198994:
 		return HealthScore, HealthSort
+	case 193738:
+		return GreatWesternTrailScore, DefaultSort
 	default:
 		return nil, nil
 	}
@@ -615,4 +617,15 @@ func OrleansSort(stats []models.Stats) func(i, j int) bool {
 
 		return score1 < score2
 	}
+}
+
+func GreatWesternTrailScore(stats models.Stats) float64 {
+	keys := []string{"dollars", "buildings", "cities", "stations", "hazards", "cards", "objectives", "tasks", "workers", "disk", "market"}
+
+	score := 0.0
+	for _, key := range keys {
+		score += stats.Data[key].(float64)
+	}
+
+	return score
 }
