@@ -278,11 +278,13 @@ func DuelSort(stats []models.Stats) func(i, j int) bool {
 // }
 
 func WingspanScore(stats models.Stats) float64 {
-	keys := []string{"birds", "bonus", "endofround", "eggs", "food", "tucked"}
+	keys := []string{"birds", "bonus", "endofround", "eggs", "food", "tucked", "nectar"}
 
 	score := 0.0
 	for _, key := range keys {
-		score += stats.Data[key].(float64)
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
 	}
 
 	return score
