@@ -142,6 +142,10 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return HealthScore, HealthSort
 	case 193738:
 		return GreatWesternTrailScore, DefaultSort
+	case 301880:
+		return DefaultScore, DefaultSort
+	case 216132:
+		return CaledoniaScore, DefaultSort
 	default:
 		return nil, nil
 	}
@@ -627,6 +631,19 @@ func GreatWesternTrailScore(stats models.Stats) float64 {
 	score := 0.0
 	for _, key := range keys {
 		score += stats.Data[key].(float64)
+	}
+
+	return score
+}
+
+func CaledoniaScore(stats models.Stats) float64 {
+	keys := []string{"points", "base", "manufactured", "coin", "grape", "cotton", "bananas", "bamboo", "exports", "settlement"}
+
+	score := 0.0
+	for _, key := range keys {
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
 	}
 
 	return score
