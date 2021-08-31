@@ -75,8 +75,10 @@ func GetScores(c *gin.Context) {
 // | 170216 | Blood rage                     |
 // | 173346 | 7 Wonders Duel                 |
 // | 183394 | Viticulture essential edition  |
+// | 193738 | Great Western Trail            |
 // | 198994 | Hero Realms                    |
 // | 199792 | Everdell                       |
+// | 216132 | Clans of Caledonia             |
 // | 230802 | Azul                           |
 // | 236457 | Architects of the west kingdom |
 // | 237182 | Root                           |
@@ -84,11 +86,13 @@ func GetScores(c *gin.Context) {
 // | 266192 | Wingspan                       |
 // | 266810 | Paladins of the West Kingdom   |
 // | 271320 | Castles of Burgundy            |
+// | 276025 | Maracaibo                      |
 // | 283863 | The Magnificent                |
 // | 296151 | Viscounts of the West Kingdom  |
+// | 301880 | Raiders of Scythia             |
 // | 312484 | Lost ruins of Arnak            |
 // +--------+--------------------------------+
-// 24 rows in set (0.001 sec)
+// 28 rows in set (0.003 sec)
 
 func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	switch boardgame_id {
@@ -146,6 +150,8 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return DefaultScore, DefaultSort
 	case 216132:
 		return CaledoniaScore, DefaultSort
+	case 276025:
+		return DefaultScore, DefaultSort
 	default:
 		return nil, nil
 	}
