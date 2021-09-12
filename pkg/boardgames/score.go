@@ -152,6 +152,8 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return CaledoniaScore, DefaultSort
 	case 276025:
 		return DefaultScore, DefaultSort
+	case 244521:
+		return DefaultScore, DefaultSort
 	default:
 		return nil, nil
 	}
