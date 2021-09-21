@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Radio</title>
+	<link rel="stylesheet" href="/assets/css/radio.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script src="/assets/js/radio.js"></script>
+</head>
+<body>
+	<section>
+		<p>Pepper 96.6</p>
+		<a station="pepper" class="button">&#xF011;</a>
+		<span></span>
+	</section>
+	<section>
+		<p>Hit 88.9</p>
+		<a station="hit" class="button">&#xF011;</a>
+		<span></span>
+	</section>
+	<section>
+		<p>Easy 97.2</p>
+		<a station="easy" class="button">&#xF011;</a>
+		<span></span>
+	</section>
+	<section>
+		<p>Kiss 92.9</p>
+		<a station="kiss" class="button">&#xF011;</a>
+		<span></span>
+	</section>
+	<h3 class="current"></h3>
+	<script>
+		$.get("/music/current", function(data) {
+			$(".current").html(data.response.Title)
+		});
+		$(document).ready(function(){
+			$('.button').click(function(){
+				$.get("/music/stop", function(data) {
+					console.log(data)
+				})
+
+				let station = $(this).attr("station")
+
+				if (!$(this).hasClass('on')) {
+					$('.button.on').toggleClass('on')
+				}
+
+				$.get("/music/playlist/" + station, function(data) {
+					console.log(data)
+				})
+
+				$(this).toggleClass('on');
+			});
+		});
+	</script>
+</body>
+</html>

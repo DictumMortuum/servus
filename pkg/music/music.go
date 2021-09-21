@@ -5,6 +5,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/fhs/gompd/mpd"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func stop(conn *mpd.Client) (*mpd.Attrs, error) {
@@ -107,4 +108,31 @@ func Stop(c *gin.Context) {
 	}
 
 	util.Success(c, &status)
+}
+
+func Current(c *gin.Context) {
+	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer conn.Close()
+
+	attrs, err := conn.CurrentSong()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	util.Success(c, &attrs)
+}
+
+func Radio(c *gin.Context) {
+	state := map[string]interface{}{
+		"calc": map[string]interface{}{
+			"total_month": 0,
+		},
+	}
+
+	c.HTML(http.StatusOK, "radio.html", state)
 }

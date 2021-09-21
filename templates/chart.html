@@ -1,26 +1,46 @@
-{{ template "chart_header.tmpl" .}}
-<script>
-  var data = {
-    labels: [
-      {{ range .data }}"{{ .Name }} €{{ .Average }}",{{ end }}
-    ],
-    series: [
-      {{ range .data }}{{ .Average }},{{ end }}
-    ]
-  };
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Chartist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <link rel="stylesheet" href="assets/css/chart.css">
+  </head>
+  <body>
+    <div class="ct-chart" id="chart"></div>
+    <div class="centered">
+      <div class="aligned">
+        expenses / month
+        <br />
+        €{{ .calc.total_month }}
+      </div>
+    </div>
+    <script>
+      var data = {
+        labels: [
+          {{ range .data }}"{{ .Name }} €{{ .Average }}",{{ end }}
+        ],
+        series: [
+          {{ range .data }}{{ .Average }},{{ end }}
+        ]
+      };
 
-  var options = {
-    chartPadding: 30,
-      labelOffset: 0,
-      labelInterpolationFnc: function(value) {
-        console.log(value)
-        return value;
-      },
-      donut: true,
-      donutWidth: 200,
-      startAngle: 280
-  };
+      var options = {
+        chartPadding: 30,
+          labelOffset: 0,
+          labelInterpolationFnc: function(value) {
+            console.log(value)
+            return value;
+          },
+          donut: true,
+          donutWidth: 200,
+          startAngle: 280
+      };
 
-  new Chartist.Pie('.ct-chart', data, options);
-</script>
-{{ template "chart_footer.tmpl" .}}
+      new Chartist.Pie('.ct-chart', data, options);
+    </script>
+  </body>
+</html>

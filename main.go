@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"github.com/DictumMortuum/servus/pkg/boardgames"
 	"github.com/DictumMortuum/servus/pkg/calendar"
 	"github.com/DictumMortuum/servus/pkg/calendar/generate"
@@ -23,6 +24,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -52,6 +54,9 @@ func Options(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	c.Next()
 }
+
+//go:embed assets
+var staticFS embed.FS
 
 func main() {
 	mode := os.Getenv("GIN_MODE")
@@ -97,6 +102,10 @@ func main() {
 
 	r.LoadHTMLGlob(path_templates)
 
+	r.GET("/assets/*filepath", func(c *gin.Context) {
+		c.FileFromFS(c.Request.URL.Path, http.FS(staticFS))
+	})
+
 	cal := r.Group("/calendar")
 	{
 		cal.GET("/generate", generate.Handler)
@@ -123,6 +132,8 @@ func main() {
 	{
 		ms.GET("/playlist/:playlist", music.Playlist)
 		ms.GET("/stop", music.Stop)
+		ms.GET("/current", music.Current)
+		ms.GET("/radio", music.Radio)
 	}
 
 	bg := r.Group("/boardgames")
