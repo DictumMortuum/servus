@@ -609,7 +609,9 @@ func OrleansScore(stats models.Stats) float64 {
 
 	score := 0.0
 	for _, key := range keys {
-		score += stats.Data[key].(float64)
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
 	}
 
 	return score
