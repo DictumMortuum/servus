@@ -7,8 +7,8 @@ format:
 version:
 	git tag -f $(VERSION)
 
-build: format version
-	go build -trimpath -buildmode=pie -mod=readonly -modcacherw
+build: format
+	go build -trimpath -buildmode=pie -mod=readonly -modcacherw -ldflags="-s -w"
 
 install: build
 	mkdir -p $(PREFIX)/bin
