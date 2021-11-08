@@ -605,7 +605,7 @@ func KemetSort(stats []models.Stats) func(i, j int) bool {
 // {"grain": 3, "cheese": 6, "wine": 0, "wool": 12, "brocade": 10, "coin": 37, "citizen": 24, "buildings": 24}
 
 func OrleansScore(stats models.Stats) float64 {
-	keys := []string{"grain", "cheese", "wine", "wool", "brocade", "coin", "citizen", "buildings"}
+	keys := []string{"grain", "cheese", "wine", "wool", "brocade", "coin", "citizen", "buildings", "orders", "tiles"}
 
 	score := 0.0
 	for _, key := range keys {
