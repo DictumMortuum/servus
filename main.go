@@ -30,12 +30,6 @@ import (
 	"time"
 )
 
-func Version(c *gin.Context) {
-	util.Success(c, map[string]string{
-		"version": "4.1.0",
-	})
-}
-
 // SetConfig gin Middlware to push some config values
 func SetConfig() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -105,6 +99,10 @@ func main() {
 
 	r.GET("/assets/*filepath", func(c *gin.Context) {
 		c.FileFromFS(c.Request.URL.Path, http.FS(staticFS))
+	})
+
+	r.GET("/version", func(c *gin.Context) {
+		c.FileFromFS("/assets/version.json", http.FS(staticFS))
 	})
 
 	cal := r.Group("/calendar")
@@ -237,7 +235,6 @@ func main() {
 	r.POST("/weight", weight.AddWeight)
 	r.POST("/links", links.AddLink)
 	r.GET("/expenses", gnucash.GetTopExpenses)
-	r.GET("/version", Version)
 	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")
 }

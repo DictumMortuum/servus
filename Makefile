@@ -1,9 +1,13 @@
 PREFIX=/usr/local
+VERSION=v$(shell cat assets/version.json | jq .version)
 
 format:
 	gofmt -s -w .
 
-build: format
+version:
+	git tag $(VERSION)
+
+build: format version
 	go build -trimpath -buildmode=pie -mod=readonly -modcacherw
 
 install: build
