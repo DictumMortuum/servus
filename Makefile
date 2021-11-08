@@ -5,7 +5,7 @@ format:
 	gofmt -s -w .
 
 version:
-	git tag $(VERSION)
+	git tag -f $(VERSION)
 
 build: format version
 	go build -trimpath -buildmode=pie -mod=readonly -modcacherw
