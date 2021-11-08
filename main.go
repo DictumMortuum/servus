@@ -16,6 +16,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/prices"
 	"github.com/DictumMortuum/servus/pkg/router"
 	"github.com/DictumMortuum/servus/pkg/scraper"
+	"github.com/DictumMortuum/servus/pkg/tasks"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/DictumMortuum/servus/pkg/weight"
 	"github.com/DictumMortuum/servus/pkg/zerotier"
@@ -31,7 +32,7 @@ import (
 
 func Version(c *gin.Context) {
 	util.Success(c, map[string]string{
-		"version": "4.0.0",
+		"version": "4.1.0",
 	})
 }
 
@@ -145,6 +146,11 @@ func main() {
 		bg.POST("/get/:hash", CacheCheck(apiCache), boardgames.BggGet)
 		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), boardgames.BggSearch)
 		bg.GET("/scores", boardgames.GetScores)
+	}
+
+	ts := r.Group("/tasks")
+	{
+		ts.GET("/:list", tasks.GetTasks)
 	}
 
 	rest := r.Group("/rest/v1")
