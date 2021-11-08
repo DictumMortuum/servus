@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type Boardgame struct{}
@@ -19,6 +20,8 @@ func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	rs.Date = time.Now().AddDate(1, 0, 0)
 
 	return &rs, nil
 }

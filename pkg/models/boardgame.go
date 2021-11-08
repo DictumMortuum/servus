@@ -1,8 +1,13 @@
 package models
 
+import (
+	"time"
+)
+
 type Boardgame struct {
-	Id   int64  `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
+	Id   int64     `db:"id" json:"id"`
+	Name string    `db:"name" json:"name"`
+	Date time.Time `json:"validUntil"`
 }
 
 func (obj Boardgame) Insert() string {
