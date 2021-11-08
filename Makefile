@@ -4,7 +4,7 @@ format:
 	gofmt -s -w .
 
 build: format
-	go build
+	go build -trimpath -buildmode=pie -mod=readonly -modcacherw
 
 install: build
 	mkdir -p $(PREFIX)/bin
