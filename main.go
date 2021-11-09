@@ -62,7 +62,7 @@ func main() {
 		gin.DisableConsoleColor()
 		f, _ := os.Create("/var/log/servus.log")
 		gin.DefaultWriter = io.MultiWriter(f)
-		path_templates = "/opt/domus/servus/templates/*"
+		path_templates = "/usr/share/webapps/servus/*"
 		path_cfg = "/etc/servusrc"
 	}
 
