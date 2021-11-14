@@ -368,7 +368,14 @@ func AzulSort(stats []models.Stats) func(i, j int) bool {
 		score2 := DefaultScore(stats[j])
 
 		if int64(score1) == int64(score2) {
-			return stats[i].Data["rows"].(float64) < stats[j].Data["rows"].(float64)
+			rows1, ok1 := stats[i].Data["rows"].(float64)
+			rows2, ok2 := stats[j].Data["rows"].(float64)
+
+			if ok1 && ok2 {
+				return rows1 < rows2
+			} else {
+				return true
+			}
 		}
 
 		return score1 < score2
