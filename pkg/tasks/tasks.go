@@ -16,6 +16,7 @@ type List struct {
 }
 
 type Item struct {
+	Id          int64  `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Status      string `json:"status"`
@@ -27,6 +28,7 @@ type calendar struct {
 }
 
 type props struct {
+	Id    int64  `db:"objectid"`
 	Name  string `db:"name"`
 	Value string `db:"value"`
 }
@@ -80,7 +82,7 @@ func propsToItem(db *sqlx.DB, id int64) (*Item, error) {
 	item := Item{}
 	rs := []props{}
 
-	err := db.Select(&rs, "select name, value from oc_calendarobjects_props where objectid = ?", id)
+	err := db.Select(&rs, "select objectid, name, value from oc_calendarobjects_props where objectid = ?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +90,13 @@ func propsToItem(db *sqlx.DB, id int64) (*Item, error) {
 	for _, prop := range rs {
 		switch prop.Name {
 		case "SUMMARY":
+			item.Id = prop.Id
 			item.Title = prop.Value
 		case "DESCRIPTION":
+			item.Id = prop.Id
 			item.Description = prop.Value
 		case "STATUS":
+			item.Id = prop.Id
 			item.Status = prop.Value
 		}
 	}
