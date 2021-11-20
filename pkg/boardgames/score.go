@@ -160,6 +160,10 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return DefaultScore, DefaultSort
 	case 275010:
 		return DefaultScore, DefaultSort
+	case 158899:
+		return DefaultScore, DefaultSort
+	case 253499:
+		return WarOfWhispersScore, WarOfWhispersSort
 	default:
 		return nil, nil
 	}
@@ -215,6 +219,49 @@ func WaterdeepSort(stats []models.Stats) func(i, j int) bool {
 
 		if int64(score1) == int64(score2) {
 			return stats[i].Data["money"].(float64) < stats[j].Data["money"].(float64)
+		} else {
+			return score1 < score2
+		}
+	}
+}
+
+//
+// { "score": 5, "swaps?": 1 }
+//
+
+func WarOfWhispersScore(stats models.Stats) float64 {
+	keys := []string{"score"}
+
+	score := 0.0
+	for _, key := range keys {
+		score += stats.Data[key].(float64)
+	}
+
+	return score
+}
+
+func WarOfWhispersSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		score1 := WarOfWhispersScore(stats[i])
+		score2 := WarOfWhispersScore(stats[j])
+
+		if int64(score1) == int64(score2) {
+			swap1, ok1 := stats[i].Data["swaps"].(float64)
+			swap2, ok2 := stats[j].Data["swaps"].(float64)
+
+			if !ok1 && !ok2 {
+				return true
+			}
+
+			if !ok1 && ok2 {
+				return false
+			}
+
+			if ok1 && !ok2 {
+				return true
+			}
+
+			return swap1 <= swap2
 		} else {
 			return score1 < score2
 		}
