@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"database/sql"
 	DB "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,15 @@ type props struct {
 	Id    int64  `db:"objectid"`
 	Name  string `db:"name"`
 	Value string `db:"value"`
+}
+
+type Wish struct {
+	Id         int64  `json:"Id" db:"id"`
+	CalendarId int64  `json:"CalendarId" db:"calendar_id"`
+	Owner      string `json:"Owner" db:"owner"`
+	Status     string `json:"Status" db:"status"`
+	Desc       string `json:"Desc" db:"description"`
+	Title      string `json:"Title" db:"title"`
 }
 
 func getTasks(db *sqlx.DB, name string) ([]List, error) {
@@ -109,6 +119,25 @@ func uriToUser(uri string) string {
 	return tmp[2]
 }
 
+func exists(db *sqlx.DB, data Wish) (*sql.NullInt64, error) {
+	var id sql.NullInt64
+
+	stmt, err := db.PrepareNamed("select id from twishes where id = :id")
+	if err != nil {
+		return nil, err
+	}
+
+	err = stmt.Get(&id, data)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
 func GetTasks(c *gin.Context) {
 	list := c.Param("list")
 
@@ -123,6 +152,95 @@ func GetTasks(c *gin.Context) {
 	if err != nil {
 		util.Error(c, err)
 		return
+	}
+
+	c.JSON(http.StatusOK, &rs)
+}
+
+func syncList(db *sqlx.DB, list List) error {
+	for _, item := range list.Items {
+		payload := Wish{
+			Id:         item.Id,
+			CalendarId: list.Id,
+			Owner:      list.User,
+			Status:     item.Status,
+			Desc:       item.Description,
+			Title:      item.Title,
+		}
+
+		id, err := exists(db, payload)
+		if err != nil {
+			return err
+		}
+
+		if id == nil {
+			_, err = db.NamedExec(`
+			insert into twishes (
+				id,
+				calendar_id,
+				owner,
+				status,
+				description,
+				title
+			) values (
+				:id,
+				:calendar_id,
+				:owner,
+				:status,
+				:description,
+				:title
+			)
+		`, &payload)
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = db.NamedExec(`
+				update twishes set
+					title = :title, description = :description
+				where
+					id = :id and
+					calendar_id = :calendar_id and
+					owner = :owner
+			`, &payload)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func SyncTasks(c *gin.Context) {
+	list := c.Param("list")
+
+	db1, err := DB.DatabaseConnect("nextcloud")
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer db1.Close()
+
+	db2, err := DB.DatabaseTypeConnect("postgres")
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer db2.Close()
+
+	rs, err := getTasks(db1, list)
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	for _, l := range rs {
+		err := syncList(db2, l)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, &rs)

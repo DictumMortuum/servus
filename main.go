@@ -149,6 +149,7 @@ func main() {
 	ts := r.Group("/tasks")
 	{
 		ts.GET("/:list", tasks.GetTasks)
+		ts.GET("/:list/sync", tasks.SyncTasks)
 	}
 
 	rest := r.Group("/rest/v1")
