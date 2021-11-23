@@ -6,7 +6,6 @@ import (
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
-	"log"
 	"net/http"
 	"strings"
 )
