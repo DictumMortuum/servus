@@ -6,6 +6,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -157,6 +158,42 @@ func GetTasks(c *gin.Context) {
 	c.JSON(http.StatusOK, &rs)
 }
 
+func intInSlice(a int64, list []int64) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func deleteRedundant(db *sqlx.DB, lists []List) error {
+	rs := []int64{}
+	local_rs := []int64{}
+
+	err := db.Select(&rs, "select id from twishes")
+	if err != nil {
+		return err
+	}
+
+	for _, l := range lists {
+		for _, item := range l.Items {
+			local_rs = append(local_rs, item.Id)
+		}
+	}
+
+	for _, item := range rs {
+		if !intInSlice(item, local_rs) {
+			_, err = db.Exec(`delete from twishes where id = $1`, item)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func syncList(db *sqlx.DB, list List) error {
 	for _, item := range list.Items {
 		payload := Wish{
@@ -241,6 +278,12 @@ func SyncTasks(c *gin.Context) {
 			util.Error(c, err)
 			return
 		}
+	}
+
+	err = deleteRedundant(db2, rs)
+	if err != nil {
+		util.Error(c, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, &rs)
