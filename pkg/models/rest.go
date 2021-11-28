@@ -9,21 +9,17 @@ type Getable interface {
 }
 
 type Getlistable interface {
-	GetTable() string
-	GetList(*sqlx.DB, string, ...interface{}) (interface{}, error)
+	GetList(*sqlx.DB, QueryBuilder) (interface{}, int, error)
 }
 
 type Createable interface {
-	GetTable() string
-	Create(*sqlx.DB, string, map[string]interface{}) (interface{}, error)
+	Create(*sqlx.DB, QueryBuilder) (interface{}, error)
 }
 
 type Updateable interface {
-	GetTable() string
-	Update(*sqlx.DB, string, int64, map[string]interface{}) (interface{}, error)
+	Update(*sqlx.DB, int64, QueryBuilder) (interface{}, error)
 }
 
 type Deleteable interface {
-	GetTable() string
-	Delete(*sqlx.DB, string, int64) (interface{}, error)
+	Delete(*sqlx.DB, int64) (interface{}, error)
 }

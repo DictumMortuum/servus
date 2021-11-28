@@ -8,7 +8,7 @@ require (
 	github.com/antchfx/xmlquery v1.3.8 // indirect
 	github.com/fhs/gompd v1.0.1
 	github.com/frankban/quicktest v1.14.0 // indirect
-	github.com/gin-gonic/gin v1.7.4
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gocolly/colly/v2 v2.1.0
@@ -20,7 +20,8 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lib/pq v1.2.0 // indirect
+	github.com/lib/pq v1.10.4
+	github.com/mafredri/go-trueskill v0.0.0-20190101120706-fc89fbba5a88
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -30,14 +31,14 @@ require (
 	github.com/tealeg/xlsx/v3 v3.2.3
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20211105192438-b53810dc28af // indirect
-	golang.org/x/sys v0.0.0-20211107104306-e0b2ad06fe42 // indirect
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
+	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9 // indirect
+	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
-	gopkg.in/tucnak/telebot.v2 v2.4.0
+	gopkg.in/tucnak/telebot.v2 v2.4.1
 	gopkg.in/yaml.v2 v2.4.0
 )

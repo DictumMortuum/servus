@@ -6,8 +6,6 @@ import (
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
-	// "log"
 	"net/http"
 	"strconv"
 )
@@ -50,28 +48,7 @@ func GETLIST(p models.Getlistable) func(*gin.Context) {
 		}
 		defer database.Close()
 
-		var count int
-		err = database.Get(&count, "select count(*) from "+p.GetTable())
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
-
-		sql, err := args.List("select * from " + p.GetTable())
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
-
-		query, ids, err := sqlx.In(sql.String(), args.Id)
-		if err != nil {
-			query = sql.String()
-		} else {
-			query = database.Rebind(query)
-		}
-
-		var rs interface{}
-		rs, err = p.GetList(database, query, ids...)
+		rs, count, err := p.GetList(database, args)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -102,13 +79,9 @@ func POST(p models.Createable) func(*gin.Context) {
 			qb.Columns = append(qb.Columns, key)
 		}
 
-		sql, err := qb.Insert(p.GetTable())
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
+		qb.Data = args
 
-		data, err := p.Create(database, sql.String(), args)
+		data, err := p.Create(database, qb)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -145,13 +118,9 @@ func PUT(p models.Updateable) func(*gin.Context) {
 			qb.Columns = append(qb.Columns, key)
 		}
 
-		sql, err := qb.Update(p.GetTable())
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
+		qb.Data = args
 
-		data, err := p.Update(database, sql.String(), id, args)
+		data, err := p.Update(database, id, qb)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -178,14 +147,7 @@ func DELETE(p models.Deleteable) func(*gin.Context) {
 		}
 		defer database.Close()
 
-		qb := models.QueryBuilder{}
-		sql, err := qb.Delete(p.GetTable())
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
-
-		data, err := p.Delete(database, sql.String(), id)
+		data, err := p.Delete(database, id)
 		if err != nil {
 			util.Error(c, err)
 			return

@@ -10,7 +10,8 @@ import (
 func ParseArgs(c *gin.Context) models.QueryBuilder {
 	args := c.Request.URL.Query()
 	rs := models.QueryBuilder{
-		Page: 5,
+		Page:      5,
+		Resources: map[string]bool{},
 	}
 
 	if val, ok := args["_sort"]; ok {
@@ -48,6 +49,12 @@ func ParseArgs(c *gin.Context) models.QueryBuilder {
 				rs.Id = append(rs.Id, id)
 			}
 			rs.RefKey = "id"
+		}
+	}
+
+	if val, ok := args["_resource"]; ok {
+		for _, raw := range val {
+			rs.Resources[raw] = true
 		}
 	}
 

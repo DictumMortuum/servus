@@ -9,10 +9,6 @@ import (
 
 type Data struct{}
 
-func (obj Data) GetTable() string {
-	return "tboardgamescraperdata"
-}
-
 func getData(db *sqlx.DB, id int64) (*models.ScraperData, error) {
 	var rs models.ScraperData
 
@@ -28,21 +24,41 @@ func (obj Data) Get(db *sqlx.DB, id int64) (interface{}, error) {
 	return getData(db, id)
 }
 
-func (obj Data) GetList(db *sqlx.DB, query string, args ...interface{}) (interface{}, error) {
+func (obj Data) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
 	var rs []models.ScraperData
 
-	err := db.Select(&rs, query, args...)
+	var count []int
+	err := db.Select(&count, "select 1 from tboardgamescraperdata")
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
 
-	return rs, nil
+	sql, err := args.List(`
+		select * from tboardgamescraperdata
+	`)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	query, ids, err := sqlx.In(sql.String(), args.Id)
+	if err != nil {
+		query = sql.String()
+	} else {
+		query = db.Rebind(query)
+	}
+
+	err = db.Select(&rs, query, ids...)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	return rs, len(count), nil
 }
 
-func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (interface{}, error) {
+func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
 	var game models.ScraperData
 
-	if val, ok := data["store_id"]; ok {
+	if val, ok := qb.Data["store_id"]; ok {
 		game.StoreId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
@@ -51,7 +67,7 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 		return nil, errors.New("please provide a 'store_id' parameter")
 	}
 
-	if val, ok := data["boardgame_id"]; ok {
+	if val, ok := qb.Data["boardgame_id"]; ok {
 		game.BoardgameId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
@@ -61,28 +77,27 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 			Int64: -1,
 			Valid: false,
 		}
-		//return nil, errors.New("please provide a 'boardgame_id' parameter")
 	}
 
-	if val, ok := data["title"]; ok {
+	if val, ok := qb.Data["title"]; ok {
 		game.Title = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'title' parameter")
 	}
 
-	if val, ok := data["link"]; ok {
+	if val, ok := qb.Data["link"]; ok {
 		game.Link = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'link' parameter")
 	}
 
-	if val, ok := data["sku"]; ok {
+	if val, ok := qb.Data["sku"]; ok {
 		game.SKU = val.(string)
 	} else {
 		game.SKU = ""
 	}
 
-	if val, ok := data["active"]; ok {
+	if val, ok := qb.Data["active"]; ok {
 		t, err := time.Parse("2006-01-02T15:04:05-0700", val.(string))
 		if err != nil {
 			return nil, err
@@ -93,7 +108,12 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 
 	game.CrDate = time.Now()
 
-	rs, err := db.NamedExec(query, &game)
+	query, err := qb.Insert("tboardgamescraperdata")
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := db.NamedExec(query.String(), &game)
 	if err != nil {
 		return nil, err
 	}
@@ -107,39 +127,44 @@ func (obj Data) Create(db *sqlx.DB, query string, data map[string]interface{}) (
 	return game, nil
 }
 
-func (obj Data) Update(db *sqlx.DB, query string, id int64, data map[string]interface{}) (interface{}, error) {
+func (obj Data) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
 	game, err := getData(db, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := data["store_id"]; ok {
+	if val, ok := qb.Data["store_id"]; ok {
 		game.StoreId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
 		}
 	}
 
-	if val, ok := data["boardgame_id"]; ok {
+	if val, ok := qb.Data["boardgame_id"]; ok {
 		game.BoardgameId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
 		}
 	}
 
-	if val, ok := data["title"]; ok {
+	if val, ok := qb.Data["title"]; ok {
 		game.Title = val.(string)
 	}
 
-	if val, ok := data["link"]; ok {
+	if val, ok := qb.Data["link"]; ok {
 		game.Link = val.(string)
 	}
 
-	if val, ok := data["sku"]; ok {
+	if val, ok := qb.Data["sku"]; ok {
 		game.SKU = val.(string)
 	}
 
-	_, err = db.NamedExec(query, &game)
+	sql, err := qb.Update("tboardgamescraperdata")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = db.NamedExec(sql.String(), &game)
 	if err != nil {
 		return nil, err
 	}
@@ -147,13 +172,13 @@ func (obj Data) Update(db *sqlx.DB, query string, id int64, data map[string]inte
 	return game, nil
 }
 
-func (obj Data) Delete(db *sqlx.DB, query string, id int64) (interface{}, error) {
+func (obj Data) Delete(db *sqlx.DB, id int64) (interface{}, error) {
 	rs, err := getData(db, id)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = db.NamedExec(query, &rs)
+	_, err = db.NamedExec(`delete from tboardgamescraperdata where id = :id`, &rs)
 	if err != nil {
 		return nil, err
 	}

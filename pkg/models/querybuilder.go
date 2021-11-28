@@ -33,6 +33,8 @@ type QueryBuilder struct {
 	FilterKey string
 	FilterVal string
 	Columns   []string
+	Data      map[string]interface{}
+	Resources map[string]bool
 }
 
 func (obj QueryBuilder) List(query string) (*bytes.Buffer, error) {
@@ -99,11 +101,5 @@ func (obj QueryBuilder) Update(table string) (*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	return &tpl, nil
-}
-
-func (obj QueryBuilder) Delete(table string) (*bytes.Buffer, error) {
-	var tpl bytes.Buffer
-	tpl.WriteString("delete from " + table + " where id = :id")
 	return &tpl, nil
 }

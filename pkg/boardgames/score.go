@@ -22,7 +22,17 @@ func GetScores(c *gin.Context) {
 	defer db.Close()
 
 	var plays []models.Play
-	err = db.Select(&plays, "select * from tboardgameplays order by date, id")
+	err = db.Select(&plays, `
+		select
+			p.*,
+			g.name
+		from
+			tboardgameplays p,
+			tboardgames g
+		where
+			p.boardgame_id = g.id
+		order by date, id
+	`)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -36,7 +46,17 @@ func GetScores(c *gin.Context) {
 		}
 
 		var stats []models.Stats
-		err = db.Select(&stats, "select * from tboardgamestats where play_id = ?", play.Id)
+		err = db.Select(&stats, `
+			select
+				s.*,
+				pl.name
+			from
+				tboardgamestats s,
+				tboardgameplayers pl
+			where
+				s.player_id = pl.id and
+				s.play_id = ?
+		`, play.Id)
 		if err != nil {
 			util.Error(c, err)
 			return
@@ -164,6 +184,8 @@ func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Sta
 		return DefaultScore, DefaultSort
 	case 253499:
 		return WarOfWhispersScore, WarOfWhispersSort
+	case 110277:
+		return DefaultScore, DefaultSort
 	default:
 		return nil, nil
 	}
@@ -209,6 +231,9 @@ func WaterdeepScore(stats models.Stats) float64 {
 		score += stats.Data[key].(float64)
 	}
 
+	// tiebreak
+	score += stats.Data["money"].(float64) * 0.01
+
 	return score
 }
 
@@ -235,6 +260,10 @@ func WarOfWhispersScore(stats models.Stats) float64 {
 	score := 0.0
 	for _, key := range keys {
 		score += stats.Data[key].(float64)
+	}
+
+	if val, ok := stats.Data["swaps"]; ok {
+		score -= val.(float64) * 0.01
 	}
 
 	return score
@@ -300,6 +329,8 @@ func DuelScore(stats models.Stats) float64 {
 	for _, key := range keys {
 		score += stats.Data[key].(float64)
 	}
+
+	score += stats.Data["coin_points"].(float64) * 0.01
 
 	return score
 }
@@ -387,6 +418,8 @@ func PaladinsScore(stats models.Stats) float64 {
 		score += stats.Data[key].(float64)
 	}
 
+	score += stats.Data["order"].(float64) * 0.01
+
 	return score
 }
 
@@ -465,6 +498,8 @@ func LostRuinsScore(stats models.Stats) float64 {
 	for _, key := range keys {
 		score += stats.Data[key].(float64)
 	}
+
+	score += stats.Data["research"].(float64) * 0.01
 
 	return score
 }
@@ -566,12 +601,16 @@ func RaidersSort(stats []models.Stats) func(i, j int) bool {
 // {"buildings":15,"cathedral":20,"debt":0,"gold-marble":2,"money":0,"prison":0,"virtue":7}
 
 func ArchitectsScore(stats models.Stats) float64 {
-	keys := []string{"buildings", "cathedral", "debt", "gold-marble", "money", "prison", "virtue"}
+	keys := []string{"buildings", "cathedral", "debt", "gold-marble", "money", "prison", "virtue", "bottom"}
 
 	score := 0.0
 	for _, key := range keys {
-		score += stats.Data[key].(float64)
+		if val, ok := stats.Data[key].(float64); ok {
+			score += val
+		}
 	}
+
+	score += stats.Data["virtue"].(float64) * 0.01
 
 	return score
 }
@@ -630,6 +669,14 @@ func KemetScore(stats models.Stats) float64 {
 		}
 	}
 
+	if val, ok := stats.Data["battle"]; ok {
+		score += val.(float64) * 0.01
+	}
+
+	if val, ok := stats.Data["order"]; ok {
+		score -= val.(float64) * 0.001
+	}
+
 	return score
 }
 
@@ -666,6 +713,10 @@ func OrleansScore(stats models.Stats) float64 {
 		if val, ok := stats.Data[key].(float64); ok {
 			score += val
 		}
+	}
+
+	if val, ok := stats.Data["track"]; ok {
+		score -= val.(float64) * 0.01
 	}
 
 	return score
