@@ -2,6 +2,7 @@ package boardgames
 
 import (
 	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -22,27 +23,28 @@ func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	return &rs, nil
 }
 
-func (obj Boardgame) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getBoardgame(db, id)
+func (obj Boardgame) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getBoardgame(db, args.Id)
 }
 
-func (obj Boardgame) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Boardgame) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Boardgame
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgames")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql, err := args.List(`
 		select * from tboardgames
 	`)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(sql.String(), args.Id)
+	query, ids, err := sqlx.In(sql.String(), args.Ids)
 	if err != nil {
 		query = sql.String()
 	} else {
@@ -51,28 +53,28 @@ func (obj Boardgame) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	return rs, len(count), nil
+	return rs, nil
 }
 
-func (obj Boardgame) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Boardgame) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Boardgame
 
-	if val, ok := qb.Data["id"]; ok {
+	if val, ok := args.Data["id"]; ok {
 		rs.Id = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
-	query, err := qb.Insert("tboardgames")
+	query, err := args.Insert("tboardgames")
 	if err != nil {
 		return nil, err
 	}
@@ -85,17 +87,17 @@ func (obj Boardgame) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, e
 	return rs, nil
 }
 
-func (obj Boardgame) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	rs, err := getBoardgame(db, id)
+func (obj Boardgame) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getBoardgame(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
 	}
 
-	sql, err := qb.Update("tboardgames")
+	sql, err := args.Update("tboardgames")
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +110,8 @@ func (obj Boardgame) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (inte
 	return rs, nil
 }
 
-func (obj Boardgame) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getBoardgame(db, id)
+func (obj Boardgame) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getBoardgame(db, args.Id)
 	if err != nil {
 		return nil, err
 	}

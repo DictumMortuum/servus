@@ -155,46 +155,46 @@ func main() {
 	rest := r.Group("/rest/v1")
 	{
 		games := boardgames.Boardgame{}
-		rest.GET("/boardgame/:id", generic.GET(games))
-		rest.GET("/boardgame", generic.GETLIST(games))
-		rest.POST("/boardgame", generic.POST(games))
-		rest.PUT("/boardgame/:id", generic.PUT(games))
-		rest.DELETE("/boardgame/:id", generic.DELETE(games))
+		rest.GET("/boardgame/:id", generic.F(games.Get))
+		rest.GET("/boardgame", generic.F(games.GetList))
+		rest.POST("/boardgame", generic.F(games.Create))
+		rest.PUT("/boardgame/:id", generic.F(games.Update))
+		rest.DELETE("/boardgame/:id", generic.F(games.Delete))
 
 		store := boardgames.Store{}
-		rest.GET("/store/:id", generic.GET(store))
-		rest.GET("/store", generic.GETLIST(store))
-		rest.POST("/store", generic.POST(store))
-		rest.PUT("/store/:id", generic.PUT(store))
-		rest.DELETE("/store/:id", generic.DELETE(store))
+		rest.GET("/store/:id", generic.F(store.Get))
+		rest.GET("/store", generic.F(store.GetList))
+		rest.POST("/store", generic.F(store.Create))
+		rest.PUT("/store/:id", generic.F(store.Update))
+		rest.DELETE("/store/:id", generic.F(store.Delete))
 
 		data := scraper.Data{}
-		rest.GET("/scrape/:id", generic.GET(data))
-		rest.GET("/scrape", generic.GETLIST(data))
-		rest.POST("/scrape", generic.POST(data))
-		rest.PUT("/scrape/:id", generic.PUT(data))
-		rest.DELETE("/scrape/:id", generic.DELETE(data))
+		rest.GET("/scrape/:id", generic.F(data.Get))
+		rest.GET("/scrape", generic.F(data.GetList))
+		rest.POST("/scrape", generic.F(data.Create))
+		rest.PUT("/scrape/:id", generic.F(data.Update))
+		rest.DELETE("/scrape/:id", generic.F(data.Delete))
 
 		player := boardgames.Player{}
-		rest.GET("/player/:id", generic.GET(player))
-		rest.GET("/player", generic.GETLIST(player))
-		rest.POST("/player", generic.POST(player))
-		rest.PUT("/player/:id", generic.PUT(player))
-		rest.DELETE("/player/:id", generic.DELETE(player))
+		rest.GET("/player/:id", generic.F(player.Get))
+		rest.GET("/player", generic.F(player.GetList))
+		rest.POST("/player", generic.F(player.Create))
+		rest.PUT("/player/:id", generic.F(player.Update))
+		rest.DELETE("/player/:id", generic.F(player.Delete))
 
 		play := boardgames.Play{}
-		rest.GET("/play/:id", generic.GET(play))
-		rest.GET("/play", generic.GETLIST(play))
-		rest.POST("/play", generic.POST(play))
-		rest.PUT("/play/:id", generic.PUT(play))
-		rest.DELETE("/play/:id", generic.DELETE(play))
+		rest.GET("/play/:id", generic.F(play.Get))
+		rest.GET("/play", generic.F(play.GetList))
+		rest.POST("/play", generic.F(play.Create))
+		rest.PUT("/play/:id", generic.F(play.Update))
+		rest.DELETE("/play/:id", generic.F(play.Delete))
 
 		stats := boardgames.Stats{}
-		rest.GET("/stats/:id", generic.GET(stats))
-		rest.GET("/stats", generic.GETLIST(stats))
-		rest.POST("/stats", generic.POST(stats))
-		rest.PUT("/stats/:id", generic.PUT(stats))
-		rest.DELETE("/stats/:id", generic.DELETE(stats))
+		rest.GET("/stats/:id", generic.F(stats.Get))
+		rest.GET("/stats", generic.F(stats.GetList))
+		rest.POST("/stats", generic.F(stats.Create))
+		rest.PUT("/stats/:id", generic.F(stats.Update))
+		rest.DELETE("/stats/:id", generic.F(stats.Delete))
 	}
 
 	gn := r.Group("/gnucash")

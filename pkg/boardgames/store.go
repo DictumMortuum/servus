@@ -2,6 +2,7 @@ package boardgames
 
 import (
 	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,27 +20,28 @@ func getStore(db *sqlx.DB, id int64) (*models.Store, error) {
 	return &rs, nil
 }
 
-func (obj Store) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getStore(db, id)
+func (obj Store) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getStore(db, args.Id)
 }
 
-func (obj Store) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Store) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Store
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgamestores")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql, err := args.List(`
 		select * from tboardgamestores
 	`)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(sql.String(), args.Id)
+	query, ids, err := sqlx.In(sql.String(), args.Ids)
 	if err != nil {
 		query = sql.String()
 	} else {
@@ -48,22 +50,22 @@ func (obj Store) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, in
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	return rs, len(count), nil
+	return rs, nil
 }
 
-func (obj Store) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Store) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var store models.Store
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		store.Name = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
-	query, err := qb.Insert("tboardgamestores")
+	query, err := args.Insert("tboardgamestores")
 	if err != nil {
 		return nil, err
 	}
@@ -82,17 +84,17 @@ func (obj Store) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error
 	return store, nil
 }
 
-func (obj Store) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	rs, err := getStore(db, id)
+func (obj Store) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getStore(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
 	}
 
-	sql, err := qb.Update("tboardgamestores")
+	sql, err := args.Update("tboardgamestores")
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +107,8 @@ func (obj Store) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interfac
 	return rs, nil
 }
 
-func (obj Store) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getStore(db, id)
+func (obj Store) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getStore(db, args.Id)
 	if err != nil {
 		return nil, err
 	}

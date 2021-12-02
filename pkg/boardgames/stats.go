@@ -3,6 +3,7 @@ package boardgames
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"text/template"
@@ -52,18 +53,19 @@ func getPlayStats(db *sqlx.DB, id int64) ([]models.Stats, error) {
 	return rs, nil
 }
 
-func (obj Stats) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getStats(db, id)
+func (obj Stats) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getStats(db, args.Id)
 }
 
-func (obj Stats) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Stats) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Stats
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgamestats")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql := `
 		select
@@ -74,7 +76,7 @@ func (obj Stats) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, in
 			tboardgameplayers pl
 		where
 			s.player_id = pl.id
-		{{ if gt (len .Id) 0 }}
+		{{ if gt (len .Ids) 0 }}
 			and s.{{ .RefKey }} in (?)
 		{{ else if gt (len .FilterVal) 0 }}
 			and s.{{ .FilterKey }} = "{{ .FilterVal }}"
@@ -90,10 +92,10 @@ func (obj Stats) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, in
 	t := template.Must(template.New("list").Parse(sql))
 	err = t.Execute(&tpl, args)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(tpl.String(), args.Id)
+	query, ids, err := sqlx.In(tpl.String(), args.Ids)
 	if err != nil {
 		query = tpl.String()
 	} else {
@@ -102,28 +104,28 @@ func (obj Stats) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, in
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	return rs, len(count), nil
+	return rs, nil
 }
 
-func (obj Stats) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Stats) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var stats models.Stats
 
-	if val, ok := qb.Data["play_id"]; ok {
+	if val, ok := args.Data["play_id"]; ok {
 		stats.PlayId = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'play_id' parameter")
 	}
 
-	if val, ok := qb.Data["player_id"]; ok {
+	if val, ok := args.Data["player_id"]; ok {
 		stats.PlayerId = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'player_id' parameter")
 	}
 
-	if val, ok := qb.Data["data"]; ok {
+	if val, ok := args.Data["data"]; ok {
 		err := stats.Data.Scan(val)
 		if err != nil {
 			return nil, err
@@ -132,7 +134,7 @@ func (obj Stats) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error
 		return nil, errors.New("please provide a 'json' parameter")
 	}
 
-	query, err := qb.Insert("tboardgamestats")
+	query, err := args.Insert("tboardgamestats")
 	if err != nil {
 		return nil, err
 	}
@@ -151,25 +153,25 @@ func (obj Stats) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error
 	return stats, nil
 }
 
-func (obj Stats) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	rs, err := getStats(db, id)
+func (obj Stats) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getStats(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["play_id"]; ok {
+	if val, ok := args.Data["play_id"]; ok {
 		rs.PlayId = int64(val.(float64))
 	}
 
-	if val, ok := qb.Data["player_id"]; ok {
+	if val, ok := args.Data["player_id"]; ok {
 		rs.PlayerId = int64(val.(float64))
 	}
 
-	if val, ok := qb.Data["data"]; ok {
+	if val, ok := args.Data["data"]; ok {
 		rs.Data.Scan(val)
 	}
 
-	sql, err := qb.Update("tboardgamestats")
+	sql, err := args.Update("tboardgamestats")
 	if err != nil {
 		return nil, err
 	}
@@ -182,8 +184,8 @@ func (obj Stats) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interfac
 	return rs, nil
 }
 
-func (obj Stats) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getStats(db, id)
+func (obj Stats) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getStats(db, args.Id)
 	if err != nil {
 		return nil, err
 	}

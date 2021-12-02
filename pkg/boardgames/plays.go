@@ -123,18 +123,19 @@ func calculateTrueskill(plays []models.Play) []models.Play {
 	return plays
 }
 
-func (obj Play) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getPlay(db, id)
+func (obj Play) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getPlay(db, args.Id)
 }
 
-func (obj Play) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Play
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgameplays")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql := `
 		select
@@ -145,7 +146,7 @@ func (obj Play) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int
 			tboardgames g
 		where
 			p.boardgame_id = g.id
-		{{ if gt (len .Id) 0 }}
+		{{ if gt (len .Ids) 0 }}
 			and p.{{ .RefKey }} in (?)
 		{{ else if gt (len .FilterVal) 0 }}
 			and p.{{ .FilterKey }} = "{{ .FilterVal }}"
@@ -163,10 +164,10 @@ func (obj Play) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int
 	t := template.Must(template.New("list").Parse(sql))
 	err = t.Execute(&tpl, args)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(tpl.String(), args.Id)
+	query, ids, err := sqlx.In(tpl.String(), args.Ids)
 	if err != nil {
 		query = tpl.String()
 	} else {
@@ -175,7 +176,7 @@ func (obj Play) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
 	if args.Resources["stats"] {
@@ -184,28 +185,28 @@ func (obj Play) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int
 		for _, item := range rs {
 			stats, err := getPlayStats(db, item.Id)
 			if err != nil {
-				return nil, -1, err
+				return nil, err
 			}
 			item.Stats = stats
 
 			play, err := scorePlay(item)
 			if err != nil {
-				return nil, -1, err
+				return nil, err
 			}
 
 			retval = append(retval, *play)
 		}
 
-		return calculateTrueskill(retval), len(count), nil
+		return calculateTrueskill(retval), nil
 	} else {
-		return rs, len(count), nil
+		return rs, nil
 	}
 }
 
-func (obj Play) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Play) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Play
 
-	if val, ok := qb.Data["date"]; ok {
+	if val, ok := args.Data["date"]; ok {
 		//"Mon Jan 02 2006 15:04:05 GMT-0700 (MST)"
 		t, err := time.Parse("2006-01-02", val.(string))
 		if err != nil {
@@ -217,7 +218,7 @@ func (obj Play) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 		rs.Date = time.Now()
 	}
 
-	if val, ok := qb.Data["boardgame_id"]; ok {
+	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = int64(val.(float64))
 	} else {
 		return nil, errors.New("please provide a 'boardgame_id' parameter")
@@ -225,7 +226,7 @@ func (obj Play) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 
 	rs.CrDate = time.Now()
 
-	query, err := qb.Insert("tboardgameplays")
+	query, err := args.Insert("tboardgameplays")
 	if err != nil {
 		return nil, err
 	}
@@ -244,18 +245,18 @@ func (obj Play) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 	return rs, nil
 }
 
-func (obj Play) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	rs, err := getPlay(db, id)
+func (obj Play) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getPlay(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	sql, err := qb.Update("tboardgameplays")
+	sql, err := args.Update("tboardgameplays")
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["date"]; ok {
+	if val, ok := args.Data["date"]; ok {
 		t, err := time.Parse("2006-01-02T15:04:05-0700", val.(string))
 		if err != nil {
 			return nil, err
@@ -272,8 +273,8 @@ func (obj Play) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface
 	return rs, nil
 }
 
-func (obj Play) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getPlay(db, id)
+func (obj Play) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getPlay(db, args.Id)
 	if err != nil {
 		return nil, err
 	}

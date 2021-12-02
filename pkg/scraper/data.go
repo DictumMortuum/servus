@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -20,27 +21,28 @@ func getData(db *sqlx.DB, id int64) (*models.ScraperData, error) {
 	return &rs, nil
 }
 
-func (obj Data) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getData(db, id)
+func (obj Data) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getData(db, args.Id)
 }
 
-func (obj Data) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Data) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.ScraperData
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgamescraperdata")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql, err := args.List(`
 		select * from tboardgamescraperdata
 	`)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(sql.String(), args.Id)
+	query, ids, err := sqlx.In(sql.String(), args.Ids)
 	if err != nil {
 		query = sql.String()
 	} else {
@@ -49,16 +51,16 @@ func (obj Data) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	return rs, len(count), nil
+	return rs, nil
 }
 
-func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Data) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var game models.ScraperData
 
-	if val, ok := qb.Data["store_id"]; ok {
+	if val, ok := args.Data["store_id"]; ok {
 		game.StoreId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
@@ -67,7 +69,7 @@ func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 		return nil, errors.New("please provide a 'store_id' parameter")
 	}
 
-	if val, ok := qb.Data["boardgame_id"]; ok {
+	if val, ok := args.Data["boardgame_id"]; ok {
 		game.BoardgameId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
@@ -79,25 +81,25 @@ func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 		}
 	}
 
-	if val, ok := qb.Data["title"]; ok {
+	if val, ok := args.Data["title"]; ok {
 		game.Title = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'title' parameter")
 	}
 
-	if val, ok := qb.Data["link"]; ok {
+	if val, ok := args.Data["link"]; ok {
 		game.Link = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'link' parameter")
 	}
 
-	if val, ok := qb.Data["sku"]; ok {
+	if val, ok := args.Data["sku"]; ok {
 		game.SKU = val.(string)
 	} else {
 		game.SKU = ""
 	}
 
-	if val, ok := qb.Data["active"]; ok {
+	if val, ok := args.Data["active"]; ok {
 		t, err := time.Parse("2006-01-02T15:04:05-0700", val.(string))
 		if err != nil {
 			return nil, err
@@ -108,7 +110,7 @@ func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 
 	game.CrDate = time.Now()
 
-	query, err := qb.Insert("tboardgamescraperdata")
+	query, err := args.Insert("tboardgamescraperdata")
 	if err != nil {
 		return nil, err
 	}
@@ -127,39 +129,39 @@ func (obj Data) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error)
 	return game, nil
 }
 
-func (obj Data) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	game, err := getData(db, id)
+func (obj Data) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	game, err := getData(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["store_id"]; ok {
+	if val, ok := args.Data["store_id"]; ok {
 		game.StoreId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
 		}
 	}
 
-	if val, ok := qb.Data["boardgame_id"]; ok {
+	if val, ok := args.Data["boardgame_id"]; ok {
 		game.BoardgameId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
 		}
 	}
 
-	if val, ok := qb.Data["title"]; ok {
+	if val, ok := args.Data["title"]; ok {
 		game.Title = val.(string)
 	}
 
-	if val, ok := qb.Data["link"]; ok {
+	if val, ok := args.Data["link"]; ok {
 		game.Link = val.(string)
 	}
 
-	if val, ok := qb.Data["sku"]; ok {
+	if val, ok := args.Data["sku"]; ok {
 		game.SKU = val.(string)
 	}
 
-	sql, err := qb.Update("tboardgamescraperdata")
+	sql, err := args.Update("tboardgamescraperdata")
 	if err != nil {
 		return nil, err
 	}
@@ -172,8 +174,8 @@ func (obj Data) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface
 	return game, nil
 }
 
-func (obj Data) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getData(db, id)
+func (obj Data) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getData(db, args.Id)
 	if err != nil {
 		return nil, err
 	}

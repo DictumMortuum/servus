@@ -2,6 +2,7 @@ package boardgames
 
 import (
 	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,27 +20,28 @@ func getPlayer(db *sqlx.DB, id int64) (*models.Player, error) {
 	return &rs, nil
 }
 
-func (obj Player) Get(db *sqlx.DB, id int64) (interface{}, error) {
-	return getPlayer(db, id)
+func (obj Player) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	return getPlayer(db, args.Id)
 }
 
-func (obj Player) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, int, error) {
+func (obj Player) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Player
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgameplayers")
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
 
 	sql, err := args.List(`
 		select * from tboardgameplayers
 	`)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	query, ids, err := sqlx.In(sql.String(), args.Id)
+	query, ids, err := sqlx.In(sql.String(), args.Ids)
 	if err != nil {
 		query = sql.String()
 	} else {
@@ -48,22 +50,22 @@ func (obj Player) GetList(db *sqlx.DB, args models.QueryBuilder) (interface{}, i
 
 	err = db.Select(&rs, query, ids...)
 	if err != nil {
-		return nil, -1, err
+		return nil, err
 	}
 
-	return rs, len(count), nil
+	return rs, nil
 }
 
-func (obj Player) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, error) {
+func (obj Player) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Player
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
 	} else {
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
-	query, err := qb.Insert("tboardgameplayers")
+	query, err := args.Insert("tboardgameplayers")
 	if err != nil {
 		return nil, err
 	}
@@ -82,18 +84,18 @@ func (obj Player) Create(db *sqlx.DB, qb models.QueryBuilder) (interface{}, erro
 	return rs, nil
 }
 
-func (obj Player) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interface{}, error) {
-	rs, err := getPlayer(db, id)
+func (obj Player) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getPlayer(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	sql, err := qb.Update("tboardgameplayers")
+	sql, err := args.Update("tboardgameplayers")
 	if err != nil {
 		return nil, err
 	}
 
-	if val, ok := qb.Data["name"]; ok {
+	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
 	}
 
@@ -105,8 +107,8 @@ func (obj Player) Update(db *sqlx.DB, id int64, qb models.QueryBuilder) (interfa
 	return rs, nil
 }
 
-func (obj Player) Delete(db *sqlx.DB, id int64) (interface{}, error) {
-	rs, err := getPlayer(db, id)
+func (obj Player) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := getPlayer(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
