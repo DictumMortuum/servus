@@ -151,7 +151,7 @@ func (obj QueryBuilder) List(query string) (*bytes.Buffer, error) {
 		{{ .FilterKey }} = "{{ .FilterVal }}"
 	{{ else if gt (len .Query) 0 }}
 	where
-		name like "{{ .Query }}"
+		name like "%{{ .Query }}%"
 	{{ end }}
 	{{ if gt (len .Sort) 0 }}
 	order by {{ .Sort }} {{ .Order }}
