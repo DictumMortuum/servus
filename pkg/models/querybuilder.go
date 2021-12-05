@@ -39,6 +39,7 @@ type QueryBuilder struct {
 	Columns   []string
 	Data      map[string]interface{}
 	Resources map[string]bool
+	Query     string
 }
 
 func NewArgsFromContext(c *gin.Context) (*QueryBuilder, error) {
@@ -127,6 +128,9 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 				rs.RefKey = key
 				rs.Ids = append(rs.Ids, id)
 			}
+		} else if key == "q" {
+			// this is a query
+			rs.Query = val[0]
 		} else if !strings.HasPrefix(key, "_") && key != "id" {
 			// this is a filter
 			rs.FilterKey = key
@@ -145,6 +149,10 @@ func (obj QueryBuilder) List(query string) (*bytes.Buffer, error) {
 	{{ else if gt (len .FilterVal) 0 }}
 	where
 		{{ .FilterKey }} = "{{ .FilterVal }}"
+	{{ end }}
+	{{ else if gt (len .Query) 0 }}
+	where
+		name like "{{ .Query }}"
 	{{ end }}
 	{{ if gt (len .Sort) 0 }}
 	order by {{ .Sort }} {{ .Order }}
