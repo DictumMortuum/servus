@@ -149,7 +149,6 @@ func (obj QueryBuilder) List(query string) (*bytes.Buffer, error) {
 	{{ else if gt (len .FilterVal) 0 }}
 	where
 		{{ .FilterKey }} = "{{ .FilterVal }}"
-	{{ end }}
 	{{ else if gt (len .Query) 0 }}
 	where
 		name like "{{ .Query }}"
