@@ -337,20 +337,28 @@ func DuelScore(stats models.Stats) float64 {
 
 func DuelSort(stats []models.Stats) func(i, j int) bool {
 	return func(i, j int) bool {
-		if stats[i].Data["battle_victory"].(bool) {
-			return false
+		if val, ok := stats[i].Data["battle_victory"].(bool); ok {
+			if val {
+				return false
+			}
 		}
 
-		if stats[j].Data["battle_victory"].(bool) {
-			return true
+		if val, ok := stats[j].Data["battle_victory"].(bool); ok {
+			if val {
+				return true
+			}
 		}
 
-		if stats[i].Data["science_victory"].(bool) {
-			return false
+		if val, ok := stats[i].Data["science_victory"].(bool); ok {
+			if val {
+				return false
+			}
 		}
 
-		if stats[j].Data["science_victory"].(bool) {
-			return true
+		if val, ok := stats[j].Data["science_victory"].(bool); ok {
+			if val {
+				return true
+			}
 		}
 
 		score1 := DuelScore(stats[i])
