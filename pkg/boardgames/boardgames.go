@@ -74,6 +74,15 @@ func (obj Boardgame) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
+	if val, ok := args.Data["data"]; ok {
+		err := rs.Data.Scan(val)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		rs.Data = nil
+	}
+
 	query, err := args.Insert("tboardgames")
 	if err != nil {
 		return nil, err
@@ -95,6 +104,13 @@ func (obj Boardgame) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}
 
 	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
+	}
+
+	if val, ok := args.Data["data"]; ok {
+		err := rs.Data.Scan(val)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sql, err := args.Update("tboardgames")

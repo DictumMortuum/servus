@@ -8,6 +8,7 @@ type Boardgame struct {
 	Id   int64     `db:"id" json:"id"`
 	Name string    `db:"name" json:"name"`
 	Date time.Time `json:"validUntil"`
+	Data Json      `db:"data" json:"data"`
 }
 
 func (obj Boardgame) Insert() string {

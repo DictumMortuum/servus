@@ -1,6 +1,8 @@
 package boardgames
 
 import (
+	"errors"
+	"fmt"
 	DB "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/util"
@@ -40,7 +42,7 @@ func GetScores(c *gin.Context) {
 
 	rs := []retval{}
 	for _, play := range plays {
-		f, g := getFuncs(play.BoardgameId)
+		f, g := getFuncs(play)
 		if f == nil || g == nil {
 			continue
 		}
@@ -114,8 +116,66 @@ func GetScores(c *gin.Context) {
 // +--------+--------------------------------+
 // 28 rows in set (0.003 sec)
 
-func getFuncs(boardgame_id int64) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
-	switch boardgame_id {
+func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
+	var columns map[string]interface{}
+	var tiebreak map[string]interface{}
+
+	if val, ok := play.BoardgameSettings["columns"]; ok {
+		columns = val.(map[string]interface{})
+	} else {
+		return nil, errors.New("Check the boardgame settings - no 'columns' configuration found")
+	}
+
+	if val, ok := play.BoardgameSettings["tiebreak"]; ok {
+		tiebreak = val.(map[string]interface{})
+	} else {
+		return nil, errors.New("Check the boardgame settings - no 'tiebreak' configuration found")
+	}
+
+	return func(stats models.Stats) float64 {
+		score := 0.0
+
+		for key, t := range columns {
+			switch t {
+			case "int":
+				if val, ok := stats.Data[key].(float64); ok {
+					score += val
+				}
+			default:
+				if val, ok := stats.Data[key].(float64); ok {
+					score += val
+				}
+			}
+		}
+
+		base := 0.01
+
+		for key, order := range tiebreak {
+			if val, ok := stats.Data[key].(float64); ok {
+				if order == "asc" {
+					score += val * base
+				} else if order == "desc" {
+					score -= val * base
+				}
+			}
+
+			base *= 0.1
+		}
+
+		fmt.Println(base, score)
+
+		return score
+	}, nil
+}
+
+func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
+	// here the boardgame has the settings
+	if play.BoardgameSettings != nil {
+		f, _ := DatabaseScore(play)
+		return f, DefaultSort
+	}
+
+	switch play.BoardgameId {
 	case 183394:
 		return DefaultScore, DefaultSort
 	case 110327:

@@ -18,7 +18,7 @@ func (obj *Json) Scan(val interface{}) error {
 	case string:
 		return json.Unmarshal([]byte(v), &obj)
 	case nil:
-		return json.Unmarshal(nil, &obj)
+		return nil
 	default:
 		return errors.New(fmt.Sprintf("Unsupported type: %T", v))
 	}

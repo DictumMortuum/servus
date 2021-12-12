@@ -20,7 +20,8 @@ func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 	err := db.QueryRowx(`
 		select
 			p.*,
-			g.name
+			g.name,
+			g.data
 		from
 			tboardgameplays p,
 			tboardgames g
@@ -47,7 +48,7 @@ func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 }
 
 func scorePlay(play models.Play) (*models.Play, error) {
-	scoreFunc, sortFunc := getFuncs(play.BoardgameId)
+	scoreFunc, sortFunc := getFuncs(play)
 	if scoreFunc == nil || sortFunc == nil {
 		e := fmt.Sprintf("Could not find sort or score function for boardgame %s\n", play.Boardgame)
 		return nil, errors.New(e)
@@ -140,7 +141,8 @@ func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	sql := `
 		select
 			p.*,
-			g.name
+			g.name,
+			g.data
 		from
 			tboardgameplays p,
 			tboardgames g
