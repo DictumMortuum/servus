@@ -170,7 +170,7 @@ func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 
 func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	// here the boardgame has the settings
-	if play.BoardgameSettings != nil {
+	if len(play.BoardgameSettings) != 0 {
 		f, _ := DatabaseScore(play)
 		return f, DefaultSort
 	}
