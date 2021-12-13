@@ -17,7 +17,8 @@ func getStats(db *sqlx.DB, id int64) (*models.Stats, error) {
 	err := db.QueryRowx(`
 		select
 			s.*,
-			pl.name
+			pl.name,
+			pl.surname
 		from
 			tboardgamestats s,
 			tboardgameplayers pl
@@ -38,7 +39,8 @@ func getPlayStats(db *sqlx.DB, id int64) ([]models.Stats, error) {
 	err := db.Select(&rs, `
 		select
 			s.*,
-			pl.name
+			pl.name,
+			pl.surname
 		from
 			tboardgamestats s,
 			tboardgameplayers pl
@@ -70,7 +72,8 @@ func (obj Stats) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	sql := `
 		select
 			s.*,
-			pl.name
+			pl.name,
+			pl.surname
 		from
 			tboardgamestats s,
 			tboardgameplayers pl

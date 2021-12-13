@@ -2,7 +2,6 @@ package boardgames
 
 import (
 	"errors"
-	"fmt"
 	DB "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/util"
@@ -82,40 +81,6 @@ func GetScores(c *gin.Context) {
 }
 
 // MariaDB [servus]> select id, name from tboardgames where id in (select distinct boardgame_id from tboardgameplays);
-// +--------+--------------------------------+
-// | id     | name                           |
-// +--------+--------------------------------+
-// |     42 | Tigris & Euphrates             |
-// |    822 | Carcassonne                    |
-// |  14996 | Ticket to ride: Europe         |
-// | 110327 | Lords of Waterdeep             |
-// | 127023 | Kemet                          |
-// | 163412 | Patchwork                      |
-// | 164928 | Orléans                        |
-// | 169786 | Scythe                         |
-// | 170042 | Raiders of the north sea       |
-// | 170216 | Blood rage                     |
-// | 173346 | 7 Wonders Duel                 |
-// | 183394 | Viticulture essential edition  |
-// | 193738 | Great Western Trail            |
-// | 198994 | Hero Realms                    |
-// | 199792 | Everdell                       |
-// | 216132 | Clans of Caledonia             |
-// | 230802 | Azul                           |
-// | 236457 | Architects of the west kingdom |
-// | 237182 | Root                           |
-// | 256916 | Concordia Venus                |
-// | 266192 | Wingspan                       |
-// | 266810 | Paladins of the West Kingdom   |
-// | 271320 | Castles of Burgundy            |
-// | 276025 | Maracaibo                      |
-// | 283863 | The Magnificent                |
-// | 296151 | Viscounts of the West Kingdom  |
-// | 301880 | Raiders of Scythia             |
-// | 312484 | Lost ruins of Arnak            |
-// +--------+--------------------------------+
-// 28 rows in set (0.003 sec)
-
 func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 	var columns map[string]interface{}
 	var tiebreak map[string]interface{}
@@ -161,8 +126,6 @@ func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 
 			base *= 0.1
 		}
-
-		fmt.Println(base, score)
 
 		return score
 	}, nil

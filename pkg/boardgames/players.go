@@ -65,6 +65,12 @@ func (obj Player) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 		return nil, errors.New("please provide a 'name' parameter")
 	}
 
+	if val, ok := args.Data["surname"]; ok {
+		rs.Surname = val.(string)
+	} else {
+		return nil, errors.New("please provide a 'surname' parameter")
+	}
+
 	query, err := args.Insert("tboardgameplayers")
 	if err != nil {
 		return nil, err
@@ -97,6 +103,10 @@ func (obj Player) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 
 	if val, ok := args.Data["name"]; ok {
 		rs.Name = val.(string)
+	}
+
+	if val, ok := args.Data["surname"]; ok {
+		rs.Surname = val.(string)
 	}
 
 	_, err = db.NamedExec(sql.String(), &rs)
