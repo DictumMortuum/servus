@@ -160,7 +160,7 @@ func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 		{{ if gt (len .Sort) 0 }}
 		order by p.{{ .Sort }} {{ .Order }}
 		{{ else }}
-		order by p.date asc
+		order by p.date asc, p.id
 		{{ end }}
 		{{ if eq (len .Range) 2 }}
 		limit {{ index .Range 0 }}, {{ .Page }}
