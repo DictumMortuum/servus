@@ -2,85 +2,9 @@ package boardgames
 
 import (
 	"errors"
-	DB "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
-	"github.com/DictumMortuum/servus/pkg/util"
-	"github.com/gin-gonic/gin"
-	"sort"
 )
 
-func GetScores(c *gin.Context) {
-	type retval struct {
-		Play  models.Play    `json:"play"`
-		Stats []models.Stats `json:"stats"`
-	}
-
-	db, err := DB.Conn()
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
-	defer db.Close()
-
-	var plays []models.Play
-	err = db.Select(&plays, `
-		select
-			p.*,
-			g.name
-		from
-			tboardgameplays p,
-			tboardgames g
-		where
-			p.boardgame_id = g.id
-		order by date, id
-	`)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
-
-	rs := []retval{}
-	for _, play := range plays {
-		f, g := getFuncs(play)
-		if f == nil || g == nil {
-			continue
-		}
-
-		var stats []models.Stats
-		err = db.Select(&stats, `
-			select
-				s.*,
-				pl.name
-			from
-				tboardgamestats s,
-				tboardgameplayers pl
-			where
-				s.player_id = pl.id and
-				s.play_id = ?
-		`, play.Id)
-		if err != nil {
-			util.Error(c, err)
-			return
-		}
-
-		retval2 := []models.Stats{}
-		for _, item := range stats {
-			item.Data["score"] = f(item)
-			retval2 = append(retval2, item)
-		}
-
-		sort.Slice(retval2, g(retval2))
-		rs = append(rs, retval{play, retval2})
-	}
-
-	// sort.Slice(rs, func(i, j int) bool {
-	// 	return rs[i].Play.Date.Before(rs[j].Play.Date)
-	// })
-
-	util.Success(c, rs)
-}
-
-// MariaDB [servus]> select id, name from tboardgames where id in (select distinct boardgame_id from tboardgameplays);
 func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 	var columns map[string]interface{}
 	var tiebreak map[string]interface{}
@@ -129,6 +53,14 @@ func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 
 		return score
 	}, nil
+}
+
+func isCooperative(play models.Play) bool {
+	if val, ok := play.BoardgameSettings["cooperative"]; ok {
+		return val.(bool)
+	}
+
+	return false
 }
 
 func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {

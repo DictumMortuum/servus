@@ -48,6 +48,10 @@ func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 }
 
 func scorePlay(play models.Play) (*models.Play, error) {
+	if isCooperative(play) {
+		return nil, nil
+	}
+
 	scoreFunc, sortFunc := getFuncs(play)
 	if scoreFunc == nil || sortFunc == nil {
 		e := fmt.Sprintf("Could not find sort or score function for boardgame %s\n", play.Boardgame)
@@ -196,7 +200,9 @@ func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 				return nil, err
 			}
 
-			retval = append(retval, *play)
+			if play != nil {
+				retval = append(retval, *play)
+			}
 		}
 
 		return calculateTrueskill(retval), nil
