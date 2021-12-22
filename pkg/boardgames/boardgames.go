@@ -22,10 +22,9 @@ func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 		from
 			tboardgames b
 			left join gnucash.transactions t on t.guid = b.tx_guid
-			left join gnucash.splits s on s.tx_guid = b.tx_guid
+			left join gnucash.splits s on s.tx_guid = b.tx_guid and s.account_guid = "3097dd8d65751277845bdda438cba937"
 		where
-			s.account_guid = "3097dd8d65751277845bdda438cba937"
-			and b.id = ?
+			b.id = ?
 		group by 1
 	`
 
@@ -60,13 +59,11 @@ func (obj Boardgame) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{
 		from
 			tboardgames b
 			left join gnucash.transactions t on t.guid = b.tx_guid
-			left join gnucash.splits s on s.tx_guid = b.tx_guid
-		where
-			s.account_guid = "3097dd8d65751277845bdda438cba937"
+			left join gnucash.splits s on s.tx_guid = b.tx_guid and s.account_guid = "3097dd8d65751277845bdda438cba937"
 		{{ if gt (len .Ids) 0 }}
-			and b.{{ .RefKey }} in (?)
+		where b.{{ .RefKey }} in (?)
 		{{ else if gt (len .FilterVal) 0 }}
-			and b.{{ .FilterKey }} = "{{ .FilterVal }}"
+		where b.{{ .FilterKey }} = "{{ .FilterVal }}"
 		{{ end }}
 		group by 1
 		{{ if gt (len .Sort) 0 }}
