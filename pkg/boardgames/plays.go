@@ -49,7 +49,7 @@ func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 
 func scorePlay(play models.Play) (*models.Play, error) {
 	if isCooperative(play) {
-		return nil, nil
+		return &play, nil
 	}
 
 	scoreFunc, sortFunc := getFuncs(play)
@@ -75,6 +75,10 @@ func calculateTrueskill(plays []models.Play) []models.Play {
 	players := map[string]trueskill.Player{}
 
 	for idx := range plays {
+		if isCooperative(plays[idx]) {
+			continue
+		}
+
 		// Reverse the array, so that winner is on the top.
 		for i, j := 0, len(plays[idx].Stats)-1; i < j; i, j = i+1, j-1 {
 			plays[idx].Stats[i], plays[idx].Stats[j] = plays[idx].Stats[j], plays[idx].Stats[i]
