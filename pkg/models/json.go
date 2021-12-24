@@ -26,3 +26,11 @@ func (obj *Json) Scan(val interface{}) error {
 func (obj Json) Value() (driver.Value, error) {
 	return json.Marshal(obj)
 }
+
+func (obj Json) Unmarshal(to interface{}) error {
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, to)
+}

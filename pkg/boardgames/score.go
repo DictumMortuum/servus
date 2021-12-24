@@ -1,54 +1,54 @@
 package boardgames
 
 import (
-	"errors"
 	"github.com/DictumMortuum/servus/pkg/models"
 )
 
+type column struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Tiebreak string `json:"tiebreak,omitempty"`
+}
+
+type settings struct {
+	Columns     []column `json:"columns,omitempty"`
+	Cooperative string   `json:"cooperative,omitempty"`
+}
+
 func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
-	var columns map[string]interface{}
-	var tiebreak map[string]interface{}
+	var s settings
 
-	if val, ok := play.BoardgameSettings["columns"]; ok {
-		columns = val.(map[string]interface{})
-	} else {
-		return nil, errors.New("Check the boardgame settings - no 'columns' configuration found")
-	}
-
-	if val, ok := play.BoardgameSettings["tiebreak"]; ok {
-		tiebreak = val.(map[string]interface{})
-	} else {
-		return nil, errors.New("Check the boardgame settings - no 'tiebreak' configuration found")
+	err := play.BoardgameSettings.Unmarshal(&s)
+	if err != nil {
+		return nil, err
 	}
 
 	return func(stats models.Stats) float64 {
 		score := 0.0
+		base := 0.01
 
-		for key, t := range columns {
-			switch t {
+		for _, col := range s.Columns {
+			switch col.Type {
 			case "int":
-				if val, ok := stats.Data[key].(float64); ok {
+				if val, ok := stats.Data[col.Name].(float64); ok {
 					score += val
 				}
 			default:
-				if val, ok := stats.Data[key].(float64); ok {
+				if val, ok := stats.Data[col.Name].(float64); ok {
 					score += val
 				}
 			}
-		}
 
-		base := 0.01
-
-		for key, order := range tiebreak {
-			if val, ok := stats.Data[key].(float64); ok {
-				if order == "asc" {
-					score += val * base
-				} else if order == "desc" {
-					score -= val * base
+			if col.Tiebreak != "" {
+				if val, ok := stats.Data[col.Name].(float64); ok {
+					if col.Tiebreak == "asc" {
+						score += val * base
+					} else if col.Tiebreak == "desc" {
+						score -= val * base
+					}
 				}
+				base *= 0.1
 			}
-
-			base *= 0.1
 		}
 
 		return score
