@@ -7,8 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Player struct{}
-
 func getPlayer(db *sqlx.DB, id int64) (*models.Player, error) {
 	var rs models.Player
 
@@ -20,11 +18,11 @@ func getPlayer(db *sqlx.DB, id int64) (*models.Player, error) {
 	return &rs, nil
 }
 
-func (obj Player) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetPlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getPlayer(db, args.Id)
 }
 
-func (obj Player) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListPlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Player
 
 	var count []int
@@ -56,7 +54,7 @@ func (obj Player) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, 
 	return rs, nil
 }
 
-func (obj Player) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreatePlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Player
 
 	if val, ok := args.Data["name"]; ok {
@@ -90,7 +88,7 @@ func (obj Player) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	return rs, nil
 }
 
-func (obj Player) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdatePlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getPlayer(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -117,7 +115,7 @@ func (obj Player) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	return rs, nil
 }
 
-func (obj Player) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeletePlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getPlayer(db, args.Id)
 	if err != nil {
 		return nil, err

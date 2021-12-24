@@ -7,8 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Store struct{}
-
 func getStore(db *sqlx.DB, id int64) (*models.Store, error) {
 	var rs models.Store
 
@@ -20,11 +18,11 @@ func getStore(db *sqlx.DB, id int64) (*models.Store, error) {
 	return &rs, nil
 }
 
-func (obj Store) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getStore(db, args.Id)
 }
 
-func (obj Store) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Store
 
 	var count []int
@@ -56,7 +54,7 @@ func (obj Store) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	return rs, nil
 }
 
-func (obj Store) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var store models.Store
 
 	if val, ok := args.Data["name"]; ok {
@@ -84,7 +82,7 @@ func (obj Store) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	return store, nil
 }
 
-func (obj Store) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getStore(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -107,7 +105,7 @@ func (obj Store) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	return rs, nil
 }
 
-func (obj Store) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeleteStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getStore(db, args.Id)
 	if err != nil {
 		return nil, err

@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-type Play struct{}
-
 func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 	var rs models.Play
 
@@ -132,11 +130,11 @@ func calculateTrueskill(plays []models.Play) []models.Play {
 	return plays
 }
 
-func (obj Play) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getPlay(db, args.Id)
 }
 
-func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Play
 
 	var count []int
@@ -215,7 +213,7 @@ func (obj Play) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	}
 }
 
-func (obj Play) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreatePlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Play
 
 	if val, ok := args.Data["date"]; ok {
@@ -257,7 +255,7 @@ func (obj Play) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	return rs, nil
 }
 
-func (obj Play) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdatePlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getPlay(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -285,7 +283,7 @@ func (obj Play) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	return rs, nil
 }
 
-func (obj Play) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeletePlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getPlay(db, args.Id)
 	if err != nil {
 		return nil, err

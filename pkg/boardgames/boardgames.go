@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-type Boardgame struct{}
-
 func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	var rs models.Boardgame
 
@@ -38,11 +36,11 @@ func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	return &rs, nil
 }
 
-func (obj Boardgame) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getBoardgame(db, args.Id)
 }
 
-func (obj Boardgame) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Boardgame
 
 	var count []int
@@ -98,7 +96,7 @@ func (obj Boardgame) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{
 	return rs, nil
 }
 
-func (obj Boardgame) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Boardgame
 
 	if val, ok := args.Data["id"]; ok {
@@ -135,7 +133,7 @@ func (obj Boardgame) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}
 	return rs, nil
 }
 
-func (obj Boardgame) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getBoardgame(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -165,7 +163,7 @@ func (obj Boardgame) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}
 	return rs, nil
 }
 
-func (obj Boardgame) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeleteBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getBoardgame(db, args.Id)
 	if err != nil {
 		return nil, err

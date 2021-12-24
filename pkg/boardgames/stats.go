@@ -9,8 +9,6 @@ import (
 	"text/template"
 )
 
-type Stats struct{}
-
 func getStats(db *sqlx.DB, id int64) (*models.Stats, error) {
 	var rs models.Stats
 
@@ -55,11 +53,11 @@ func getPlayStats(db *sqlx.DB, id int64) ([]models.Stats, error) {
 	return rs, nil
 }
 
-func (obj Stats) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getStats(db, args.Id)
 }
 
-func (obj Stats) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Stats
 
 	var count []int
@@ -113,7 +111,7 @@ func (obj Stats) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	return rs, nil
 }
 
-func (obj Stats) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var stats models.Stats
 
 	if val, ok := args.Data["play_id"]; ok {
@@ -156,7 +154,7 @@ func (obj Stats) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	return stats, nil
 }
 
-func (obj Stats) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getStats(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -187,7 +185,7 @@ func (obj Stats) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	return rs, nil
 }
 
-func (obj Stats) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeleteStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getStats(db, args.Id)
 	if err != nil {
 		return nil, err

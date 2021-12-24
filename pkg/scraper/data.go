@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-type Data struct{}
-
 func getData(db *sqlx.DB, id int64) (*models.ScraperData, error) {
 	var rs models.ScraperData
 
@@ -21,11 +19,11 @@ func getData(db *sqlx.DB, id int64) (*models.ScraperData, error) {
 	return &rs, nil
 }
 
-func (obj Data) Get(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetData(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getData(db, args.Id)
 }
 
-func (obj Data) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func GetListData(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.ScraperData
 
 	var count []int
@@ -57,7 +55,7 @@ func (obj Data) GetList(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	return rs, nil
 }
 
-func (obj Data) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func CreateData(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var game models.ScraperData
 
 	if val, ok := args.Data["store_id"]; ok {
@@ -129,7 +127,7 @@ func (obj Data) Create(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	return game, nil
 }
 
-func (obj Data) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func UpdateData(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	game, err := getData(db, args.Id)
 	if err != nil {
 		return nil, err
@@ -174,7 +172,7 @@ func (obj Data) Update(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	return game, nil
 }
 
-func (obj Data) Delete(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+func DeleteData(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs, err := getData(db, args.Id)
 	if err != nil {
 		return nil, err
