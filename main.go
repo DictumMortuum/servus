@@ -68,7 +68,7 @@ func main() {
 
 	err := config.Read(path_cfg)
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 
 	apiCache, err := CacheInit()
