@@ -131,6 +131,8 @@ func main() {
 	{
 		ms.GET("/playlist/:playlist", music.Playlist)
 		ms.GET("/stop", music.Stop)
+		ms.GET("/toggle", music.Toggle)
+		ms.GET("/next", music.Next)
 		ms.GET("/current", music.Current)
 		ms.GET("/radio", music.Radio)
 	}

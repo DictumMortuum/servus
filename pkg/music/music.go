@@ -80,14 +80,17 @@ func Playlist(c *gin.Context) {
 	var retval *mpd.Attrs
 
 	if status["state"] == "play" {
-		retval, err = stop(conn)
+		err = conn.Next()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
 	} else {
 		retval, err = playlist(conn, list)
-	}
-
-	if err != nil {
-		util.Error(c, err)
-		return
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
 	}
 
 	util.Success(c, &retval)
@@ -108,6 +111,60 @@ func Stop(c *gin.Context) {
 	}
 
 	util.Success(c, &status)
+}
+
+func Toggle(c *gin.Context) {
+	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer conn.Close()
+
+	status, err := conn.Status()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	if status["state"] == "play" {
+		err = conn.Stop()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+	} else {
+		err = conn.Play(-1)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+	}
+
+	status, err = conn.Status()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	util.Success(c, &status)
+}
+
+func Next(c *gin.Context) {
+	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer conn.Close()
+
+	err = conn.Next()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	util.Success(c, nil)
 }
 
 func Current(c *gin.Context) {
