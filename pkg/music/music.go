@@ -167,6 +167,23 @@ func Next(c *gin.Context) {
 	util.Success(c, nil)
 }
 
+func Previous(c *gin.Context) {
+	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+	defer conn.Close()
+
+	err = conn.Previous()
+	if err != nil {
+		util.Error(c, err)
+		return
+	}
+
+	util.Success(c, nil)
+}
+
 func Current(c *gin.Context) {
 	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
 	if err != nil {
