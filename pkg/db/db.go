@@ -172,22 +172,3 @@ func InsertIfNotExists(db *sqlx.DB, data models.Insertable) (*models.JsonNullInt
 		return nil, nil
 	}
 }
-
-func InsertMsg(db *sqlx.DB, data models.Sendable) (bool, error) {
-	var id sql.NullInt64
-
-	err := db.Get(&id, `select id from tmsg where msg = ?`, data.Msg())
-	if err == sql.ErrNoRows {
-		rs, err := db.Exec(`insert into tmsg (msg) values (?)`, data.Msg())
-		if err != nil {
-			return false, err
-		}
-
-		id.Int64, err = rs.LastInsertId()
-		if err != nil {
-			return false, err
-		}
-	}
-
-	return true, nil
-}

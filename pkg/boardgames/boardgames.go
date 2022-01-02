@@ -10,6 +10,27 @@ import (
 	"time"
 )
 
+func getTopBoardgames(db *sqlx.DB) ([]models.Boardgame, error) {
+	var rs []models.Boardgame
+
+	sql := `
+		select
+			*
+		from
+			tboardgames
+		where
+			rank < 100
+		order by rank
+	`
+
+	err := db.Select(&rs, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
+}
+
 func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	var rs models.Boardgame
 
@@ -120,6 +141,18 @@ func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		rs.Data = nil
 	}
 
+	if val, ok := args.Data["rank"]; ok {
+		rs.Rank = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
+	} else {
+		rs.Rank = models.JsonNullInt64{
+			Int64: -1,
+			Valid: false,
+		}
+	}
+
 	query, err := args.Insert("tboardgames")
 	if err != nil {
 		return nil, err
@@ -147,6 +180,18 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		err := rs.Data.Scan(val)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if val, ok := args.Data["rank"]; ok {
+		rs.Rank = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
+	} else {
+		rs.Rank = models.JsonNullInt64{
+			Int64: -1,
+			Valid: false,
 		}
 	}
 
