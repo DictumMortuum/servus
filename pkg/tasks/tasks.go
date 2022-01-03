@@ -190,6 +190,11 @@ func deleteRedundant(db *sqlx.DB, lists []List) error {
 		}
 	}
 
+	_, err = db.Exec(`delete from twishes where nextcloud_status = 'COMPLETED'`)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -202,6 +207,10 @@ func syncList(db *sqlx.DB, list List) error {
 			Status:     item.Status,
 			Desc:       item.Description,
 			Title:      item.Title,
+		}
+
+		if payload.Status == "COMPLETED" {
+			continue
 		}
 
 		id, err := exists(db, payload)
@@ -233,7 +242,9 @@ func syncList(db *sqlx.DB, list List) error {
 		} else {
 			_, err = db.NamedExec(`
 				update twishes set
-					title = :title, description = :description
+					title = :title,
+					description = :description,
+					nextcloud_status = :status
 				where
 					id = :id and
 					calendar_id = :calendar_id and
