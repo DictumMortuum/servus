@@ -19,7 +19,7 @@ func getTopBoardgames(db *sqlx.DB) ([]models.Boardgame, error) {
 		from
 			tboardgames
 		where
-			rank < 100
+			rank <= 100
 		order by rank
 	`
 
@@ -141,6 +141,18 @@ func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		rs.Data = nil
 	}
 
+	if val, ok := args.Data["thumb"]; ok {
+		rs.Thumb = models.JsonNullString{
+			String: "",
+			Valid:  false,
+		}
+	} else {
+		rs.Thumb = models.JsonNullString{
+			String: val.(string),
+			Valid:  false,
+		}
+	}
+
 	if val, ok := args.Data["rank"]; ok {
 		rs.Rank = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
@@ -192,6 +204,18 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		rs.Rank = models.JsonNullInt64{
 			Int64: -1,
 			Valid: false,
+		}
+	}
+
+	if val, ok := args.Data["thumb"]; ok {
+		rs.Thumb = models.JsonNullString{
+			String: "",
+			Valid:  false,
+		}
+	} else {
+		rs.Thumb = models.JsonNullString{
+			String: val.(string),
+			Valid:  false,
 		}
 	}
 

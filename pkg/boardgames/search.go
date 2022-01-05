@@ -1,12 +1,27 @@
 package boardgames
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/DictumMortuum/servus/pkg/boardgames/search"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"log"
 )
+
+func getNextBatch(db *sqlx.DB) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	err := db.Get(&id, `select max(batch)+1 as next_batch from tboardgameprices`)
+	if err == sql.ErrNoRows {
+		return nil, errors.New("Could not find next batch_id")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
 
 func GetSearch(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Price
@@ -20,7 +35,12 @@ func GetSearch(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, errors.New("Boardgame not found in the database")
 	}
 
-	tmp, err := search.Boardgame(*boardgame)
+	batch_id, err := getNextBatch(db)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp, err := search.Boardgame(*boardgame, *batch_id)
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +57,14 @@ func SearchTop(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
+	batch_id, err := getNextBatch(db)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, boardgame := range boardgames {
-		log.Println(boardgame.Name)
-		tmp, err := search.Boardgame(boardgame)
+		log.Println(boardgame.Rank, boardgame.Name)
+		tmp, err := search.Boardgame(boardgame, *batch_id)
 		if err != nil {
 			return nil, err
 		}

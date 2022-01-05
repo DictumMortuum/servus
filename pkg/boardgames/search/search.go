@@ -19,18 +19,24 @@ func create(db *sqlx.DB, payload models.Price) (bool, error) {
 			boardgame_id,
 			name,
 			store_id,
+			store_thumb,
 			price,
 			stock,
 			url,
-			distance
+			levenshtein,
+			hamming,
+			batch
 		) values (
 			:boardgame_id,
 			:name,
 			:store_id,
+			:store_thumb,
 			:price,
 			:stock,
 			:url,
-			:distance
+			:levenshtein,
+			:hamming,
+			:batch
 		)`
 
 	rs, err := db.NamedExec(q, payload)
@@ -46,7 +52,7 @@ func create(db *sqlx.DB, payload models.Price) (bool, error) {
 	return rows > 0, nil
 }
 
-func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
+func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]models.Price, error) {
 	rs := []models.Price{}
 
 	allowed_domains := []string{
@@ -85,6 +91,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".name"),
 			StoreId:     4,
+			StoreThumb:  e.ChildAttr(".product-img div img", "data-src"),
 			Stock:       !hasClass(e, "out-of-stock"),
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".name a", "href"),
@@ -103,6 +110,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".s2OHAT"),
 			StoreId:     3,
+			StoreThumb:  "",
 			Stock:       e.ChildAttr(".s3FPTo", "aria-disabled") == "false",
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".s2OHAT", "href"),
@@ -121,6 +129,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".woocommerce-loop-product__title"),
 			StoreId:     5,
+			StoreThumb:  e.ChildAttr(".woocommerce-LoopProduct-link.woocommerce-loop-product__link img", "data-src"),
 			Stock:       childHasClass(e, ".button.product_type_simple", "add_to_cart_button"),
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
@@ -139,6 +148,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".caption"),
 			StoreId:     6,
+			StoreThumb:  e.ChildAttr(".photo a img", "src"),
 			Stock:       !childHasClass(e, ".add-to-cart input", "stock-update"),
 			Price:       getPrice(raw_price),
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
@@ -157,6 +167,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".name"),
 			StoreId:     7,
+			StoreThumb:  e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
 			Stock:       !hasClass(e, "out-of-stock"),
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".name a", "href"),
@@ -175,6 +186,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".product-title"),
 			StoreId:     8,
+			StoreThumb:  e.ChildAttr(".product-image a img", "src"),
 			Stock:       !(e.ChildAttr(".product-actions button.cartbutton", "data-stock") == "0"),
 			Price:       getPrice(raw_price),
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
@@ -193,6 +205,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".name"),
 			StoreId:     9,
+			StoreThumb:  e.ChildAttr(".product-image-photo", "src"),
 			Stock:       !childHasClass(e, "div.stock", "unavailable"),
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".name a", "href"),
@@ -210,9 +223,10 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".base"),
 			StoreId:     9,
+			StoreThumb:  e.ChildAttr(".MagicZoom figure img", "src"),
 			Stock:       !childHasClass(e, "div.new-outofstock", "new-outofstock"),
 			Price:       getPrice(raw_price),
-			Url:         "",
+			Url:         e.Request.URL.String(),
 		})
 	})
 
@@ -228,6 +242,7 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 			BoardgameId: boardgame.Id,
 			Name:        e.ChildText(".name"),
 			StoreId:     10,
+			StoreThumb:  e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
 			Stock:       !hasClass(e, "out-of-stock"),
 			Price:       getPrice(raw_price),
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
@@ -249,31 +264,24 @@ func Boardgame(boardgame models.Boardgame) ([]models.Price, error) {
 	retval := []models.Price{}
 	re := regexp.MustCompile(`(?s)\((.*)\)`)
 
-	for _, price := range rs {
-		tmp := re.ReplaceAllString(price.Name, "")
-		tmp = strings.ToLower(tmp)
-		price.Distance = levenshtein.ComputeDistance(cmd, tmp)
-
-		if price.Distance > len(cmd) {
-			continue
-		}
-
-		if price.Distance > 10 {
-			continue
-		}
-
-		retval = append(retval, price)
-	}
-
-	sort.Slice(retval, func(i int, j int) bool {
-		return retval[i].Distance < retval[j].Distance
-	})
-
 	database, err := db.Conn()
 	if err != nil {
 		return nil, err
 	}
 	defer database.Close()
+
+	for _, price := range rs {
+		tmp := re.ReplaceAllString(price.Name, "")
+		tmp = strings.ToLower(tmp)
+		price.Levenshtein = levenshtein.ComputeDistance(cmd, tmp)
+		price.Hamming = Hamming(cmd, tmp)
+		price.Batch = batch_id.Int64
+		retval = append(retval, price)
+	}
+
+	sort.Slice(retval, func(i int, j int) bool {
+		return retval[i].Levenshtein < retval[j].Levenshtein
+	})
 
 	for _, price := range retval {
 		_, err := create(database, price)
