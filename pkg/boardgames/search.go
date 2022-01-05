@@ -35,12 +35,7 @@ func GetSearch(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, errors.New("Boardgame not found in the database")
 	}
 
-	batch_id, err := getNextBatch(db)
-	if err != nil {
-		return nil, err
-	}
-
-	tmp, err := search.Boardgame(*boardgame, *batch_id)
+	tmp, err := search.Boardgame(*boardgame, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +59,7 @@ func SearchTop(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 	for _, boardgame := range boardgames {
 		log.Println(boardgame.Rank, boardgame.Name)
-		tmp, err := search.Boardgame(boardgame, *batch_id)
+		tmp, err := search.Boardgame(boardgame, batch_id)
 		if err != nil {
 			return nil, err
 		}

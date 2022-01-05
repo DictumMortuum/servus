@@ -52,8 +52,11 @@ func create(db *sqlx.DB, payload models.Price) (bool, error) {
 	return rows > 0, nil
 }
 
-func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]models.Price, error) {
+func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]models.Price, error) {
 	rs := []models.Price{}
+
+	enc := url.QueryEscape(boardgame.Name)
+	cmd := strings.ToLower(boardgame.Name)
 
 	allowed_domains := []string{
 		"www.thegamerules.com",
@@ -64,6 +67,8 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 		"kaissagames.com",
 		"www.efantasy.gr",
 		"meepleonboard.gr",
+		"www.gameshero.gr",
+		"www.politeianet.gr",
 	}
 
 	q, err := queue.New(len(allowed_domains), &queue.InMemoryQueueStorage{MaxSize: 10000})
@@ -97,6 +102,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.ChildAttr(".name a", "href"),
 		})
 	})
+	q.AddURL("https://www.thegamerules.com/index.php?route=product/search&search=" + enc + "&fa132=Board%20Game%20Expansions,Board%20Games")
 
 	// Mystery Bay
 	s.OnHTML(".s1Dk5D", func(e *colly.HTMLElement) {
@@ -116,6 +122,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.ChildAttr(".s2OHAT", "href"),
 		})
 	})
+	q.AddURL("https://www.mystery-bay.com/search-results?q=" + enc)
 
 	// V Games
 	s.OnHTML("li.product.type-product", func(e *colly.HTMLElement) {
@@ -135,6 +142,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
 		})
 	})
+	q.AddURL("https://store.v-games.gr/?s=" + enc + "&post_type=product&dgwt_wcas=1")
 
 	// kaissa.eu
 	s.OnHTML("article.product", func(e *colly.HTMLElement) {
@@ -154,6 +162,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
 		})
 	})
+	q.AddURL("https://www.kaissa.eu/products/search?query=" + enc)
 
 	// Meeple Planet
 	s.OnHTML("div.product-small.product-type-simple", func(e *colly.HTMLElement) {
@@ -173,6 +182,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.ChildAttr(".name a", "href"),
 		})
 	})
+	q.AddURL("https://meeple-planet.com/?s=" + enc + "&post_type=product")
 
 	// efantasy
 	s.OnHTML("div.product.product-box", func(e *colly.HTMLElement) {
@@ -192,6 +202,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
 		})
 	})
+	q.AddURL("https://www.efantasy.gr/en/products/search=" + enc + "/sort=score/c-31-board-games")
 
 	// kaissagames.com
 	s.OnHTML("li.item.product-item", func(e *colly.HTMLElement) {
@@ -229,6 +240,7 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.Request.URL.String(),
 		})
 	})
+	q.AddURL("https://kaissagames.com/b2c_gr/catalogsearch/result/?q=" + enc)
 
 	// Meeple on Board
 	s.OnHTML("div.product-small.product-type-simple", func(e *colly.HTMLElement) {
@@ -248,17 +260,51 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 			Url:         e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
 		})
 	})
-
-	enc := url.QueryEscape(boardgame.Name)
-	cmd := strings.ToLower(boardgame.Name)
-	q.AddURL("https://store.v-games.gr/?s=" + enc + "&post_type=product&dgwt_wcas=1")
-	q.AddURL("https://www.mystery-bay.com/search-results?q=" + enc)
-	q.AddURL("https://www.thegamerules.com/index.php?route=product/search&search=" + enc + "&fa132=Board%20Game%20Expansions,Board%20Games")
-	q.AddURL("https://www.kaissa.eu/products/search?query=" + enc)
-	q.AddURL("https://meeple-planet.com/?s=" + enc + "&post_type=product")
-	q.AddURL("https://kaissagames.com/b2c_gr/catalogsearch/result/?q=" + enc)
-	q.AddURL("https://www.efantasy.gr/en/products/search=" + enc + "/sort=score/c-31-board-games")
 	q.AddURL("https://meepleonboard.gr/?s=" + enc + "&post_type=product")
+
+	// Games Hero
+	s.OnHTML("div.product-layout", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "www.gameshero.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".price-new")
+
+		if raw_price == "" {
+			raw_price = e.ChildText(".price-normal")
+		}
+
+		rs = append(rs, models.Price{
+			BoardgameId: boardgame.Id,
+			Name:        e.ChildText(".name"),
+			StoreId:     11,
+			StoreThumb:  e.ChildAttr("img.img-responsive", "src"),
+			Stock:       !hasClass(e, "out-of-stock"),
+			Price:       getPrice(raw_price),
+			Url:         e.ChildAttr("a.product-img", "href"),
+		})
+	})
+	q.AddURL("https://www.gameshero.gr/index.php?route=product/search&search=" + enc + "&description=true")
+
+	// Politeia
+	s.OnHTML(".browse-page-block", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "www.politeianet.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".productPrice")
+
+		rs = append(rs, models.Price{
+			BoardgameId: boardgame.Id,
+			Name:        e.ChildText(".browse-product-title"),
+			StoreId:     12,
+			StoreThumb:  e.ChildAttr(".browseProductImage", "src"),
+			Stock:       childHasClass(e, "input", "addtocart_button_module"),
+			Price:       getPrice(raw_price),
+			Url:         e.ChildAttr(".browse-product-title", "href"),
+		})
+	})
+	q.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&Itemid=89&keyword=" + enc + "&limitstart=0")
 	q.Run(s)
 
 	retval := []models.Price{}
@@ -275,7 +321,15 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 		tmp = strings.ToLower(tmp)
 		price.Levenshtein = levenshtein.ComputeDistance(cmd, tmp)
 		price.Hamming = Hamming(cmd, tmp)
-		price.Batch = batch_id.Int64
+
+		if batch_id != nil {
+			price.Batch = batch_id.Int64
+		}
+
+		if price.Hamming > 10 {
+			continue
+		}
+
 		retval = append(retval, price)
 	}
 
@@ -283,10 +337,12 @@ func Boardgame(boardgame models.Boardgame, batch_id models.JsonNullInt64) ([]mod
 		return retval[i].Levenshtein < retval[j].Levenshtein
 	})
 
-	for _, price := range retval {
-		_, err := create(database, price)
-		if err != nil {
-			return nil, err
+	if batch_id != nil {
+		for _, price := range retval {
+			_, err := create(database, price)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
