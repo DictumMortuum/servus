@@ -7,6 +7,7 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"net/url"
 	"regexp"
 	"sort"
@@ -117,7 +118,7 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 			Name:        e.ChildText(".s2OHAT"),
 			StoreId:     3,
 			StoreThumb:  "",
-			Stock:       e.ChildAttr(".s3FPTo", "aria-disabled") == "false",
+			Stock:       e.ChildAttr(".s1uedD", "aria-disabled") == "false",
 			Price:       getPrice(raw_price),
 			Url:         e.ChildAttr(".s2OHAT", "href"),
 		})
@@ -327,6 +328,11 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		}
 
 		if price.Hamming > 10 {
+			continue
+		}
+
+		log.Println(len(cmd), price.Hamming)
+		if len(cmd) == price.Hamming {
 			continue
 		}
 
