@@ -143,12 +143,12 @@ func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 
 	if val, ok := args.Data["thumb"]; ok {
 		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
+			String: val.(string),
+			Valid:  true,
 		}
 	} else {
 		rs.Thumb = models.JsonNullString{
-			String: val.(string),
+			String: "",
 			Valid:  false,
 		}
 	}
@@ -209,12 +209,12 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 
 	if val, ok := args.Data["thumb"]; ok {
 		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
+			String: val.(string),
+			Valid:  true,
 		}
 	} else {
 		rs.Thumb = models.JsonNullString{
-			String: val.(string),
+			String: "",
 			Valid:  false,
 		}
 	}
