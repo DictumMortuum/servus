@@ -7,7 +7,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
-	"log"
 	"net/url"
 	"regexp"
 	"sort"
@@ -305,7 +304,7 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 			Url:         e.ChildAttr(".browse-product-title", "href"),
 		})
 	})
-	q.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&Itemid=89&keyword=" + enc + "&limitstart=0")
+	q.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&Itemid=89&keyword=" + enc + "&limitstart=0&category_id=943")
 	q.Run(s)
 
 	retval := []models.Price{}
@@ -327,11 +326,14 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 			price.Batch = batch_id.Int64
 		}
 
+		if price.Price == 0 {
+			continue
+		}
+
 		if price.Hamming > 10 {
 			continue
 		}
 
-		log.Println(len(cmd), price.Hamming)
 		if len(cmd) == price.Hamming {
 			continue
 		}
