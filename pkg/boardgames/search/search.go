@@ -7,6 +7,7 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
+	"github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
 	"net/url"
 	"regexp"
 	"sort"
@@ -71,14 +72,25 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		"www.politeianet.gr",
 	}
 
-	q, err := queue.New(len(allowed_domains), &queue.InMemoryQueueStorage{MaxSize: 10000})
-	if err != nil {
-		return nil, err
+	storage := &sqlite3.Storage{
+		Filename: "/tmp/results.db",
 	}
+	defer storage.Close()
 
 	s := colly.NewCollector(
 		colly.AllowedDomains(allowed_domains...),
 	)
+	s.CacheDir = "/tmp/cache"
+
+	err := s.SetStorage(storage)
+	if err != nil {
+		panic(err)
+	}
+
+	q, err := queue.New(len(allowed_domains), storage)
+	if err != nil {
+		return nil, err
+	}
 
 	// The Game Rules
 	s.OnHTML(".product-layout", func(e *colly.HTMLElement) {
@@ -352,6 +364,11 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 				return nil, err
 			}
 		}
+	}
+
+	err = storage.Clear()
+	if err != nil {
+		return nil, err
 	}
 
 	return retval, nil
