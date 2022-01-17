@@ -16,16 +16,15 @@ func getPrice(db *sqlx.DB, id int64) (*models.Price, error) {
 		select
 			p.*,
 			g.rank,
-			g.thumb,
-			g.name as boardgame_name,
+			IFNULL(g.thumb,"") as thumb,
+			IFNULL(g.name,"") as boardgame_name,
 			s.name as store_name
 		from
-			tboardgameprices p,
-			tboardgames g,
+			tboardgameprices p
+			left join tboardgames g on g.id = p.boardgame_id,
 			tboardgamestores s
 		where
 			p.id = ? and
-			p.boardgame_id = g.id and
 			p.store_id = s.id
 	`, id).StructScan(&rs)
 	if err != nil {
@@ -53,15 +52,14 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		select
 			p.*,
 			g.rank,
-			g.thumb,
-			g.name as boardgame_name,
+			IFNULL(g.thumb,"") as thumb,
+			IFNULL(g.name,"") as boardgame_name,
 			s.name as store_name
 		from
-			tboardgameprices p,
-			tboardgames g,
+			tboardgameprices p
+			left join tboardgames g on g.id = p.boardgame_id,
 			tboardgamestores s
 		where
-			p.boardgame_id = g.id and
 			p.store_id = s.id
 		{{ if gt (len .Ids) 0 }}
 			and p.{{ .RefKey }} in (?)
@@ -103,7 +101,10 @@ func CreatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Price
 
 	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
+		rs.BoardgameId = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
 	} else {
 		return nil, errors.New("please provide a 'boardgame_id' parameter")
 	}
@@ -173,7 +174,10 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
+		rs.BoardgameId = models.JsonNullInt64{
+			Int64: int64(val.(float64)),
+			Valid: true,
+		}
 	}
 
 	if val, ok := args.Data["store_id"]; ok {

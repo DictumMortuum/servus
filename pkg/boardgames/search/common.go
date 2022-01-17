@@ -2,7 +2,6 @@ package search
 
 import (
 	"github.com/gocolly/colly/v2"
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -53,22 +52,26 @@ func getPrice(raw string) float64 {
 func Hamming(s1 string, s2 string) int {
 	r1 := []rune(s1)
 	r2 := []rune(s2)
+	var column []bool
+
+	if len(r1) >= len(r2) {
+		column = make([]bool, len(r1)+1)
+
+		for i := 0; i < len(r2); i++ {
+			column[i] = r1[i] == r2[i]
+		}
+	} else {
+		column = make([]bool, len(r2)+1)
+
+		for i := 0; i < len(r1); i++ {
+			column[i] = r1[i] == r2[i]
+		}
+	}
+
 	distance := 0
 
-	if len(s1) > len(s2) {
-		r1 = []rune(s1)[:len(r2)]
-	} else if len(s1) < len(s2) {
-		r2 = []rune(s2)[:len(r1)]
-	}
-
-	if len(r1) != len(r2) {
-		log.Println(s1)
-		log.Println(s2)
-		return -1
-	}
-
-	for i, v := range r1 {
-		if r2[i] != v {
+	for _, item := range column {
+		if item == true {
 			distance += 1
 		}
 	}

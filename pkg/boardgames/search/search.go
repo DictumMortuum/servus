@@ -105,13 +105,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		}
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".name"),
-			StoreId:     4,
-			StoreThumb:  e.ChildAttr(".product-img div img", "data-src"),
-			Stock:       !hasClass(e, "out-of-stock"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".name a", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".name"),
+			StoreId:    4,
+			StoreThumb: e.ChildAttr(".product-img div img", "data-src"),
+			Stock:      !hasClass(e, "out-of-stock"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".name a", "href"),
 		})
 	})
 	q.AddURL("https://www.thegamerules.com/index.php?route=product/search&search=" + enc + "&fa132=Board%20Game%20Expansions,Board%20Games")
@@ -125,13 +128,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".s1qgNB")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".s2OHAT"),
-			StoreId:     3,
-			StoreThumb:  "",
-			Stock:       e.ChildAttr(".s1uedD", "aria-disabled") == "false",
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".s2OHAT", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".s2OHAT"),
+			StoreId:    3,
+			StoreThumb: "",
+			Stock:      e.ChildAttr(".s1uedD", "aria-disabled") == "false",
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".s2OHAT", "href"),
 		})
 	})
 	q.AddURL("https://www.mystery-bay.com/search-results?q=" + enc)
@@ -145,13 +151,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".price")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".woocommerce-loop-product__title"),
-			StoreId:     5,
-			StoreThumb:  e.ChildAttr(".woocommerce-LoopProduct-link.woocommerce-loop-product__link img", "data-src"),
-			Stock:       childHasClass(e, ".button.product_type_simple", "add_to_cart_button"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".woocommerce-loop-product__title"),
+			StoreId:    5,
+			StoreThumb: e.ChildAttr(".woocommerce-LoopProduct-link.woocommerce-loop-product__link img", "data-src"),
+			Stock:      childHasClass(e, ".button.product_type_simple", "add_to_cart_button"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
 		})
 	})
 	q.AddURL("https://store.v-games.gr/?s=" + enc + "&post_type=product&dgwt_wcas=1")
@@ -165,13 +174,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".price")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".caption"),
-			StoreId:     6,
-			StoreThumb:  e.ChildAttr(".photo a img", "src"),
-			Stock:       !childHasClass(e, ".add-to-cart input", "stock-update"),
-			Price:       getPrice(raw_price),
-			Url:         e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".caption"),
+			StoreId:    6,
+			StoreThumb: e.ChildAttr(".photo a img", "src"),
+			Stock:      !childHasClass(e, ".add-to-cart input", "stock-update"),
+			Price:      getPrice(raw_price),
+			Url:        e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
 		})
 	})
 	q.AddURL("https://www.kaissa.eu/products/search?query=" + enc)
@@ -185,13 +197,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".amount")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".name"),
-			StoreId:     7,
-			StoreThumb:  e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
-			Stock:       !hasClass(e, "out-of-stock"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".name a", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".name"),
+			StoreId:    7,
+			StoreThumb: e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
+			Stock:      !hasClass(e, "out-of-stock"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".name a", "href"),
 		})
 	})
 	q.AddURL("https://meeple-planet.com/?s=" + enc + "&post_type=product")
@@ -205,13 +220,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".product-price a strong")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".product-title"),
-			StoreId:     8,
-			StoreThumb:  e.ChildAttr(".product-image a img", "src"),
-			Stock:       !(e.ChildAttr(".product-actions button.cartbutton", "data-stock") == "0"),
-			Price:       getPrice(raw_price),
-			Url:         e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".product-title"),
+			StoreId:    8,
+			StoreThumb: e.ChildAttr(".product-image a img", "src"),
+			Stock:      !(e.ChildAttr(".product-actions button.cartbutton", "data-stock") == "0"),
+			Price:      getPrice(raw_price),
+			Url:        e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
 		})
 	})
 	q.AddURL("https://www.efantasy.gr/en/products/search=" + enc + "/sort=score/c-31-board-games")
@@ -225,13 +243,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".price")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".name"),
-			StoreId:     9,
-			StoreThumb:  e.ChildAttr(".product-image-photo", "src"),
-			Stock:       !childHasClass(e, "div.stock", "unavailable"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".name a", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".name"),
+			StoreId:    9,
+			StoreThumb: e.ChildAttr(".product-image-photo", "src"),
+			Stock:      !childHasClass(e, "div.stock", "unavailable"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".name a", "href"),
 		})
 	})
 
@@ -243,13 +264,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".price")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".base"),
-			StoreId:     9,
-			StoreThumb:  e.ChildAttr(".MagicZoom figure img", "src"),
-			Stock:       !childHasClass(e, "div.new-outofstock", "new-outofstock"),
-			Price:       getPrice(raw_price),
-			Url:         e.Request.URL.String(),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".base"),
+			StoreId:    9,
+			StoreThumb: e.ChildAttr(".MagicZoom figure img", "src"),
+			Stock:      !childHasClass(e, "div.new-outofstock", "new-outofstock"),
+			Price:      getPrice(raw_price),
+			Url:        e.Request.URL.String(),
 		})
 	})
 	q.AddURL("https://kaissagames.com/b2c_gr/catalogsearch/result/?q=" + enc)
@@ -263,13 +287,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".amount")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".name"),
-			StoreId:     10,
-			StoreThumb:  e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
-			Stock:       !hasClass(e, "out-of-stock"),
-			Price:       getPrice(raw_price),
-			Url:         e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".name"),
+			StoreId:    10,
+			StoreThumb: e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
+			Stock:      !hasClass(e, "out-of-stock"),
+			Price:      getPrice(raw_price),
+			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
 		})
 	})
 	q.AddURL("https://meepleonboard.gr/?s=" + enc + "&post_type=product")
@@ -287,13 +314,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		}
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".name"),
-			StoreId:     11,
-			StoreThumb:  e.ChildAttr("img.img-responsive", "src"),
-			Stock:       !hasClass(e, "out-of-stock"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr("a.product-img", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".name"),
+			StoreId:    11,
+			StoreThumb: e.ChildAttr("img.img-responsive", "src"),
+			Stock:      !hasClass(e, "out-of-stock"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr("a.product-img", "href"),
 		})
 	})
 	q.AddURL("https://www.gameshero.gr/index.php?route=product/search&search=" + enc + "&description=true")
@@ -307,13 +337,16 @@ func Boardgame(boardgame models.Boardgame, batch_id *models.JsonNullInt64) ([]mo
 		raw_price := e.ChildText(".productPrice")
 
 		rs = append(rs, models.Price{
-			BoardgameId: boardgame.Id,
-			Name:        e.ChildText(".browse-product-title"),
-			StoreId:     12,
-			StoreThumb:  e.ChildAttr(".browseProductImage", "src"),
-			Stock:       childHasClass(e, "input", "addtocart_button_module"),
-			Price:       getPrice(raw_price),
-			Url:         e.ChildAttr(".browse-product-title", "href"),
+			BoardgameId: models.JsonNullInt64{
+				Int64: boardgame.Id,
+				Valid: true,
+			},
+			Name:       e.ChildText(".browse-product-title"),
+			StoreId:    12,
+			StoreThumb: e.ChildAttr(".browseProductImage", "src"),
+			Stock:      childHasClass(e, "input", "addtocart_button_module"),
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".browse-product-title", "href"),
 		})
 	})
 	q.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&Itemid=89&keyword=" + enc + "&limitstart=0&category_id=943")

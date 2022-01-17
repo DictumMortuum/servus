@@ -44,6 +44,19 @@ func GetSearch(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return rs, nil
 }
 
+func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	batch_id, err := getNextBatch(db)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := search.Scrape(db, batch_id)
+	if err != nil {
+		return nil, err
+	}
+	return rs, nil
+}
+
 func SearchTop(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Price
 

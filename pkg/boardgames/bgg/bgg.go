@@ -1,4 +1,4 @@
-package boardgames
+package bgg
 
 import (
 	"encoding/xml"
@@ -133,6 +133,37 @@ type SearchItem struct {
 type SearchRs struct {
 	XMLName xml.Name     `xml:"items" json:"-"`
 	Items   []SearchItem `xml:"item" json:"items"`
+}
+
+func Search(name string) ([]SearchItem, error) {
+	link := fmt.Sprintf("https://www.boardgamegeek.com/xmlapi2/search?query=%s&type=boardgame", url.QueryEscape(name))
+
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	conn := &http.Client{}
+	resp, err := conn.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	rs := SearchRs{}
+	err = xml.Unmarshal(body, &rs)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(rs)
+
+	return rs.Items, nil
 }
 
 func BggSearch(c *gin.Context) {

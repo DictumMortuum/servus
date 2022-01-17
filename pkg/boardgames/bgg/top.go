@@ -2,6 +2,7 @@ package bgg
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/util"
@@ -11,14 +12,29 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func GetTopBoardgames(col *gin.Context) {
 	data := []map[string]interface{}{}
 
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(col, err)
+		return
+	}
+	defer database.Close()
+
 	c := colly.NewCollector(
 		colly.AllowedDomains("boardgamegeek.com"),
+		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
 	)
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*boardgamegeek.com.*",
+		Parallelism: 2,
+		RandomDelay: 5 * time.Second,
+	})
 
 	c.OnHTML("#collectionitems tbody tr", func(e *colly.HTMLElement) {
 		raw_rank := e.ChildText(".collection_rank")
@@ -28,52 +44,41 @@ func GetTopBoardgames(col *gin.Context) {
 		tokens := strings.Split(url, "/")
 
 		if len(tokens) == 4 {
-			id, _ := strconv.ParseInt(tokens[2], 10, 64)
+			raw_id, _ := strconv.ParseInt(tokens[2], 10, 64)
 			rank, _ := strconv.ParseInt(raw_rank, 10, 64)
 
-			data = append(data, map[string]interface{}{
+			d := map[string]interface{}{
 				"name":  name,
 				"rank":  rank,
 				"url":   url,
-				"id":    id,
+				"id":    raw_id,
 				"thumb": thumb,
-			})
+			}
+
+			id, err := exists(database, d)
+			if err != nil {
+				util.Error(col, err)
+				return
+			}
+
+			if id == nil {
+				_, err := create(database, d)
+				if err != nil {
+					util.Error(col, err)
+					return
+				}
+			} else {
+				_, err := update(database, d)
+				if err != nil {
+					util.Error(col, err)
+					return
+				}
+			}
 		}
 	})
 
-	c.Visit("https://boardgamegeek.com/browse/boardgame")
-	c.Visit("https://boardgamegeek.com/browse/boardgame/page/2")
-	c.Visit("https://boardgamegeek.com/browse/boardgame/page/3")
-	c.Visit("https://boardgamegeek.com/browse/boardgame/page/4")
-	c.Visit("https://boardgamegeek.com/browse/boardgame/page/5")
-
-	database, err := db.Conn()
-	if err != nil {
-		util.Error(col, err)
-		return
-	}
-	defer database.Close()
-
-	for _, d := range data {
-		id, err := exists(database, d)
-		if err != nil {
-			util.Error(col, err)
-			return
-		}
-
-		if id == nil {
-			_, err := create(database, d)
-			if err != nil {
-				util.Error(col, err)
-				return
-			}
-		} else {
-			_, err := update(database, d)
-			if err != nil {
-				util.Error(col, err)
-				return
-			}
-		}
+	for i := 1; i <= 1335; i++ {
+		c.Visit(fmt.Sprintf("https://boardgamegeek.com/browse/boardgame/page/%d", i))
 	}
 
 	util.Success(col, &data)
@@ -87,6 +92,7 @@ func exists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64,
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
 
 	err = stmt.Get(&id, payload)
 	if err == sql.ErrNoRows {

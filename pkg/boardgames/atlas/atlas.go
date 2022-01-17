@@ -1,4 +1,4 @@
-package boardgames
+package atlas
 
 import (
 	"encoding/json"
@@ -11,6 +11,38 @@ import (
 	"net/http"
 	"net/url"
 )
+
+func Search(name string) ([]models.AtlasResult, error) {
+	var rs struct {
+		Games []models.AtlasResult `json:"games"`
+	}
+
+	link := "https://api.boardgameatlas.com/api/search?name=" + url.QueryEscape(name) + "&pretty=true&client_id=" + config.App.Atlas.ClientId
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	conn := &http.Client{}
+
+	resp, err := conn.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(body, &rs)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs.Games, nil
+}
 
 func AtlasSearch2(game models.Boardgame) ([]models.AtlasResult, error) {
 	var rs struct {

@@ -3,7 +3,9 @@ package main
 import (
 	"embed"
 	"github.com/DictumMortuum/servus/pkg/boardgames"
+	"github.com/DictumMortuum/servus/pkg/boardgames/atlas"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
+	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
 	"github.com/DictumMortuum/servus/pkg/calendar"
 	"github.com/DictumMortuum/servus/pkg/calendar/generate"
 	"github.com/DictumMortuum/servus/pkg/calendar/parse"
@@ -139,9 +141,9 @@ func main() {
 
 	bg := r.Group("/boardgames")
 	{
-		bg.POST("/search/:hash", CacheCheck(apiCache), boardgames.AtlasSearch)
-		bg.POST("/get/:hash", CacheCheck(apiCache), boardgames.BggGet)
-		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), boardgames.BggSearch)
+		bg.POST("/search/:hash", CacheCheck(apiCache), atlas.AtlasSearch)
+		bg.POST("/get/:hash", CacheCheck(apiCache), bgg.BggGet)
+		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), bgg.BggSearch)
 		bg.GET("/top", bgg.GetTopBoardgames)
 	}
 
@@ -155,6 +157,8 @@ func main() {
 	{
 		rest.GET("/search/:id", generic.F(boardgames.GetSearch))
 		rest.GET("/search", generic.F(boardgames.SearchTop))
+		rest.GET("/scrape", generic.F(boardgames.Scrape))
+		rest.GET("/mapping/all", generic.F(mapping.MapAll))
 
 		rest.GET("/boardgame/:id", generic.F(boardgames.GetBoardgame))
 		rest.GET("/boardgame", generic.F(boardgames.GetListBoardgame))
