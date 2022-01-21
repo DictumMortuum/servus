@@ -28,6 +28,7 @@ require (
 	github.com/mafredri/go-trueskill v0.0.0-20190101120706-fc89fbba5a88
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.10 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.17 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
@@ -39,7 +40,7 @@ require (
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/velebak/colly-sqlite3-storage v0.0.0-20190425160637-c76683d5163d // indirect
-	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d // indirect
+	golang.org/x/net v0.0.0-20220114011407-0dd24b26b47d // indirect
 	golang.org/x/sys v0.0.0-20211124211545-fe61309f8881 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

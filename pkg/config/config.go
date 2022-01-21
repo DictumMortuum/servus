@@ -24,6 +24,9 @@ type Config struct {
 		Server string `yaml:"server"`
 		Port   string `yaml:"port"`
 	}
+	Mealie struct {
+		Token string `yaml:"token"`
+	} `yaml:"mealie"`
 	Telegram struct {
 		Enabled bool     `yaml:"enabled" default:"false"`
 		Token   string   `yaml:"token"`

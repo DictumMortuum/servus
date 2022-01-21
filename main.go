@@ -11,6 +11,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/calendar/parse"
 	"github.com/DictumMortuum/servus/pkg/calendar/validate"
 	"github.com/DictumMortuum/servus/pkg/config"
+	"github.com/DictumMortuum/servus/pkg/food"
 	"github.com/DictumMortuum/servus/pkg/gas"
 	"github.com/DictumMortuum/servus/pkg/generic"
 	"github.com/DictumMortuum/servus/pkg/gnucash"
@@ -209,6 +210,7 @@ func main() {
 	}
 
 	r.POST("/weight", weight.AddWeight)
+	r.POST("/food", food.Scrape)
 	r.POST("/links", links.AddLink)
 	r.GET("/expenses", gnucash.GetTopExpenses)
 	r.GET("/cache", CacheSave(apiCache))
