@@ -14,6 +14,22 @@ import (
 	"strings"
 )
 
+func exists(db *sqlx.DB, payload models.Price) (bool, error) {
+	q := `select 1 from tboardgameprices where store_id = :store_id and price = :price and name = :name`
+
+	rows, err := db.NamedQuery(q, payload)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func create(db *sqlx.DB, payload models.Price) (bool, error) {
 	q := `
 		insert into tboardgameprices (

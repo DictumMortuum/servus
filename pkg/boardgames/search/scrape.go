@@ -356,9 +356,17 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 			Int64: -1,
 			Valid: false,
 		}
-		_, err := create(db, item)
+
+		exists, err := exists(db, item)
 		if err != nil {
 			return nil, err
+		}
+
+		if !exists {
+			_, err := create(db, item)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
