@@ -132,7 +132,7 @@ func CreateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			return nil, err
 		}
 	} else {
-		return nil, errors.New("please provide a 'json' parameter")
+		return nil, errors.New("please provide a 'data' parameter")
 	}
 
 	query, err := args.Insert("tboardgamestats")
