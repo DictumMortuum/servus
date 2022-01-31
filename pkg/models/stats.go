@@ -10,4 +10,5 @@ type Stats struct {
 	Mu            float64 `json:"mu"`
 	Sigma         float64 `json:"sigma"`
 	TrueSkill     float64 `json:"trueskill"`
+	Delta         float64 `json:"delta"`
 }

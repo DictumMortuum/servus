@@ -13,4 +13,5 @@ type Play struct {
 	Boardgame         string    `db:"name" json:"boardgame"`
 	Stats             []Stats   `json:"stats"`
 	Probability       float64   `json:"probability"`
+	Draws             []bool    `json:"draws"`
 }

@@ -119,12 +119,15 @@ func calculateTrueskill(plays []models.Play) []models.Play {
 		adjustedPlayers, probability := ts.AdjustSkillsWithDraws(playerSkills, draws)
 		// adjustedPlayers and player names are in order - useful to copy over the new ratings
 		for i, name := range playersInPlay {
+			previous_score := ts.TrueSkill(players[name])
 			players[name] = trueskill.NewPlayer(adjustedPlayers[i].Mu(), adjustedPlayers[i].Sigma())
 			plays[idx].Stats[i].Mu = adjustedPlayers[i].Mu()
 			plays[idx].Stats[i].Sigma = adjustedPlayers[i].Sigma()
 			plays[idx].Stats[i].TrueSkill = ts.TrueSkill(players[name])
+			plays[idx].Stats[i].Delta = plays[idx].Stats[i].TrueSkill - previous_score
 		}
 		plays[idx].Probability = probability * 100
+		plays[idx].Draws = draws
 	}
 
 	return plays
