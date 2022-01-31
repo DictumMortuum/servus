@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/DictumMortuum/servus/pkg/boardgames/score"
 	"github.com/DictumMortuum/servus/pkg/boardgames/trueskill"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
-	"sort"
 	"text/template"
 	"time"
 )
@@ -37,35 +37,12 @@ func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
 	}
 	rs.Stats = stats
 
-	play, err := scorePlay(rs)
+	play, err := score.Calculate(db, rs)
 	if err != nil {
 		return nil, err
 	}
 
 	return play, nil
-}
-
-func scorePlay(play models.Play) (*models.Play, error) {
-	if play.IsCooperative() {
-		return &play, nil
-	}
-
-	scoreFunc, sortFunc := getFuncs(play)
-	if scoreFunc == nil || sortFunc == nil {
-		e := fmt.Sprintf("Could not find sort or score function for boardgame %s\n", play.Boardgame)
-		return nil, errors.New(e)
-	}
-
-	rs := []models.Stats{}
-	for _, item := range play.Stats {
-		item.Data["score"] = scoreFunc(item)
-		rs = append(rs, item)
-	}
-	sort.Slice(rs, sortFunc(rs))
-
-	play.Stats = rs
-
-	return &play, nil
 }
 
 func GetPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
@@ -129,13 +106,7 @@ func GetListPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		retval := []models.Play{}
 
 		for _, item := range rs {
-			stats, err := getPlayStats(db, item.Id)
-			if err != nil {
-				return nil, err
-			}
-			item.Stats = stats
-
-			play, err := scorePlay(item)
+			play, err := score.Calculate(db, item)
 			if err != nil {
 				return nil, err
 			}

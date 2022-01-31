@@ -1,7 +1,11 @@
-package boardgames
+package score
 
 import (
+	"errors"
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/jmoiron/sqlx"
+	"sort"
 )
 
 type column struct {
@@ -16,6 +20,28 @@ type settings struct {
 	Columns     []column `json:"columns,omitempty"`
 	Cooperative string   `json:"cooperative,omitempty"`
 	Autowin     []string `json:"autowin,omitempty"`
+}
+
+func getPlayStats(db *sqlx.DB, id int64) ([]models.Stats, error) {
+	var rs []models.Stats
+
+	err := db.Select(&rs, `
+		select
+			s.*,
+			pl.name,
+			pl.surname
+		from
+			tboardgamestats s,
+			tboardgameplayers pl
+		where
+			s.player_id = pl.id and
+			s.play_id = ?
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
 }
 
 func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
@@ -134,4 +160,33 @@ func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats
 
 func DefaultScore(stats models.Stats) float64 {
 	return stats.Data["score"].(float64)
+}
+
+func Calculate(db *sqlx.DB, play models.Play) (*models.Play, error) {
+	stats, err := getPlayStats(db, play.Id)
+	if err != nil {
+		return nil, err
+	}
+	play.Stats = stats
+
+	if play.IsCooperative() {
+		return &play, nil
+	}
+
+	scoreFunc, sortFunc := getFuncs(play)
+	if scoreFunc == nil || sortFunc == nil {
+		e := fmt.Sprintf("Could not find sort or score function for boardgame %s\n", play.Boardgame)
+		return nil, errors.New(e)
+	}
+
+	rs := []models.Stats{}
+	for _, item := range play.Stats {
+		item.Data["score"] = scoreFunc(item)
+		rs = append(rs, item)
+	}
+	sort.Slice(rs, sortFunc(rs))
+
+	play.Stats = rs
+
+	return &play, nil
 }
