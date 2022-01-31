@@ -16,6 +16,9 @@ func (obj *Json) Scan(val interface{}) error {
 		return json.Unmarshal(v, &obj)
 	case string:
 		return json.Unmarshal([]byte(v), &obj)
+	case map[string]interface{}:
+		*obj = v
+		return nil
 	case nil:
 		return nil
 	default:
