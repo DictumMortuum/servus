@@ -56,6 +56,10 @@ func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 				if val, ok := stats.Data[col.Name].(float64); ok {
 					score += val
 				}
+			case "negint":
+				if val, ok := stats.Data[col.Name].(float64); ok {
+					score -= val
+				}
 			default:
 				if val, ok := stats.Data[col.Name].(float64); ok {
 					score += val
@@ -133,40 +137,9 @@ func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats
 		return f, g
 	}
 
-	switch play.BoardgameId {
-	case 237182:
-		return PlaceScore, RootSort
-	case 198994:
-		return HealthScore, HealthSort
-	default:
-		return nil, nil
-	}
+	return nil, nil
 }
 
 func DefaultScore(stats models.Stats) float64 {
 	return stats.Data["score"].(float64)
-}
-
-func PlaceScore(stats models.Stats) float64 {
-	return stats.Data["place"].(float64)
-}
-
-func HealthScore(stats models.Stats) float64 {
-	return stats.Data["health"].(float64)
-}
-
-func HealthSort(stats []models.Stats) func(i, j int) bool {
-	return func(i, j int) bool {
-		return HealthScore(stats[i]) < HealthScore(stats[j])
-	}
-}
-
-func RootSort(stats []models.Stats) func(i, j int) bool {
-	// {
-	// 	"faction":"marquise de cat",
-	// 	"place":1
-	// }
-	return func(i, j int) bool {
-		return PlaceScore(stats[i]) > PlaceScore(stats[j])
-	}
 }
