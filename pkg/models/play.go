@@ -15,3 +15,11 @@ type Play struct {
 	Probability       float64   `json:"probability"`
 	Draws             []bool    `json:"draws"`
 }
+
+func (p Play) IsCooperative() bool {
+	if val, ok := p.BoardgameSettings["cooperative"]; ok {
+		return val.(bool)
+	}
+
+	return false
+}

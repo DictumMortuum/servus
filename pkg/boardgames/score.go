@@ -121,14 +121,6 @@ func DatabaseSort(play models.Play) (func([]models.Stats) func(i, j int) bool, e
 	}, nil
 }
 
-func isCooperative(play models.Play) bool {
-	if val, ok := play.BoardgameSettings["cooperative"]; ok {
-		return val.(bool)
-	}
-
-	return false
-}
-
 func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats) func(i, j int) bool) {
 	// here the boardgame has the settings
 	if len(play.BoardgameSettings) != 0 {
