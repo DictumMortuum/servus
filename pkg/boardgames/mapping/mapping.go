@@ -99,19 +99,18 @@ func getPricesWithoutMappings(db *sqlx.DB) ([]models.Price, error) {
 	sql := `
 		select
 			p.*,
-			g.rank,
-			IFNULL(g.thumb,"") as thumb,
-			g.name as boardgame_name,
+			NULL as rank,
+			"" as thumb,
+			"" as boardgame_name,
 			s.name as store_name
 		from
 			tboardgameprices p,
-			tboardgames g,
 			tboardgamestores s
 		where
 			p.boardgame_id is NULL and
 			p.batch = 0 and
 			p.store_id = s.id
-		limit 400
+		limit 800
 	`
 
 	err := db.Select(&rs, sql)
