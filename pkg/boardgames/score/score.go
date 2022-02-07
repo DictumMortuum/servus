@@ -190,3 +190,24 @@ func Calculate(db *sqlx.DB, play models.Play) (*models.Play, error) {
 
 	return &play, nil
 }
+
+func CalculateAll(db *sqlx.DB, plays []models.Play) ([]models.Play, error) {
+	rs := []models.Play{}
+
+	for _, play := range plays {
+		if play.IsCooperative() {
+			continue
+		}
+
+		scored, err := Calculate(db, play)
+		if err != nil {
+			return nil, err
+		}
+
+		if scored != nil {
+			rs = append(rs, *scored)
+		}
+	}
+
+	return rs, nil
+}

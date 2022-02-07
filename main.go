@@ -160,6 +160,8 @@ func main() {
 		rest.GET("/search", generic.F(boardgames.SearchTop))
 		rest.GET("/scrape", generic.F(boardgames.Scrape))
 		rest.GET("/mapping/all", generic.F(mapping.MapAll))
+		rest.GET("/trueskill", generic.F(boardgames.GetTrueskillLists))
+		rest.GET("/trueskill/overall", generic.F(boardgames.GetTrueskillOverall))
 
 		rest.GET("/boardgame/:id", generic.F(boardgames.GetBoardgame))
 		rest.GET("/boardgame", generic.F(boardgames.GetListBoardgame))
