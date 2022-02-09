@@ -198,6 +198,8 @@ func main() {
 		rest.POST("/price", generic.F(boardgames.CreatePrice))
 		rest.PUT("/price/:id", generic.F(boardgames.UpdatePrice))
 		rest.DELETE("/price/:id", generic.F(boardgames.DeletePrice))
+
+		rest.GET("/expense", generic.S("gnucash", gnucash.GetListExpenses))
 	}
 
 	gn := r.Group("/gnucash")
