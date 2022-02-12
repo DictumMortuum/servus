@@ -1,19 +1,13 @@
 package search
 
 import (
-	// "github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
-	// "github.com/agnivade/levenshtein"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
-	store "github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
-	"log"
-	// "net/url"
-	// "regexp"
-	// "fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	// "github.com/remeh/sizedwaitgroup"
+	store "github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
+	"log"
 	"sort"
 	"strings"
 )
@@ -30,6 +24,8 @@ var allowed_domains = []string{
 	"www.gameshero.gr",
 	"www.politeianet.gr",
 	"www.skroutz.gr",
+	"www.mystery-bay.com",
+	"epitrapez.io",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Storage, error) {
@@ -306,6 +302,61 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		})
 	})
 
+	collector.OnHTML("._3DNsL", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "mystery-bay") {
+			return
+		}
+
+		raw_price := e.ChildText("._2-l9W")
+		raw_url := e.ChildAttr("._1FMIK", "style")
+		urls := getURL(raw_url)
+
+		url := ""
+		if len(urls) > 0 {
+			url = urls[0]
+		}
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".s2sXA8"),
+			StoreId:    3,
+			StoreThumb: url,
+			Stock:      e.ChildAttr(".s1v27L", "aria-disabled") == "false",
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr("._3mKI1", "href"),
+		})
+	})
+
+	collector.OnHTML(".woocommerce-pagination a.next", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://epitrapez.io") {
+			return
+		}
+
+		link := e.Attr("href")
+		log.Println("Visiting: " + link)
+		queue.AddURL(link)
+	})
+
+	collector.OnHTML("li.product.type-product", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://epitrapez.io") {
+			return
+		}
+
+		raw_price := e.ChildText(".price ins .amount")
+
+		if raw_price == "" {
+			raw_price = e.ChildText(".price .amount")
+		}
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".woocommerce-loop-product__title"),
+			StoreId:    15,
+			StoreThumb: e.ChildAttr(".epz-product-thumbnail img", "data-src"),
+			Stock:      e.ChildText("a.add_to_cart_button") != "",
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -343,6 +394,8 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	queue.AddURL("https://www.efantasy.gr/en/products/%CE%B5%CF%80%CE%B9%CF%84%CF%81%CE%B1%CF%80%CE%AD%CE%B6%CE%B9%CE%B1-%CF%80%CE%B1%CE%B9%CF%87%CE%BD%CE%AF%CE%B4%CE%B9%CE%B1/sc-all")
 	queue.AddURL("https://kaissagames.com/b2c_gr/xenoglossa-epitrapezia.html")
 	queue.AddURL("https://meepleonboard.gr/product-category/board-games")
+	queue.AddURL("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
+	queue.AddURL("https://epitrapez.io/product-category/epitrapezia/?Stock=allstock")
 	// queue.AddURL("https://www.skroutz.gr/c/259/epitrapezia/shop/7101/No-Label-X.html")
 	queue.Run(collector)
 
@@ -369,79 +422,6 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 			}
 		}
 	}
-
-	// 1
-	// for i, item := range rs {
-	// 	results := fz(item.Name)
-	// 	l := len(rs)
-	// 	if len(results) > 0 {
-	// 		//fmt.Printf("[%5v/%v] %s -----> %v\n", i, l, item.Name, fz(item.Name))
-
-	// 		g, err := boardgameNameToId(db, item.Name)
-	// 		if err != nil {
-	// 			continue
-	// 		}
-
-	// 		fmt.Printf("[%5v/%v] %v to %v\n", i, l, results[0], g.Id)
-
-	// 		item.BoardgameId = g.Id
-
-	// 		if batch_id != nil {
-	// 			item.Batch = batch_id.Int64
-	// 		}
-
-	// 		item.Hamming = Hamming(item.Name, results[0].Target)
-	// 		item.Levenshtein = results[0].Distance
-
-	// 		if batch_id != nil {
-	// 			_, err := create(db, item)
-	// 			if err != nil {
-	// 				return nil, err
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	// 2
-	// swg := sizedwaitgroup.New(8)
-	// l := len(rs)
-
-	// for i := 0; i < l; i++ {
-	// 	swg.Add()
-
-	// 	go func() {
-	// 		defer swg.Done()
-	// 		results := fz(rs[i].Name)
-
-	// 		if len(results) > 0 {
-	// 			g, err := boardgameNameToId(db, rs[i].Name)
-	// 			if err != nil {
-	// 				return
-	// 			}
-
-	// 			fmt.Printf("[%5v/%v] %v to %v\n", i, l, results[0], g.Id)
-
-	// 			rs[i].BoardgameId = g.Id
-
-	// 			if batch_id != nil {
-	// 				rs[i].Batch = batch_id.Int64
-	// 			}
-
-	// 			rs[i].Hamming = Hamming(rs[i].Name, results[0].Target)
-	// 			rs[i].Levenshtein = results[0].Distance
-
-	// 			if batch_id != nil {
-	// 				_, err := create(db, rs[i])
-	// 				if err != nil {
-	// 					fmt.Println("[%5v/%v] %s", err)
-	// 					return
-	// 				}
-	// 			}
-	// 		}
-	// 	}()
-	// }
-
-	// swg.Wait()
 
 	return rs, nil
 }

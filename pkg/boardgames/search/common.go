@@ -1,14 +1,16 @@
 package search
 
 import (
+	"fmt"
 	"github.com/gocolly/colly/v2"
+	"mvdan.cc/xurls/v2"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 var (
-	price = regexp.MustCompile("([0-9]+.[0-9]+)")
+	price = regexp.MustCompile("([0-9]+[,.][0-9]+)")
 )
 
 func hasClass(e *colly.HTMLElement, c string) bool {
@@ -27,6 +29,8 @@ func hasClass(e *colly.HTMLElement, c string) bool {
 func childHasClass(e *colly.HTMLElement, child string, c string) bool {
 	raw := e.ChildAttr(child, "class")
 	classes := strings.Split(raw, " ")
+
+	fmt.Println(classes)
 
 	for _, class := range classes {
 		if class == c {
@@ -47,6 +51,11 @@ func getPrice(raw string) float64 {
 	} else {
 		return 0.0
 	}
+}
+
+func getURL(raw string) []string {
+	xurl := xurls.Strict()
+	return xurl.FindAllString(raw, -1)
 }
 
 func Hamming(s1 string, s2 string) int {
