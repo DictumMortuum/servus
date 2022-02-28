@@ -155,13 +155,13 @@ func Search(name string) ([]SearchItem, error) {
 		return nil, err
 	}
 
-	rs := SearchRs{}
+	rs := SearchRs{
+		Items: []SearchItem{},
+	}
 	err = xml.Unmarshal(body, &rs)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(rs)
 
 	return rs.Items, nil
 }
