@@ -47,6 +47,17 @@ func NewArgsFromContext(c *gin.Context) (*QueryBuilder, error) {
 	return qb.NewFromContext(c)
 }
 
+func (obj *QueryBuilder) IgnoreColumn(column string) {
+	delete(obj.Data, column)
+
+	rs := []string{}
+	for key := range obj.Data {
+		rs = append(rs, key)
+	}
+
+	obj.Columns = rs
+}
+
 func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 	rs := QueryBuilder{
 		Page:      5,
