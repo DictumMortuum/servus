@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-func getPrice(db *sqlx.DB, id int64) (*models.Price, error) {
+func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 	var rs models.Price
 
 	err := db.QueryRowx(`
@@ -35,18 +35,49 @@ func getPrice(db *sqlx.DB, id int64) (*models.Price, error) {
 }
 
 func GetPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	return getPrice(db, args.Id)
+	return GetPriceById(db, args.Id)
+}
+
+func countPrices(db *sqlx.DB, args *models.QueryBuilder) (int, error) {
+	var tpl bytes.Buffer
+
+	sql := `
+		select
+			1
+		from
+			tboardgameprices p
+			left join tboardgames g on g.id = p.boardgame_id,
+			tboardgamestores s
+		where
+			p.store_id = s.id
+		{{ if gt (len .FilterVal) 0 }}
+			and p.{{ .FilterKey }} = {{ .FilterVal }}
+		{{ end }}
+	`
+
+	t := template.Must(template.New("count").Parse(sql))
+	err := t.Execute(&tpl, args)
+	if err != nil {
+		return -1, err
+	}
+
+	var count []int
+	err = db.Select(&count, tpl.String())
+	if err != nil {
+		return -1, err
+	}
+
+	return len(count), nil
 }
 
 func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Price
 
-	var count []int
-	err := db.Select(&count, "select 1 from tboardgameprices")
+	count, err := countPrices(db, args)
 	if err != nil {
 		return nil, err
 	}
-	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", count))
 
 	sql := `
 		select
@@ -64,7 +95,7 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		{{ if gt (len .Ids) 0 }}
 			and p.{{ .RefKey }} in (?)
 		{{ else if gt (len .FilterVal) 0 }}
-			and p.{{ .FilterKey }} = "{{ .FilterVal }}"
+			and p.{{ .FilterKey }} = {{ .FilterVal }}
 		{{ end }}
 		{{ if gt (len .Sort) 0 }}
 		order by {{ .Sort }} {{ .Order }}
@@ -168,10 +199,15 @@ func CreatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	rs, err := getPrice(db, args.Id)
+	rs, err := GetPriceById(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
+
+	args.IgnoreColumn("rank")
+	args.IgnoreColumn("thumb")
+	args.IgnoreColumn("boardgame_name")
+	args.IgnoreColumn("store_name")
 
 	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = models.JsonNullInt64{
@@ -201,7 +237,11 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	if val, ok := args.Data["batch"]; ok {
-		rs.Batch = val.(int64)
+		rs.Batch = int64(val.(float64))
+	}
+
+	if val, ok := args.Data["mapped"]; ok {
+		rs.Mapped = val.(bool)
 	}
 
 	sql, err := args.Update("tboardgameprices")
@@ -218,12 +258,26 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func DeletePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	rs, err := getPrice(db, args.Id)
+	rs, err := GetPriceById(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = db.NamedExec(`delete from tboardgameprices where id = :id`, &rs)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
+}
+
+func UnmapPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	rs, err := GetPriceById(db, args.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = db.NamedExec(`update tboardgameprices set boardgame_id = NULL where id = :id`, &rs)
 	if err != nil {
 		return nil, err
 	}

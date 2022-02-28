@@ -31,12 +31,12 @@ require (
 	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f
 	github.com/rocketlaunchr/google-search v1.1.4
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
-	github.com/shabbyrobe/xmlwriter v0.0.0-20210324110748-440e98cf0c87 // indirect
+	github.com/shabbyrobe/xmlwriter v0.0.0-20220218224045-defe0ad214f6 // indirect
 	github.com/tealeg/xlsx/v3 v3.2.4
 	github.com/temoto/robotstxt v1.1.2 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/velebak/colly-sqlite3-storage v0.0.0-20190425160637-c76683d5163d
-	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2 // indirect
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect

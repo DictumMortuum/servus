@@ -195,9 +195,16 @@ func main() {
 
 		rest.GET("/price/:id", generic.F(boardgames.GetPrice))
 		rest.GET("/price", generic.F(boardgames.GetListPrice))
+		rest.GET("/price/:id/map/static", generic.F(mapping.MapStatic))
+		rest.GET("/price/:id/map/atlas", generic.F(mapping.MapAtlas))
+		rest.GET("/price/:id/map/bgg", generic.F(mapping.MapBGG))
+		rest.GET("/price/:id/unmap", generic.F(boardgames.UnmapPrice))
 		rest.POST("/price", generic.F(boardgames.CreatePrice))
 		rest.PUT("/price/:id", generic.F(boardgames.UpdatePrice))
 		rest.DELETE("/price/:id", generic.F(boardgames.DeletePrice))
+
+		rest.POST("/search/bgg", generic.F(mapping.SearchBGGTerm))
+		rest.POST("/search/atlas", generic.F(mapping.SearchAtlasTerm))
 
 		rest.GET("/expense", generic.S("gnucash", gnucash.GetListExpenses))
 	}

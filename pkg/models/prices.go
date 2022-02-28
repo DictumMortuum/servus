@@ -21,4 +21,5 @@ type Price struct {
 	Hamming        int           `db:"hamming" json:"hamming"`
 	Rank           JsonNullInt64 `db:"rank" json:"rank"`
 	Batch          int64         `db:"batch" json:"batch"`
+	Mapped         bool          `db:"mapped" json:"mapped"`
 }
