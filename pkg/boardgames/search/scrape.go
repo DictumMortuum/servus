@@ -24,7 +24,6 @@ var allowed_domains = []string{
 	"www.gameshero.gr",
 	"www.politeianet.gr",
 	"www.skroutz.gr",
-	"www.mystery-bay.com",
 	"epitrapez.io",
 }
 
@@ -308,7 +307,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		raw_price := e.ChildText("._2-l9W")
-		raw_url := e.ChildAttr("._1FMIK", "style")
+		raw_url := e.ChildAttr("._1Pw1g", "style")
 		urls := getURL(raw_url)
 
 		url := ""
@@ -317,10 +316,10 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		rs = append(rs, models.Price{
-			Name:       e.ChildText(".s2sXA8"),
+			Name:       e.ChildText(".s2RrPl"),
 			StoreId:    3,
 			StoreThumb: url,
-			Stock:      e.ChildAttr(".s1v27L", "aria-disabled") == "false",
+			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr("._3mKI1", "href"),
 		})
