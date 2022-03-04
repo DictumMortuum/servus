@@ -159,7 +159,9 @@ func main() {
 		rest.GET("/search/:id", generic.F(boardgames.GetSearch))
 		rest.GET("/search", generic.F(boardgames.SearchTop))
 		rest.GET("/scrape", generic.F(boardgames.Scrape))
-		rest.GET("/mapping/all", generic.F(mapping.MapAll))
+		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
+		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
+		rest.GET("/mapping2/static", generic.F(mapping.MapAllStatic))
 		rest.GET("/trueskill", generic.F(boardgames.GetTrueskillLists))
 		rest.GET("/trueskill/overall", generic.F(boardgames.GetTrueskillOverall))
 
@@ -192,6 +194,12 @@ func main() {
 		rest.POST("/stats", generic.F(boardgames.CreateStats))
 		rest.PUT("/stats/:id", generic.F(boardgames.UpdateStats))
 		rest.DELETE("/stats/:id", generic.F(boardgames.DeleteStats))
+
+		rest.GET("/mapping/:id", generic.F(boardgames.GetMapping))
+		rest.GET("/mapping", generic.F(boardgames.GetListMapping))
+		rest.POST("/mapping", generic.F(boardgames.CreateMapping))
+		rest.PUT("/mapping/:id", generic.F(boardgames.UpdateMapping))
+		rest.DELETE("/mapping/:id", generic.F(boardgames.DeleteMapping))
 
 		rest.GET("/price/:id", generic.F(boardgames.GetPrice))
 		rest.GET("/price", generic.F(boardgames.GetListPrice))
