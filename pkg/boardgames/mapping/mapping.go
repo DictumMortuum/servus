@@ -108,9 +108,7 @@ func getPricesWithoutMappings(db *sqlx.DB) ([]models.Price, error) {
 			tboardgamestores s
 		where
 			p.boardgame_id is NULL and
-			p.batch = 0 and
 			p.store_id = s.id
-		limit 800
 	`
 
 	err := db.Select(&rs, sql)
@@ -184,6 +182,21 @@ func transformName(s string) string {
 	tmp := re.ReplaceAllString(s, "")
 	tmp = strings.ToLower(tmp)
 	tmp = strings.TrimSpace(tmp)
+	tmp = strings.ReplaceAll(tmp, "-", " ")
+	tmp = strings.ReplaceAll(tmp, ",", " ")
+	tmp = strings.ReplaceAll(tmp, "&", " ")
+	tmp = strings.ReplaceAll(tmp, "–", " ")
+	tmp = strings.ReplaceAll(tmp, ":", " ")
+	tmp = strings.ReplaceAll(tmp, "/", " ")
+	tmp = strings.ReplaceAll(tmp, "expansion", " ")
+	tmp = strings.ReplaceAll(tmp, "Expansion", " ")
+	tmp = strings.ReplaceAll(tmp, " KS ", " ")
+	tmp = strings.ReplaceAll(tmp, " ks ", " ")
+	tmp = strings.ReplaceAll(tmp, "Kickstarter", " ")
+	tmp = strings.ReplaceAll(tmp, "kickstarter", " ")
+	tmp = strings.ReplaceAll(tmp, " exp ", " ")
+	tmp = strings.ReplaceAll(tmp, " exp. ", " ")
+	fmt.Println(tmp)
 	return tmp
 }
 
