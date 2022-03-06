@@ -2,8 +2,10 @@ package boardgames
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"text/template"
@@ -57,6 +59,27 @@ func getBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	return &rs, nil
 }
 
+func boardgameExists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `select id from tboardgames where id = :id`
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
 func GetBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getBoardgame(db, args.Id)
 }
@@ -81,6 +104,8 @@ func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 			left join gnucash.splits s on s.tx_guid = b.tx_guid and s.account_guid = "3097dd8d65751277845bdda438cba937"
 		{{ if gt (len .Ids) 0 }}
 		where b.{{ .RefKey }} in (?)
+		{{ else if eq .FilterKey "ranked"}}
+		where b.rank is not null
 		{{ else if gt (len .FilterVal) 0 }}
 		where b.{{ .FilterKey }} = "{{ .FilterVal }}"
 		{{ end }}
@@ -171,6 +196,20 @@ func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 	}
 
 	_, err = db.NamedExec(query.String(), &rs)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
+}
+
+func RefetchBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	_, err := bgg.FetchBoardgame(db, args.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := getBoardgame(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
