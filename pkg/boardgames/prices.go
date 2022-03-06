@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"text/template"
@@ -213,6 +214,20 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		rs.BoardgameId = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
 			Valid: true,
+		}
+
+		exists, err := boardgameExists(db, map[string]interface{}{
+			"id": rs.BoardgameId.Int64,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if exists == nil {
+			_, err := bgg.FetchBoardgame(db, rs.BoardgameId.Int64)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
