@@ -11,7 +11,7 @@ type Price struct {
 	BoardgameId    JsonNullInt64 `db:"boardgame_id" json:"boardgame_id"`
 	BoardgameName  string        `db:"boardgame_name" json:"boardgame_name"`
 	BoardgameThumb string        `db:"thumb" json:"thumb"`
-	StoreId        int64         `db:"store_id" json:"store_id"`
+	StoreId        int64         `db:"store_id" json:"-"`
 	StoreName      string        `db:"store_name" json:"store_name"`
 	StoreThumb     string        `db:"store_thumb" json:"store_thumb"`
 	Price          float64       `db:"price" json:"price"`
@@ -20,6 +20,6 @@ type Price struct {
 	Levenshtein    int           `db:"levenshtein" json:"levenshtein"`
 	Hamming        int           `db:"hamming" json:"hamming"`
 	Rank           JsonNullInt64 `db:"rank" json:"rank"`
-	Batch          int64         `db:"batch" json:"batch"`
-	Mapped         bool          `db:"mapped" json:"mapped"`
+	Batch          int64         `db:"batch" json:"-"`
+	Mapped         bool          `db:"mapped" json:"-"`
 }
