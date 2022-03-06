@@ -106,7 +106,7 @@ func exists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64,
 }
 
 func create(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
-	q := `insert into tboardgames (id,name,rank,thumb) values (:id,:name,:rank,:thumb)`
+	q := `insert into tboardgames (id,name,rank,thumb,configured) values (:id,:name,:rank,:thumb,0)`
 
 	rs, err := db.NamedExec(q, payload)
 	if err != nil {

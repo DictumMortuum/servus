@@ -45,9 +45,22 @@ type BggStats struct {
 	Ratings Ratings  `xml:"ratings" json:"ratings"`
 }
 
+type BggName struct {
+	XMLName xml.Name `xml:"name" json:"-"`
+	Value   string   `xml:"value,attr" json:"value"`
+}
+
 type Item struct {
 	XMLName    xml.Name `xml:"item" json:"-"`
 	Statistics BggStats `xml:"statistics"`
+	Name       BggName  `xml:"name"`
+	Thumbnail  string   `xml:"thumbnail"`
+	Image      string   `xml:"image"`
+}
+
+type BggThing struct {
+	XMLName xml.Name `xml:"items" json:"-"`
+	Items   []Item   `xml:"item"`
 }
 
 type rs struct {
@@ -136,7 +149,7 @@ type SearchRs struct {
 }
 
 func Search(name string) ([]SearchItem, error) {
-	link := fmt.Sprintf("https://www.boardgamegeek.com/xmlapi2/search?query=%s&type=boardgame", url.QueryEscape(name))
+	link := fmt.Sprintf("https://www.boardgamegeek.com/xmlapi2/search?query=%s&type=boardgameaccessory,boardgame,boardgameexpansion", url.QueryEscape(name))
 
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
