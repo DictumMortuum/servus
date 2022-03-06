@@ -6,6 +6,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/atlas"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
+	"github.com/DictumMortuum/servus/pkg/boardgames/search"
 	"github.com/DictumMortuum/servus/pkg/calendar"
 	"github.com/DictumMortuum/servus/pkg/calendar/generate"
 	"github.com/DictumMortuum/servus/pkg/calendar/parse"
@@ -159,6 +160,7 @@ func main() {
 		rest.GET("/search/:id", generic.F(boardgames.GetSearch))
 		rest.GET("/search", generic.F(boardgames.SearchTop))
 		rest.GET("/scrape", generic.F(boardgames.Scrape))
+		rest.GET("/scrape/mad", generic.F(search.ScrapeBoardsOfMadness))
 		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
 		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
 		rest.GET("/mapping2/static", generic.F(mapping.MapAllStatic))
@@ -169,6 +171,7 @@ func main() {
 		rest.GET("/boardgame", generic.F(boardgames.GetListBoardgame))
 		rest.POST("/boardgame", generic.F(boardgames.CreateBoardgame))
 		rest.PUT("/boardgame/:id", generic.F(boardgames.UpdateBoardgame))
+		rest.PUT("/boardgame/:id/refetch", generic.F(boardgames.RefetchBoardgame))
 		rest.DELETE("/boardgame/:id", generic.F(boardgames.DeleteBoardgame))
 
 		rest.GET("/store/:id", generic.F(boardgames.GetStore))
