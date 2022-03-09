@@ -220,7 +220,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		})
 	})
 
-	collector.OnHTML("a.--next", func(e *colly.HTMLElement) {
+	collector.OnHTML(".pagination a", func(e *colly.HTMLElement) {
 		if !strings.Contains(e.Request.URL.String(), "www.efantasy.gr") {
 			return
 		}
@@ -316,7 +316,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		rs = append(rs, models.Price{
-			Name:       e.ChildText(".s2RrPl"),
+			Name:       e.ChildText(".sPfe6h"),
 			StoreId:    3,
 			StoreThumb: url,
 			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
