@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 )
 
 type Rank struct {
@@ -148,6 +149,25 @@ type SearchRs struct {
 	Items   []SearchItem `xml:"item" json:"items"`
 }
 
+func filterItems(col []SearchItem) []SearchItem {
+	rs := []SearchItem{}
+	tmp := map[int64]SearchItem{}
+
+	for _, item := range col {
+		tmp[item.Id] = item
+	}
+
+	for key := range tmp {
+		rs = append(rs, tmp[key])
+	}
+
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].Id < rs[j].Id
+	})
+
+	return rs
+}
+
 func Search(name string) ([]SearchItem, error) {
 	link := fmt.Sprintf("https://www.boardgamegeek.com/xmlapi2/search?query=%s&type=boardgameaccessory,boardgame,boardgameexpansion", url.QueryEscape(name))
 
@@ -176,7 +196,7 @@ func Search(name string) ([]SearchItem, error) {
 		return nil, err
 	}
 
-	return rs.Items, nil
+	return filterItems(rs.Items), nil
 }
 
 func BggSearch(c *gin.Context) {
