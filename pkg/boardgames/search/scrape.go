@@ -316,12 +316,12 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		rs = append(rs, models.Price{
-			Name:       e.ChildText(".sPfe6h"),
+			Name:       e.ChildText(".s16HJg"),
 			StoreId:    3,
 			StoreThumb: url,
 			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
 			Price:      getPrice(raw_price),
-			Url:        e.ChildAttr("._3mKI1", "href"),
+			Url:        e.ChildAttr("._29CWl", "href"),
 		})
 	})
 
@@ -424,3 +424,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 
 	return rs, nil
 }
+
+// insert into tboardgamepricesmap (boardgame_id, name) select distinct p.boardgame_id, p.name from tboardgameprices p where boardgame_id is not null and not exists (select 1 from tboardgamepricesmap where name = p.name) ;
+// update tboardgameprices set mapped = 1 where boardgame_id is not null ;
+// delete from tboardgameprices where id in (select id from (select name, store_id, max(id) as id from tboardgameprices group by 1,2 having count(*) > 1) p);
