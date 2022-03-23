@@ -307,7 +307,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		raw_price := e.ChildText("._2-l9W")
-		raw_url := e.ChildAttr("._1Pw1g", "style")
+		raw_url := e.ChildAttr("._1FMIK", "style")
 		urls := getURL(raw_url)
 
 		url := ""
@@ -316,7 +316,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		rs = append(rs, models.Price{
-			Name:       e.ChildText(".s16HJg"),
+			Name:       e.ChildText(".s2nIqt"),
 			StoreId:    3,
 			StoreThumb: url,
 			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
@@ -384,6 +384,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	// 		Url:         e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
 	// 	})
 	// })
+	// queue.AddURL("https://www.skroutz.gr/c/259/epitrapezia/shop/7101/No-Label-X.html")
 
 	queue.AddURL("https://www.kaissa.eu/products/epitrapezia-kaissa")
 	queue.AddURL("https://www.kaissa.eu/products/epitrapezia-sta-agglika")
@@ -393,9 +394,8 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	queue.AddURL("https://www.efantasy.gr/en/products/%CE%B5%CF%80%CE%B9%CF%84%CF%81%CE%B1%CF%80%CE%AD%CE%B6%CE%B9%CE%B1-%CF%80%CE%B1%CE%B9%CF%87%CE%BD%CE%AF%CE%B4%CE%B9%CE%B1/sc-all")
 	queue.AddURL("https://kaissagames.com/b2c_gr/xenoglossa-epitrapezia.html")
 	queue.AddURL("https://meepleonboard.gr/product-category/board-games")
-	queue.AddURL("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
 	queue.AddURL("https://epitrapez.io/product-category/epitrapezia/?Stock=allstock")
-	// queue.AddURL("https://www.skroutz.gr/c/259/epitrapezia/shop/7101/No-Label-X.html")
+	queue.AddURL("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
 	queue.Run(collector)
 
 	err = storage.Clear()
