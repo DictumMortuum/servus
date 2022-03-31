@@ -35,6 +35,31 @@ func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 	return &rs, nil
 }
 
+func GetHistoricPricesById(db *sqlx.DB, id int64) ([]models.HistoricPrice, error) {
+	var rs []models.HistoricPrice
+
+	sql := `
+		select
+			boardgame_id,
+			cr_date,
+			avg(price) avg,
+			min(price) min,
+			max(price) max
+		from
+			tboardgamepriceshistory
+		where
+			boardgame_id = ?
+		group by 1,YEAR(cr_date),MONTH(cr_date)
+	`
+
+	err := db.Select(&rs, sql, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
+}
+
 func GetPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return GetPriceById(db, args.Id)
 }
@@ -126,7 +151,21 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	return rs, nil
+	if args.Resources["history"] {
+		retval := []models.Price{}
+
+		for _, item := range rs {
+			item.HistoricPrices, err = GetHistoricPricesById(db, item.BoardgameId.Int64)
+			if err != nil {
+				return nil, err
+			}
+			retval = append(retval, item)
+		}
+
+		return retval, nil
+	} else {
+		return rs, nil
+	}
 }
 
 func CreatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
