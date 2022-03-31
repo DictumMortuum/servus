@@ -196,6 +196,19 @@ func transformName(s string) string {
 	tmp = strings.ReplaceAll(tmp, "kickstarter", " ")
 	tmp = strings.ReplaceAll(tmp, " exp ", " ")
 	tmp = strings.ReplaceAll(tmp, " exp. ", " ")
+	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "στρατηγικής", "")
+	tmp = strings.ReplaceAll(tmp, "σε μεταλλικό κουτί", "")
+	tmp = strings.ReplaceAll(tmp, "κλασικό παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "επέκταση για", "")
+	tmp = strings.ReplaceAll(tmp, "οικογενειακό", "")
+	tmp = strings.ReplaceAll(tmp, "παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "με τράπουλα", "")
+	tmp = strings.ReplaceAll(tmp, "συνεργατικό", "")
+	tmp = strings.ReplaceAll(tmp, "στρατηγικό", "")
+	tmp = strings.ReplaceAll(tmp, "παράρτημα για", "")
+	tmp = strings.ReplaceAll(tmp, "παράρτημα επιτραπέζιου παιχνιδιού", "")
+
 	fmt.Println(tmp)
 	return tmp
 }
