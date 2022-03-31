@@ -25,6 +25,7 @@ var allowed_domains = []string{
 	"www.politeianet.gr",
 	"www.skroutz.gr",
 	"epitrapez.io",
+	"www.ozon.gr",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Storage, error) {
@@ -356,6 +357,39 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		})
 	})
 
+	collector.OnHTML("a.next", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://www.ozon.gr") {
+			return
+		}
+
+		link := e.Attr("href")
+		if link != "javascript:;" {
+			log.Println("Visiting: " + link)
+			queue.AddURL(link)
+		}
+	})
+
+	collector.OnHTML(".products-list div.col-xs-3", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://www.ozon.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".special-price")
+
+		if raw_price == "" {
+			raw_price = e.ChildText(".price")
+		}
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".title"),
+			StoreId:    17,
+			StoreThumb: e.ChildAttr(".image-wrapper img", "src"),
+			Stock:      true,
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".product-box", "href"),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -396,6 +430,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	queue.AddURL("https://meepleonboard.gr/product-category/board-games")
 	queue.AddURL("https://epitrapez.io/product-category/epitrapezia/?Stock=allstock")
 	queue.AddURL("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
+	queue.AddURL("https://www.ozon.gr/pazl-kai-paixnidia/epitrapezia-paixnidia")
 	queue.Run(collector)
 
 	err = storage.Clear()
@@ -428,3 +463,4 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 // insert into tboardgamepricesmap (boardgame_id, name) select distinct p.boardgame_id, p.name from tboardgameprices p where boardgame_id is not null and not exists (select 1 from tboardgamepricesmap where name = p.name) ;
 // update tboardgameprices set mapped = 1 where boardgame_id is not null ;
 // delete from tboardgameprices where id in (select id from (select name, store_id, max(id) as id from tboardgameprices group by 1,2 having count(*) > 1) p);
+// delete from tboardgamepriceshistory where id in (select id from (select boardgame_id, price, cr_date,  max(id) as id from tboardgamepriceshistory group by 1,2,3 having count(*) > 1) p);
