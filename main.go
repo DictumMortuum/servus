@@ -147,6 +147,7 @@ func main() {
 		bg.POST("/get/:hash", CacheCheck(apiCache), bgg.BggGet)
 		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), bgg.BggSearch)
 		bg.GET("/top", bgg.GetTopBoardgames)
+		bg.GET("/top/art", bgg.FetchTopArt)
 	}
 
 	ts := r.Group("/tasks")

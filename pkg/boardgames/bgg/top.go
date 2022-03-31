@@ -15,6 +15,35 @@ import (
 	"time"
 )
 
+func FetchTopArt(col *gin.Context) {
+	data := []int64{}
+
+	database, err := db.Conn()
+	if err != nil {
+		util.Error(col, err)
+		return
+	}
+	defer database.Close()
+
+	rs, err := getTopBoardgames(database)
+	if err != nil {
+		util.Error(col, err)
+		return
+	}
+
+	for _, item := range rs {
+		_, err := FetchBoardgame(database, item.Id)
+		if err != nil {
+			util.Error(col, err)
+			return
+		}
+		data = append(data, item.Id)
+		time.Sleep(3 * time.Second)
+	}
+
+	util.Success(col, &data)
+}
+
 func GetTopBoardgames(col *gin.Context) {
 	data := []map[string]interface{}{}
 
@@ -40,7 +69,7 @@ func GetTopBoardgames(col *gin.Context) {
 		raw_rank := e.ChildText(".collection_rank")
 		name := e.ChildText(".collection_objectname div a")
 		url := e.ChildAttr(".collection_objectname div a", "href")
-		thumb := e.ChildAttr(".collection_thumbnail a img", "src")
+		// thumb := e.ChildAttr(".collection_thumbnail a img", "src")
 		tokens := strings.Split(url, "/")
 
 		if len(tokens) == 4 {
@@ -48,11 +77,11 @@ func GetTopBoardgames(col *gin.Context) {
 			rank, _ := strconv.ParseInt(raw_rank, 10, 64)
 
 			d := map[string]interface{}{
-				"name":  name,
-				"rank":  rank,
-				"url":   url,
-				"id":    raw_id,
-				"thumb": thumb,
+				"name": name,
+				"rank": rank,
+				"url":  url,
+				"id":   raw_id,
+				// "thumb": thumb,
 			}
 
 			id, err := exists(database, d)
@@ -106,7 +135,7 @@ func exists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64,
 }
 
 func create(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
-	q := `insert into tboardgames (id,name,rank,thumb,configured) values (:id,:name,:rank,:thumb,0)`
+	q := `insert into tboardgames (id,name,rank,configured) values (:id,:name,:rank,0)`
 
 	rs, err := db.NamedExec(q, payload)
 	if err != nil {
@@ -145,4 +174,25 @@ func update(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
 
 	log.Printf("Boardgame [%s] with id [%d] updated: [%d]\n", payload["name"], payload["id"], rows)
 	return rows > 0, nil
+}
+
+func getTopBoardgames(db *sqlx.DB) ([]models.Boardgame, error) {
+	var rs []models.Boardgame
+
+	sql := `
+		select
+			*
+		from
+			tboardgames
+		where
+			rank <= 300 and rank != 0
+		order by rank
+	`
+
+	err := db.Select(&rs, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	return rs, nil
 }
