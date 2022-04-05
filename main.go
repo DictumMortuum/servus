@@ -162,6 +162,7 @@ func main() {
 		rest.GET("/search", generic.F(boardgames.SearchTop))
 		rest.GET("/scrape", generic.F(boardgames.Scrape))
 		rest.GET("/scrape/mad", generic.F(search.ScrapeBoardsOfMadness))
+		rest.GET("/scrape/fantasy", generic.F(search.ScrapeFantasyGate))
 		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
 		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
 		rest.GET("/mapping2/static", generic.F(mapping.MapAllStatic))
