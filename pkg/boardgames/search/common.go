@@ -12,6 +12,18 @@ var (
 	price = regexp.MustCompile("([0-9]+[,.][0-9]+)")
 )
 
+func unique(intSlice []int64) []int64 {
+	keys := make(map[int64]bool)
+	list := []int64{}
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
 func hasClass(e *colly.HTMLElement, c string) bool {
 	raw := e.Attr("class")
 	classes := strings.Split(raw, " ")

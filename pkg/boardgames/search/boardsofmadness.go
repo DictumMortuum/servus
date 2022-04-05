@@ -60,19 +60,30 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 		})
 	}
 
+	err = updateBatch(db, 16)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, item := range prices {
 		item.BoardgameId = models.JsonNullInt64{
 			Int64: -1,
 			Valid: false,
 		}
 
-		exists, err := exists(db, item)
+		id, err := findPrice(db, item)
 		if err != nil {
 			return nil, err
 		}
 
-		if !exists {
+		if id == nil {
 			_, err := create(db, item)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			item.Id = id.Int64
+			_, err := update(db, item)
 			if err != nil {
 				return nil, err
 			}
