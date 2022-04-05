@@ -205,6 +205,9 @@ func main() {
 		rest.PUT("/mapping/:id", generic.F(boardgames.UpdateMapping))
 		rest.DELETE("/mapping/:id", generic.F(boardgames.DeleteMapping))
 
+		rest.GET("/history/:id", generic.F(boardgames.GetHistoricPrice))
+		rest.GET("/history", generic.F(boardgames.GetListHistoricPrice))
+
 		rest.GET("/price/:id", generic.F(boardgames.GetPrice))
 		rest.GET("/price", generic.F(boardgames.GetListPrice))
 		rest.GET("/price/:id/map/static", generic.F(mapping.MapStatic))
