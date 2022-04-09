@@ -317,7 +317,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		}
 
 		rs = append(rs, models.Price{
-			Name:       e.ChildText(".s2OZP2"),
+			Name:       e.ChildText("h3"),
 			StoreId:    3,
 			StoreThumb: url,
 			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
