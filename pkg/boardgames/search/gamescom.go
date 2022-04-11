@@ -12,11 +12,6 @@ import (
 func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []models.Price{}
 
-	local, err := w3m.Download("https://www.gamescom.gr/epitrapezia-el/")
-	if err != nil {
-		return nil, err
-	}
-
 	t := &http.Transport{}
 	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
@@ -42,17 +37,24 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			Name:       e.ChildText(".product-title"),
 			StoreId:    18,
 			StoreThumb: e.ChildAttr(".cm-image", "src"),
-			Stock:      !childHasClass(e, "button.ty-btn__primary", "ty-btn__add-to-cart"),
+			Stock:      childHasClass(e, "button.ty-btn__primary", "ty-btn__add-to-cart"),
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".product-title", "href"),
 		})
 	})
 
-	c.Visit(local)
+	for _, url := range []string{"https://www.gamescom.gr/epitrapezia-el/", "https://www.gamescom.gr/epitrapezia-el/category-124/"} {
+		local, err := w3m.Download(url)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Visit(local)
+	}
 
 	c.Wait()
 
-	err = updateBatch(db, 18)
+	err := updateBatch(db, 18)
 	if err != nil {
 		return nil, err
 	}
