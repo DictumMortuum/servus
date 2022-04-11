@@ -133,12 +133,11 @@ func delete_redundant_history(db *sqlx.DB) (int64, error) {
 								boardgame_id,
 								price,
 								cr_date,
-								stock,
 								store_id,
-								max(id) as id
+								min(id) as id
 							from
 								tboardgamepriceshistory
-							group by 1,2,3,4,5
+							group by 1,2,3,4
 							having count(*) > 1)
 						p);
 	`
