@@ -481,9 +481,3 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 
 	return rs, nil
 }
-
-// insert into tboardgamepricesmap (boardgame_id, name) select distinct p.boardgame_id, p.name from tboardgameprices p where boardgame_id is not null and not exists (select 1 from tboardgamepricesmap where name = p.name) ;
-// update tboardgameprices set mapped = 1 where boardgame_id is not null ;
-// delete from tboardgameprices where id in (select id from (select name, store_id, max(id) as id from tboardgameprices group by 1,2 having count(*) > 1) p);
-// delete from tboardgamepriceshistory where id in (select id from (select boardgame_id, price, cr_date, stock, store_id, max(id) as id from tboardgamepriceshistory group by 1,2,3,4,5 having count(*) > 1) p);
-// insert into tboardgamepriceshistory (boardgame_id, cr_date, price, stock, store_id) select boardgame_id, cr_date, price, stock, store_id  from tboardgameprices where boardgame_id is not null and mapped = 1 and batch = 1;
