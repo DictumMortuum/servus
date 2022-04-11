@@ -26,6 +26,7 @@ var allowed_domains = []string{
 	"www.skroutz.gr",
 	"epitrapez.io",
 	"www.ozon.gr",
+	"gamesuniverse.gr",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Storage, error) {
@@ -390,6 +391,33 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		})
 	})
 
+	collector.OnHTML("a.next", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "gamesuniverse.gr") {
+			return
+		}
+
+		link := e.Attr("href")
+		log.Println("Visiting: " + link)
+		queue.AddURL(link)
+	})
+
+	collector.OnHTML("article.product-miniature", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "gamesuniverse.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".product-price")
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".product-title"),
+			StoreId:    20,
+			StoreThumb: e.ChildAttr(".thumbnail img", "data-src"),
+			Stock:      true,
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".product-thumbnail", "href"),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -431,6 +459,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	queue.AddURL("https://epitrapez.io/product-category/epitrapezia/?Stock=allstock")
 	queue.AddURL("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
 	queue.AddURL("https://www.ozon.gr/pazl-kai-paixnidia/epitrapezia-paixnidia")
+	queue.AddURL("https://gamesuniverse.gr/el/10-epitrapezia")
 	queue.Run(collector)
 
 	err = storage.Clear()
