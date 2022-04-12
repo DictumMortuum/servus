@@ -132,7 +132,7 @@ func create(db *sqlx.DB, payload models.Price) (bool, error) {
 			:url,
 			:levenshtein,
 			:hamming,
-			:batch
+			1
 		)`
 
 	rs, err := db.NamedExec(q, payload)
