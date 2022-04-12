@@ -28,6 +28,7 @@ var allowed_domains = []string{
 	"www.ozon.gr",
 	"gamesuniverse.gr",
 	"xrysoftero.gr",
+	"www.gameexplorers.gr",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Storage, error) {
@@ -480,6 +481,34 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 		})
 	})
 
+	collector.OnHTML(".product-pagination > a", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "www.gameexplorers.gr") {
+			return
+		}
+
+		if e.Attr("title") == "επόμενη σελίδα" {
+			link := e.Attr("href")
+			log.Println("Visiting: " + link)
+			queue.AddURL(link)
+		}
+	})
+
+	collector.OnHTML(".single-product-item", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "www.gameexplorers.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".regular-price")
+		rs = append(rs, models.Price{
+			Name:       e.ChildText("h2:nth-child(1)"),
+			StoreId:    22,
+			StoreThumb: e.ChildAttr("a:nth-child(1) > img:nth-child(1)", "src"),
+			Stock:      true,
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr("a:nth-child(1)", "href"),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -524,6 +553,7 @@ func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error)
 	queue.AddURL("https://gamesuniverse.gr/el/10-epitrapezia")
 	queue.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&category_id=948&page=shop.browse&subCatFilter=-1&langFilter=-1&pubdateFilter=-1&availabilityFilter=-1&discountFilter=-1&priceFilter=-1&pageFilter=-1&Itemid=721&limit=20&limitstart=0")
 	queue.AddURL("https://xrysoftero.gr/362-epitrapezia-paixnidia?resultsPerPage=48&q=%CE%9C%CE%AC%CF%81%CE%BA%CE%B1%5C-%CE%95%CE%BA%CE%B4%CF%8C%CF%84%CE%B7%CF%82-%CE%9A%CE%AC%CE%B9%CF%83%CF%83%CE%B1")
+	queue.AddURL("https://www.gameexplorers.gr/kartes-epitrapezia/epitrapezia-paixnidia/items-grid-date-desc-1-60.html")
 	queue.Run(collector)
 
 	err = storage.Clear()
