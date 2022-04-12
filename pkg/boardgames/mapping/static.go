@@ -5,6 +5,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 func getBoardgameName(db *sqlx.DB, name string) (*mapping, error) {
@@ -47,8 +48,46 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
+	ignored := []string{
+		"dobble",
+		"gravitrax",
+		"story cubes",
+		"puzzle",
+		"monopoly",
+		"desyllas",
+		"δεσύλλας",
+		"δεσυλλας",
+		"σπαζοκεφαλιά",
+		"σπαζοκεφαλια",
+		"think fun",
+		"sleeves",
+		"υπερατού",
+		"sudoku",
+		"thinkfun",
+		"zito!",
+		"top trumps",
+		"funkoverse",
+		"πλαστικοποιημένη",
+	}
+
 	retval := []models.Price{}
 	l := len(prices)
+
+	for _, price := range prices {
+		tmp := strings.ToLower(price.Name)
+
+		for _, ignore := range ignored {
+			if strings.Contains(tmp, ignore) {
+				price.BoardgameId = models.JsonNullInt64{
+					Int64: 23953,
+					Valid: true,
+				}
+
+				updatePrice(db, price)
+				break
+			}
+		}
+	}
 
 	for i, price := range prices {
 		match, _ := getBoardgameName(db, price.Name)
