@@ -209,6 +209,7 @@ func transformName(s string) string {
 	tmp = strings.ReplaceAll(tmp, "παράρτημα για", "")
 	tmp = strings.ReplaceAll(tmp, "παράρτημα επιτραπέζιου παιχνιδιού", "")
 	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο", "")
+	tmp = strings.ReplaceAll(tmp, "κάισσα", "")
 
 	fmt.Println(tmp)
 	return tmp
