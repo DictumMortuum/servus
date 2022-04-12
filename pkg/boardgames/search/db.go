@@ -6,6 +6,24 @@ import (
 	"log"
 )
 
+func normalize_dates(db *sqlx.DB) (bool, error) {
+	q := `
+		update tboardgamepriceshistory set cr_date = date_add(date_add(LAST_DAY(cr_date), interval 1 day), interval -1 month)
+	`
+
+	rs, err := db.NamedExec(q, map[string]interface{}{})
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
+}
+
 func insert_mappings(db *sqlx.DB) (bool, error) {
 	q := `
 		insert into tboardgamepricesmap (
@@ -167,6 +185,11 @@ func UpdateMappings(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	}
 
 	_, err = insert_histories(db)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = normalize_dates(db)
 	if err != nil {
 		return nil, err
 	}
