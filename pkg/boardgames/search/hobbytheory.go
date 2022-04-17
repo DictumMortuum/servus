@@ -8,12 +8,12 @@ import (
 	"net/http"
 )
 
-type root struct {
-	XMLName xml.Name `xml:"mywebstore"`
-	Store   products `xml:"products"`
+type hobbyRoot struct {
+	XMLName xml.Name      `xml:"mywebstore"`
+	Store   hobbyProducts `xml:"products"`
 }
 
-type products struct {
+type hobbyProducts struct {
 	XMLName  xml.Name  `xml:"products"`
 	Products []product `xml:"product"`
 }
@@ -49,7 +49,7 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		return nil, err
 	}
 
-	rs := root{}
+	rs := hobbyRoot{}
 	err = xml.Unmarshal(body, &rs)
 	if err != nil {
 		return nil, err

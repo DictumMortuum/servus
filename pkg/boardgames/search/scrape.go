@@ -5,10 +5,8 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
-	"github.com/lithammer/fuzzysearch/fuzzy"
 	store "github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
 	"log"
-	"sort"
 	"strings"
 )
 
@@ -53,54 +51,6 @@ func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Stora
 	}
 
 	return collector, queue, storage, nil
-}
-
-func getBoardgameNames(db *sqlx.DB) ([]string, error) {
-	var rs []string
-
-	sql := `
-		select
-			name
-		from
-			tboardgames
-	`
-
-	err := db.Select(&rs, sql)
-	if err != nil {
-		return nil, err
-	}
-
-	return rs, nil
-}
-
-func boardgameNameToId(db *sqlx.DB, name string) (*models.Boardgame, error) {
-	var rs models.Boardgame
-
-	sql := `
-		select * from tboardgames where name = ?
-	`
-
-	err := db.QueryRowx(sql, name).StructScan(&rs)
-	if err != nil {
-		return nil, err
-	}
-
-	return &rs, nil
-}
-
-func fuzzyFind(col []string) func(string) fuzzy.Ranks {
-	return func(s string) fuzzy.Ranks {
-		rs := fuzzy.RankFindNormalizedFold(s, col)
-		sort.Sort(rs)
-		l := len(rs)
-
-		hi := 1
-		if l < 1 {
-			hi = l
-		}
-
-		return rs[0:hi]
-	}
 }
 
 func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {

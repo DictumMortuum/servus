@@ -8,12 +8,12 @@ import (
 	"net/http"
 )
 
-type Root struct {
-	XMLName  xml.Name  `xml:"products"`
-	Products []Product `xml:"product"`
+type madnessRoot struct {
+	XMLName  xml.Name         `xml:"products"`
+	Products []madnessProduct `xml:"product"`
 }
 
-type Product struct {
+type madnessProduct struct {
 	XMLName  xml.Name `xml:"product"`
 	SKU      string   `xml:"id"`
 	Name     string   `xml:"title"`
@@ -42,7 +42,7 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 		return nil, err
 	}
 
-	rs := Root{}
+	rs := madnessRoot{}
 	err = xml.Unmarshal(body, &rs)
 	if err != nil {
 		return nil, err
