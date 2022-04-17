@@ -60,27 +60,9 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	}
 
 	for _, item := range rs {
-		item.BoardgameId = models.JsonNullInt64{
-			Int64: -1,
-			Valid: false,
-		}
-
-		id, err := findPrice(db, item)
+		err = upsertPrice(db, item)
 		if err != nil {
 			return nil, err
-		}
-
-		if id == nil {
-			_, err := create(db, item)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			item.Id = id.Int64
-			_, err := update(db, item)
-			if err != nil {
-				return nil, err
-			}
 		}
 	}
 

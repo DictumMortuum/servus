@@ -7,6 +7,33 @@ import (
 	"log"
 )
 
+func upsertPrice(db *sqlx.DB, item models.Price) error {
+	item.BoardgameId = models.JsonNullInt64{
+		Int64: -1,
+		Valid: false,
+	}
+
+	id, err := findPrice(db, item)
+	if err != nil {
+		return err
+	}
+
+	if id == nil {
+		_, err := create(db, item)
+		if err != nil {
+			return err
+		}
+	} else {
+		item.Id = id.Int64
+		_, err := update(db, item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func normalize_dates(db *sqlx.DB) (bool, error) {
 	q := `
 		update tboardgamepriceshistory set cr_date = date_add(date_add(LAST_DAY(cr_date), interval 1 day), interval -1 month)
