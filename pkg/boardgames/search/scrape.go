@@ -103,7 +103,7 @@ func fuzzyFind(col []string) func(string) fuzzy.Ranks {
 	}
 }
 
-func Scrape(db *sqlx.DB, batch_id *models.JsonNullInt64) ([]models.Price, error) {
+func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []models.Price{}
 
 	collector, queue, storage, err := initializeScraper("/tmp")

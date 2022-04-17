@@ -1,6 +1,7 @@
 package search
 
 import (
+	"database/sql"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"log"
@@ -171,6 +172,139 @@ func delete_redundant_history(db *sqlx.DB) (int64, error) {
 	}
 
 	return rows, nil
+}
+
+func findPrice(db *sqlx.DB, payload models.Price) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `
+		select
+			id
+		from
+			tboardgameprices
+		where
+			store_id = :store_id and
+			name = :name
+	`
+
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func exists(db *sqlx.DB, payload models.Price) (bool, error) {
+	q := `select 1 from tboardgameprices where store_id = :store_id and name = :name`
+
+	rows, err := db.NamedQuery(q, payload)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func updateBatch(db *sqlx.DB, store_id int64) error {
+	q := `
+		update
+			tboardgameprices
+		set
+			batch = 0
+		where
+			store_id = :store_id
+	`
+
+	_, err := db.NamedExec(q, map[string]interface{}{
+		"store_id": store_id,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func update(db *sqlx.DB, payload models.Price) (bool, error) {
+	q := `
+		update
+			tboardgameprices
+		set
+			store_thumb = :store_thumb,
+			price = :price,
+			stock = :stock,
+			url = :url,
+			batch = 1,
+			cr_date = NOW()
+		where
+			id = :id
+	`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
+}
+
+func create(db *sqlx.DB, payload models.Price) (bool, error) {
+	q := `
+		insert into tboardgameprices (
+			boardgame_id,
+			name,
+			store_id,
+			store_thumb,
+			price,
+			stock,
+			url,
+			levenshtein,
+			hamming,
+			batch
+		) values (
+			:boardgame_id,
+			:name,
+			:store_id,
+			:store_thumb,
+			:price,
+			:stock,
+			:url,
+			:levenshtein,
+			:hamming,
+			1
+		)`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rows > 0, nil
 }
 
 func UpdateMappings(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
