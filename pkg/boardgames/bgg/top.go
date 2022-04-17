@@ -81,7 +81,6 @@ func GetTopBoardgames(col *gin.Context) {
 				"rank": rank,
 				"url":  url,
 				"id":   raw_id,
-				// "thumb": thumb,
 			}
 
 			id, err := exists(database, d)
@@ -97,7 +96,7 @@ func GetTopBoardgames(col *gin.Context) {
 					return
 				}
 			} else {
-				_, err := update(database, d)
+				_, err := updateRank(database, d)
 				if err != nil {
 					util.Error(col, err)
 					return
@@ -148,6 +147,29 @@ func create(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
 	}
 
 	log.Printf("Boardgame [%s] with id [%d] created: [%d]\n", payload["name"], payload["id"], rows)
+	return rows > 0, nil
+}
+
+func updateRank(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
+	q := `
+		update
+			tboardgames
+		set
+			rank = :rank
+		where
+			id = :id
+	`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
 	return rows > 0, nil
 }
 
