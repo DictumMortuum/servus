@@ -9,6 +9,36 @@ import (
 	"net/http"
 )
 
+func A(f []func(*sqlx.DB, *models.QueryBuilder) (interface{}, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		args, err := models.NewArgsFromContext(c)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		database, err := db.Conn()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+		defer database.Close()
+
+		rs := []interface{}{}
+
+		for _, fn := range f {
+			data, err := fn(database, args)
+			if err != nil {
+				util.Error(c, err)
+				return
+			}
+			rs = append(rs, data)
+		}
+
+		c.JSON(http.StatusOK, rs)
+	}
+}
+
 func F(f func(*sqlx.DB, *models.QueryBuilder) (interface{}, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
 		args, err := models.NewArgsFromContext(c)

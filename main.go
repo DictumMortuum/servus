@@ -17,6 +17,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/generic"
 	"github.com/DictumMortuum/servus/pkg/gnucash"
 	"github.com/DictumMortuum/servus/pkg/links"
+	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/music"
 	"github.com/DictumMortuum/servus/pkg/router"
 	"github.com/DictumMortuum/servus/pkg/tasks"
@@ -25,6 +26,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/zerotier"
 	"github.com/gin-gonic/gin"
 	"github.com/itsjamie/gin-cors"
+	"github.com/jmoiron/sqlx"
 	"html/template"
 	"io"
 	"log"
@@ -164,6 +166,13 @@ func main() {
 		rest.GET("/scrape/gamescom", generic.F(search.ScrapeGamesCom))
 		rest.GET("/scrape/hobby", generic.F(search.ScrapeHobbyTheory))
 		rest.GET("/scrape/database", generic.F(search.UpdateMappings))
+		rest.GET("/scrape/all", generic.A([]func(*sqlx.DB, *models.QueryBuilder) (interface{}, error){
+			search.Scrape,
+			search.ScrapeBoardsOfMadness,
+			search.ScrapeFantasyGate,
+			search.ScrapeGamesCom,
+			search.ScrapeHobbyTheory,
+		}))
 
 		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
 		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
