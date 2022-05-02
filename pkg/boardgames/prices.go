@@ -193,7 +193,7 @@ func CreatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	if val, ok := args.Data["stock"]; ok {
-		rs.Stock = val.(bool)
+		rs.Stock = val.(int)
 	} else {
 		return nil, errors.New("please provide a 'stock' parameter")
 	}
@@ -283,7 +283,7 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	if val, ok := args.Data["stock"]; ok {
-		rs.Stock = val.(bool)
+		rs.Stock = int(val.(float64))
 	}
 
 	if val, ok := args.Data["url"]; ok {

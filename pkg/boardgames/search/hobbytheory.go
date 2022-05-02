@@ -67,11 +67,19 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	for _, item := range rs.Store.Products {
 		for _, category := range categories {
 			if item.Category == category {
+				var stock int
+
+				if item.Stock == "Y" {
+					stock = 0
+				} else {
+					stock = 2
+				}
+
 				prices = append(prices, models.Price{
 					Name:       item.Name,
 					StoreId:    23,
 					StoreThumb: item.ThumbUrl,
-					Stock:      item.Stock == "Y",
+					Stock:      stock,
 					Price:      getPrice(item.Price),
 					Url:        item.Link,
 				})

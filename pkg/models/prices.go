@@ -9,7 +9,7 @@ type HistoricPrice struct {
 	BoardgameId int64     `db:"boardgame_id" json:"boardgame_id"`
 	CrDate      time.Time `db:"cr_date" json:"cr_date"`
 	Price       float64   `db:"price" json:"price"`
-	Stock       bool      `db:"stock" json:"stock"`
+	Stock       int       `db:"stock" json:"stock"`
 	StoreId     int64     `db:"store_id" json:"store_id"`
 }
 
@@ -24,7 +24,7 @@ type Price struct {
 	StoreName      string          `db:"store_name" json:"-"`
 	StoreThumb     string          `db:"store_thumb" json:"store_thumb"`
 	Price          float64         `db:"price" json:"price"`
-	Stock          bool            `db:"stock" json:"stock"`
+	Stock          int             `db:"stock" json:"stock"`
 	Url            string          `db:"url" json:"url"`
 	Levenshtein    int             `db:"levenshtein" json:"-"`
 	Hamming        int             `db:"hamming" json:"-"`

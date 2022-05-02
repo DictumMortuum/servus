@@ -31,13 +31,20 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	})
 
 	c.OnHTML(".col-tile", func(e *colly.HTMLElement) {
+		var stock int
 		raw_price := e.ChildText(".ty-price")
+
+		if childHasClass(e, "button.ty-btn__primary", "ty-btn__add-to-cart") {
+			stock = 0
+		} else {
+			stock = 2
+		}
 
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".product-title"),
 			StoreId:    18,
 			StoreThumb: e.ChildAttr(".cm-image", "src"),
-			Stock:      childHasClass(e, "button.ty-btn__primary", "ty-btn__add-to-cart"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".product-title", "href"),
 		})

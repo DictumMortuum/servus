@@ -77,13 +77,20 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			return
 		}
 
+		var stock int
 		raw_price := e.ChildText(".price")
+
+		if childHasClass(e, ".add-to-cart input", "stock-update") {
+			stock = 2
+		} else {
+			stock = 0
+		}
 
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".caption"),
 			StoreId:    6,
 			StoreThumb: e.ChildAttr(".photo a img", "src"),
-			Stock:      !childHasClass(e, ".add-to-cart input", "stock-update"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
 		})
@@ -110,11 +117,25 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			raw_price = e.ChildText(".price-normal")
 		}
 
+		var stock int
+
+		if !hasClass(e, "out-of-stock") {
+			stock = 0
+		} else {
+			stat := e.ChildText(".stat-1")
+
+			if stat == "Preorder" {
+				stock = 1
+			} else {
+				stock = 2
+			}
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    4,
 			StoreThumb: e.ChildAttr(".product-img div img", "data-src"),
-			Stock:      !hasClass(e, "out-of-stock"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".name a", "href"),
 		})
@@ -137,11 +158,21 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		raw_price := e.ChildText(".price")
 
+		var stock int
+
+		if hasClass(e, "instock") {
+			stock = 0
+		} else if hasClass(e, "onbackorder") {
+			stock = 1
+		} else if hasClass(e, "outofstock") {
+			stock = 2
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".woocommerce-loop-product__title"),
 			StoreId:    5,
 			StoreThumb: e.ChildAttr(".woocommerce-LoopProduct-link.woocommerce-loop-product__link img", "data-src"),
-			Stock:      childHasClass(e, ".button.product_type_simple", "add_to_cart_button"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
 		})
@@ -164,11 +195,23 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		raw_price := e.ChildText(".amount")
 
+		var stock int
+
+		if hasClass(e, "out-of-stock") {
+			stock = 2
+		} else {
+			if e.ChildText(".badge-inner") != "" {
+				stock = 1
+			} else {
+				stock = 0
+			}
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    7,
 			StoreThumb: e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
-			Stock:      !hasClass(e, "out-of-stock"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".name a", "href"),
 		})
@@ -191,11 +234,21 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		raw_price := e.ChildText(".product-price a strong")
 
+		var stock int
+
+		if e.Attr("data-label") == "" {
+			stock = 2
+		} else if e.Attr("data-label") == "preorder" {
+			stock = 1
+		} else {
+			stock = 0
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".product-title"),
 			StoreId:    8,
 			StoreThumb: e.ChildAttr(".product-image a img", "src"),
-			Stock:      !(e.ChildAttr(".product-actions button.cartbutton", "data-stock") == "0"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
 		})
@@ -218,11 +271,23 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		raw_price := e.ChildText(".price")
 
+		var stock int
+
+		if e.ChildText(".release-date") != "" {
+			stock = 1
+		} else {
+			if !childHasClass(e, "div.stock", "unavailable") {
+				stock = 0
+			} else {
+				stock = 2
+			}
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    9,
 			StoreThumb: e.ChildAttr(".product-image-photo", "src"),
-			Stock:      !childHasClass(e, "div.stock", "unavailable"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".name a", "href"),
 		})
@@ -245,11 +310,21 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		raw_price := e.ChildText(".amount")
 
+		var stock int
+
+		if hasClass(e, "instock") {
+			stock = 0
+		} else if hasClass(e, "onbackorder") {
+			stock = 1
+		} else if hasClass(e, "out-of-stock") {
+			stock = 2
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    10,
 			StoreThumb: e.ChildAttr(".attachment-woocommerce_thumbnail", "src"),
-			Stock:      !hasClass(e, "out-of-stock"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
 		})
@@ -269,13 +344,25 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			url = urls[0]
 		}
 
+		var stock int
+
+		if e.ChildText("span[data-hook=product-item-ribbon-new]") == "PRE-ORDER" {
+			stock = 1
+		} else {
+			if e.ChildAttr("button[data-hook=product-item-add-to-cart-button]", "aria-disabled") == "true" {
+				stock = 2
+			} else {
+				stock = 0
+			}
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText("h3"),
 			StoreId:    3,
 			StoreThumb: url,
-			Stock:      e.ChildAttr(".s1Zi24", "aria-disabled") == "false",
+			Stock:      stock,
 			Price:      getPrice(raw_price),
-			Url:        e.ChildAttr("._29CWl", "href"),
+			Url:        e.ChildAttr("a[data-hook=product-item-container]", "href"),
 		})
 	})
 
@@ -300,11 +387,19 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			raw_price = e.ChildText(".price .amount")
 		}
 
+		var stock int
+
+		if e.ChildText("a.add_to_cart_button") != "" {
+			stock = 0
+		} else {
+			stock = 2
+		}
+
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".woocommerce-loop-product__title"),
 			StoreId:    15,
 			StoreThumb: e.ChildAttr(".epz-product-thumbnail img", "data-src"),
-			Stock:      e.ChildText("a.add_to_cart_button") != "",
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
 		})
@@ -337,7 +432,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Name:       e.ChildText(".title"),
 			StoreId:    17,
 			StoreThumb: e.ChildAttr(".image-wrapper img", "src"),
-			Stock:      true,
+			Stock:      0,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".product-box", "href"),
 		})
@@ -364,7 +459,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Name:       e.ChildText(".product-title"),
 			StoreId:    20,
 			StoreThumb: e.ChildAttr(".thumbnail img", "data-src"),
-			Stock:      true,
+			Stock:      0,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".product-thumbnail", "href"),
 		})
@@ -394,7 +489,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Name:       e.ChildText(".browse-product-title"),
 			StoreId:    12,
 			StoreThumb: e.ChildAttr(".browseProductImage", "src"),
-			Stock:      true,
+			Stock:      0,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".browse-product-title", "href"),
 		})
@@ -425,7 +520,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Name:       e.ChildText(".product-title"),
 			StoreId:    21,
 			StoreThumb: url,
-			Stock:      true,
+			Stock:      0,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr("a.relative", "href"),
 		})
@@ -453,7 +548,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Name:       e.ChildText("h2:nth-child(1)"),
 			StoreId:    22,
 			StoreThumb: e.ChildAttr("a:nth-child(1) > img:nth-child(1)", "src"),
-			Stock:      true,
+			Stock:      0,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr("a:nth-child(1)", "href"),
 		})
@@ -494,6 +589,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	queue.AddURL("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions,Board%20Games")
 	queue.AddURL("https://store.v-games.gr/category/board-games")
 	queue.AddURL("https://meeple-planet.com/category/epitrapezia-paixnidia")
+	queue.AddURL("https://meeple-planet.com/category/pre-orders")
 	queue.AddURL("https://www.efantasy.gr/en/products/%CE%B5%CF%80%CE%B9%CF%84%CF%81%CE%B1%CF%80%CE%AD%CE%B6%CE%B9%CE%B1-%CF%80%CE%B1%CE%B9%CF%87%CE%BD%CE%AF%CE%B4%CE%B9%CE%B1/sc-all")
 	queue.AddURL("https://kaissagames.com/b2c_gr/xenoglossa-epitrapezia.html")
 	queue.AddURL("https://meepleonboard.gr/product-category/board-games")

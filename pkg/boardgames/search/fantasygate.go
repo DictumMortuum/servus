@@ -15,13 +15,20 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	)
 
 	collector.OnHTML(".sblock4", func(e *colly.HTMLElement) {
+		var stock int
 		raw_price := e.ChildText(".jshop_price")
+
+		if childHasClass(e, ".btn", "button_buy") {
+			stock = 0
+		} else {
+			stock = 2
+		}
 
 		rs = append(rs, models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    2,
 			StoreThumb: e.ChildAttr(".jshop_img", "src"),
-			Stock:      childHasClass(e, ".btn", "button_buy"),
+			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
 		})

@@ -23,6 +23,19 @@ type madnessProduct struct {
 	Link     string   `xml:"link"`
 }
 
+func madnessAvailbilityToStock(s string) int {
+	switch s {
+	case "in stock":
+		return 0
+	case "on backorder":
+		return 1
+	case "out of stock":
+		return 2
+	default:
+		return 2
+	}
+}
+
 func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	link := "https://boardsofmadness.com/wp-content/uploads/woo-product-feed-pro/xml/sVVFMsJLyEEtvbil4fbIOdm8b4ha7ewz.xml"
 	req, err := http.NewRequest("GET", link, nil)
@@ -54,7 +67,7 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 			Name:       item.Name,
 			StoreId:    16,
 			StoreThumb: item.ThumbUrl,
-			Stock:      item.Stock == "in stock",
+			Stock:      madnessAvailbilityToStock(item.Stock),
 			Price:      getPrice(item.Price),
 			Url:        item.Link,
 		})
