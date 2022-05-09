@@ -8,7 +8,7 @@ version:
 	git tag -f $(VERSION)
 
 build: format
-	go build -trimpath -buildmode=pie -mod=readonly -modcacherw -ldflags="-s -w"
+	CGO_ENABLED=1 go build -trimpath -buildmode=pie -mod=readonly -modcacherw -ldflags="-s -w"
 
 install: build
 	mkdir -p $(PREFIX)/bin
