@@ -5,7 +5,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
-	store "github.com/velebak/colly-sqlite3-storage/colly/sqlite3"
 	"log"
 	"strings"
 )
@@ -29,38 +28,28 @@ var allowed_domains = []string{
 	"www.gameexplorers.gr",
 }
 
-func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, *store.Storage, error) {
-	storage := &store.Storage{
-		Filename: pwd + "/results.db",
-	}
-
+func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, error) {
 	collector := colly.NewCollector(
 		colly.AllowedDomains(allowed_domains...),
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
 	)
 	collector.CacheDir = pwd
 
-	err := collector.SetStorage(storage)
+	queue, err := queue.New(2, &queue.InMemoryQueueStorage{MaxSize: 100000})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
-	queue, err := queue.New(2, storage)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return collector, queue, storage, nil
+	return collector, queue, nil
 }
 
 func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []models.Price{}
 
-	collector, queue, storage, err := initializeScraper("/tmp")
+	collector, queue, err := initializeScraper("/tmp")
 	if err != nil {
 		return nil, err
 	}
-	defer storage.Close()
 
 	collector.OnHTML(".next a", func(e *colly.HTMLElement) {
 		if !strings.Contains(e.Request.URL.String(), "www.kaissa.eu") {
@@ -601,11 +590,6 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	queue.AddURL("https://xrysoftero.gr/362-epitrapezia-paixnidia?resultsPerPage=48&q=%CE%9C%CE%AC%CF%81%CE%BA%CE%B1%5C-%CE%95%CE%BA%CE%B4%CF%8C%CF%84%CE%B7%CF%82-%CE%9A%CE%AC%CE%B9%CF%83%CF%83%CE%B1")
 	queue.AddURL("https://www.gameexplorers.gr/kartes-epitrapezia/epitrapezia-paixnidia/items-grid-date-desc-1-60.html")
 	queue.Run(collector)
-
-	err = storage.Clear()
-	if err != nil {
-		return nil, err
-	}
 
 	store_ids := []int64{}
 
