@@ -177,6 +177,7 @@ func main() {
 		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
 		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
 		rest.GET("/mapping2/static", generic.F(mapping.MapAllStatic))
+		rest.GET("/mapping2/search", generic.F(mapping.SearchMaps))
 
 		rest.GET("/trueskill", generic.F(boardgames.GetTrueskillLists))
 		rest.GET("/trueskill/overall", generic.F(boardgames.GetTrueskillOverall))
