@@ -26,6 +26,7 @@ var allowed_domains = []string{
 	"gamesuniverse.gr",
 	"xrysoftero.gr",
 	"www.gameexplorers.gr",
+	"crystallotus.eu",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, error) {
@@ -543,6 +544,41 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		})
 	})
 
+	collector.OnHTML(".pagination a", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "crystallotus.eu") {
+			return
+		}
+
+		link := e.Request.AbsoluteURL(e.Attr("href"))
+		log.Println("Visiting: " + link)
+		queue.AddURL(link)
+	})
+
+	collector.OnHTML(".grid__item", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "crystallotus.eu") {
+			return
+		}
+
+		link := e.ChildAttr(".product-card__image-with-placeholder-wrapper img", "data-src")
+		if strings.HasPrefix(link, "//") {
+			link = "https:" + link
+		}
+
+		if strings.Contains(link, "{width}") {
+			link = strings.Replace(link, "{width}", "2048", -1)
+		}
+
+		raw_price := e.ChildText(".price__sale")
+		rs = append(rs, models.Price{
+			Name:       e.ChildText("a.grid-view-item__link"),
+			StoreId:    24,
+			StoreThumb: link,
+			Stock:      0,
+			Price:      getPrice(raw_price),
+			Url:        e.Request.AbsoluteURL(e.ChildAttr("a.grid-view-item__link", "href")),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -589,6 +625,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	queue.AddURL("https://www.politeianet.gr/index.php?option=com_virtuemart&category_id=948&page=shop.browse&subCatFilter=-1&langFilter=-1&pubdateFilter=-1&availabilityFilter=-1&discountFilter=-1&priceFilter=-1&pageFilter=-1&Itemid=721&limit=20&limitstart=0")
 	queue.AddURL("https://xrysoftero.gr/362-epitrapezia-paixnidia?resultsPerPage=48&q=%CE%9C%CE%AC%CF%81%CE%BA%CE%B1%5C-%CE%95%CE%BA%CE%B4%CF%8C%CF%84%CE%B7%CF%82-%CE%9A%CE%AC%CE%B9%CF%83%CF%83%CE%B1")
 	queue.AddURL("https://www.gameexplorers.gr/kartes-epitrapezia/epitrapezia-paixnidia/items-grid-date-desc-1-60.html")
+	queue.AddURL("https://crystallotus.eu/collections/board-games")
 	queue.Run(collector)
 
 	store_ids := []int64{}
