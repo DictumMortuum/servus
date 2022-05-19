@@ -90,7 +90,7 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	for i, price := range prices {
-		match, _ := getBoardgameName(db, price.Name)
+		match, _ := getBoardgameName(db, transformName(price.Name))
 		if match != nil {
 			fmt.Printf("[%5v/%v] %v to %v\n", i, l, price.Name, match.BoardgameId)
 
