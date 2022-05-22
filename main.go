@@ -5,6 +5,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames"
 	"github.com/DictumMortuum/servus/pkg/boardgames/atlas"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
+	"github.com/DictumMortuum/servus/pkg/boardgames/images"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
 	"github.com/DictumMortuum/servus/pkg/boardgames/search"
 	"github.com/DictumMortuum/servus/pkg/calendar"
@@ -178,6 +179,8 @@ func main() {
 		rest.GET("/mapping2/bgg", generic.F(mapping.MapAllBgg))
 		rest.GET("/mapping2/static", generic.F(mapping.MapAllStatic))
 		rest.GET("/mapping2/search", generic.F(mapping.SearchMaps))
+
+		rest.GET("/image/:id", generic.F(images.Boardgame))
 
 		rest.GET("/trueskill", generic.F(boardgames.GetTrueskillLists))
 		rest.GET("/trueskill/overall", generic.F(boardgames.GetTrueskillOverall))

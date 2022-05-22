@@ -3,6 +3,7 @@ module github.com/DictumMortuum/servus
 go 1.16
 
 require (
+	github.com/Kagami/go-avif v0.1.0 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/agnivade/levenshtein v1.1.1
 	github.com/antchfx/htmlquery v1.2.4 // indirect
