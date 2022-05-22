@@ -68,6 +68,15 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		"top trumps",
 		"funkoverse",
 		"πλαστικοποιημένη",
+		"κουτί για κάρτες",
+		"προστατευτικά καρτών",
+		"pokemon tcg",
+		"yu-gi-oh",
+		"κουτί για κάρτες",
+		"similo",
+		"magic the gathering",
+		"κουτί για χαρτιά",
+		"orchard toys",
 	}
 
 	retval := []models.Price{}
