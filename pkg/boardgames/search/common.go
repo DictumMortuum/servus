@@ -10,6 +10,7 @@ import (
 
 var (
 	price = regexp.MustCompile("([0-9]+[,.][0-9]+)")
+	pages = regexp.MustCompile("([0-9]+) Σελ")
 )
 
 func unique(intSlice []int64) []int64 {
@@ -59,6 +60,17 @@ func getPrice(raw string) float64 {
 		return price
 	} else {
 		return 0.0
+	}
+}
+
+func getPages(raw string) int {
+	match := pages.FindStringSubmatch(raw)
+
+	if len(match) > 0 {
+		page, _ := strconv.ParseInt(match[1], 10, 64)
+		return int(page)
+	} else {
+		return 0
 	}
 }
 

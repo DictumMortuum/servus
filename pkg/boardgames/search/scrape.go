@@ -1,6 +1,7 @@
 package search
 
 import (
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
@@ -27,6 +28,7 @@ var allowed_domains = []string{
 	"xrysoftero.gr",
 	"www.gameexplorers.gr",
 	"crystallotus.eu",
+	"avalongames.gr",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, error) {
@@ -579,6 +581,48 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		})
 	})
 
+	collector.OnHTML(".pagination-results", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "avalongames.gr") {
+			return
+		}
+
+		pageCount := getPages(e.Text)
+		for i := 2; i <= pageCount; i++ {
+			link := fmt.Sprintf("https://avalongames.gr/index.php?route=product/category&path=59&limit=100&page=%d", i)
+			log.Println("Visiting: ", link)
+			queue.AddURL(link)
+		}
+	})
+
+	collector.OnHTML(".product-layout", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "avalongames.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".price-normal")
+
+		if raw_price == "" {
+			raw_price = e.ChildText(".price-new")
+		}
+
+		var stock int
+
+		if !hasClass(e, ".out-of-stock") {
+			stock = 0
+		} else {
+			stock = 2
+		}
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".name"),
+			StoreId:    25,
+			StoreThumb: e.ChildAttr(".product-img div img", "src"),
+			Stock:      stock,
+			Price:      getPrice(raw_price),
+			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -626,6 +670,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	queue.AddURL("https://xrysoftero.gr/362-epitrapezia-paixnidia?resultsPerPage=48&q=%CE%9C%CE%AC%CF%81%CE%BA%CE%B1%5C-%CE%95%CE%BA%CE%B4%CF%8C%CF%84%CE%B7%CF%82-%CE%9A%CE%AC%CE%B9%CF%83%CF%83%CE%B1")
 	queue.AddURL("https://www.gameexplorers.gr/kartes-epitrapezia/epitrapezia-paixnidia/items-grid-date-desc-1-60.html")
 	queue.AddURL("https://crystallotus.eu/collections/board-games")
+	queue.AddURL("https://avalongames.gr/index.php?route=product/category&path=59&limit=100")
 	queue.Run(collector)
 
 	store_ids := []int64{}
