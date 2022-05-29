@@ -23,7 +23,7 @@ func MapAtlas(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	for _, result := range atlas_results {
-		name := transformName(result.Name)
+		name := boardgames.TransformName(result.Name)
 		log.Println(name)
 		bgg_results, err := bgg.Search(name)
 		if err != nil {
@@ -51,7 +51,7 @@ func SearchAtlasTerm(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 	}
 
 	for _, result := range atlas_results {
-		name := transformName(result.Name)
+		name := boardgames.TransformName(result.Name)
 		log.Println(name)
 		bgg_results, err := bgg.Search(name)
 		if err != nil {

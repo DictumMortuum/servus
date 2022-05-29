@@ -18,7 +18,7 @@ func MapBGG(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	name := transformName(price.Name)
+	name := boardgames.TransformName(price.Name)
 	log.Println(name)
 	bgg_results, err := bgg.Search(name)
 	if err != nil {
@@ -39,7 +39,7 @@ func MapBGG(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 func SearchBGGTerm(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []mapping{}
 
-	name := transformName(args.Data["term"].(string))
+	name := boardgames.TransformName(args.Data["term"].(string))
 	log.Println(name)
 	bgg_results, err := bgg.Search(name)
 	if err != nil {
@@ -72,7 +72,7 @@ func MapAllBgg(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	l := len(prices)
 
 	for i, price := range prices {
-		name := transformName(price.Name)
+		name := boardgames.TransformName(price.Name)
 
 		bgg_results, err := bgg.Search(name)
 		if err != nil {

@@ -7,8 +7,62 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
+	"regexp"
+	"strings"
 	"text/template"
 )
+
+var (
+	ignore_brackets = regexp.MustCompile(`(?s)\((.*)\)`)
+	gamescom        = regexp.MustCompile(`\S+ Επιτραπέζιο (.*) για`)
+)
+
+func TransformName(s string) string {
+	pre := gamescom.FindStringSubmatch(s)
+	var tmp string
+
+	if len(pre) == 2 {
+		tmp = pre[1]
+	} else {
+		tmp = s
+	}
+
+	tmp = ignore_brackets.ReplaceAllString(tmp, "")
+	tmp = strings.ToLower(tmp)
+	tmp = strings.TrimSpace(tmp)
+	tmp = strings.ReplaceAll(tmp, "-", " ")
+	tmp = strings.ReplaceAll(tmp, ",", " ")
+	tmp = strings.ReplaceAll(tmp, "&", " ")
+	tmp = strings.ReplaceAll(tmp, "–", " ")
+	tmp = strings.ReplaceAll(tmp, ":", " ")
+	tmp = strings.ReplaceAll(tmp, "/", " ")
+	tmp = strings.ReplaceAll(tmp, "expansion", " ")
+	tmp = strings.ReplaceAll(tmp, "Expansion", " ")
+	tmp = strings.ReplaceAll(tmp, " KS ", " ")
+	tmp = strings.ReplaceAll(tmp, " ks ", " ")
+	tmp = strings.ReplaceAll(tmp, "Kickstarter", " ")
+	tmp = strings.ReplaceAll(tmp, "kickstarter", " ")
+	tmp = strings.ReplaceAll(tmp, " exp ", " ")
+	tmp = strings.ReplaceAll(tmp, " exp. ", " ")
+	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "στρατηγικής", "")
+	tmp = strings.ReplaceAll(tmp, "σε μεταλλικό κουτί", "")
+	tmp = strings.ReplaceAll(tmp, "κλασικό παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "επέκταση για", "")
+	tmp = strings.ReplaceAll(tmp, "οικογενειακό", "")
+	tmp = strings.ReplaceAll(tmp, "παιχνίδι", "")
+	tmp = strings.ReplaceAll(tmp, "με τράπουλα", "")
+	tmp = strings.ReplaceAll(tmp, "συνεργατικό", "")
+	tmp = strings.ReplaceAll(tmp, "στρατηγικό", "")
+	tmp = strings.ReplaceAll(tmp, "παράρτημα για", "")
+	tmp = strings.ReplaceAll(tmp, "παράρτημα επιτραπέζιου παιχνιδιού", "")
+	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο", "")
+	tmp = strings.ReplaceAll(tmp, "κάισσα", "")
+	tmp = strings.ReplaceAll(tmp, "lcg", "")
+	tmp = strings.ReplaceAll(tmp, "επέκταση", "")
+	fmt.Println(tmp)
+	return tmp
+}
 
 func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 	var rs models.Price
@@ -31,6 +85,8 @@ func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	rs.TransformedName = TransformName(rs.Name)
 
 	return &rs, nil
 }
@@ -164,7 +220,14 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 		return retval, nil
 	} else {
-		return rs, nil
+		retval := []models.Price{}
+
+		for _, item := range rs {
+			item.TransformedName = TransformName(item.Name)
+			retval = append(retval, item)
+		}
+
+		return retval, nil
 	}
 }
 
@@ -248,6 +311,7 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	args.IgnoreColumn("thumb")
 	args.IgnoreColumn("boardgame_name")
 	args.IgnoreColumn("store_name")
+	args.IgnoreColumn("transformed_name")
 
 	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = models.JsonNullInt64{

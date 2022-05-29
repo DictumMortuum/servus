@@ -77,6 +77,7 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		"magic the gathering",
 		"κουτί για χαρτιά",
 		"orchard toys",
+		"desyllas",
 	}
 
 	retval := []models.Price{}
@@ -99,7 +100,7 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	for i, price := range prices {
-		match, _ := getBoardgameName(db, transformName(price.Name))
+		match, _ := getBoardgameName(db, boardgames.TransformName(price.Name))
 		if match != nil {
 			fmt.Printf("[%5v/%v] %v to %v\n", i, l, price.Name, match.BoardgameId)
 

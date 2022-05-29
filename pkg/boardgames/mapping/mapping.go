@@ -2,13 +2,13 @@ package mapping
 
 import (
 	"fmt"
+	"github.com/DictumMortuum/servus/pkg/boardgames"
 	"github.com/DictumMortuum/servus/pkg/boardgames/atlas"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	google "github.com/rocketlaunchr/google-search"
-	"regexp"
 	"sort"
 	"strings"
 )
@@ -177,51 +177,13 @@ func googlesearch(s string) ([]string, error) {
 	return retval, nil
 }
 
-func transformName(s string) string {
-	re := regexp.MustCompile(`(?s)\((.*)\)`)
-	tmp := re.ReplaceAllString(s, "")
-	tmp = strings.ToLower(tmp)
-	tmp = strings.TrimSpace(tmp)
-	tmp = strings.ReplaceAll(tmp, "-", " ")
-	tmp = strings.ReplaceAll(tmp, ",", " ")
-	tmp = strings.ReplaceAll(tmp, "&", " ")
-	tmp = strings.ReplaceAll(tmp, "–", " ")
-	tmp = strings.ReplaceAll(tmp, ":", " ")
-	tmp = strings.ReplaceAll(tmp, "/", " ")
-	tmp = strings.ReplaceAll(tmp, "expansion", " ")
-	tmp = strings.ReplaceAll(tmp, "Expansion", " ")
-	tmp = strings.ReplaceAll(tmp, " KS ", " ")
-	tmp = strings.ReplaceAll(tmp, " ks ", " ")
-	tmp = strings.ReplaceAll(tmp, "Kickstarter", " ")
-	tmp = strings.ReplaceAll(tmp, "kickstarter", " ")
-	tmp = strings.ReplaceAll(tmp, " exp ", " ")
-	tmp = strings.ReplaceAll(tmp, " exp. ", " ")
-	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο παιχνίδι", "")
-	tmp = strings.ReplaceAll(tmp, "στρατηγικής", "")
-	tmp = strings.ReplaceAll(tmp, "σε μεταλλικό κουτί", "")
-	tmp = strings.ReplaceAll(tmp, "κλασικό παιχνίδι", "")
-	tmp = strings.ReplaceAll(tmp, "επέκταση για", "")
-	tmp = strings.ReplaceAll(tmp, "οικογενειακό", "")
-	tmp = strings.ReplaceAll(tmp, "παιχνίδι", "")
-	tmp = strings.ReplaceAll(tmp, "με τράπουλα", "")
-	tmp = strings.ReplaceAll(tmp, "συνεργατικό", "")
-	tmp = strings.ReplaceAll(tmp, "στρατηγικό", "")
-	tmp = strings.ReplaceAll(tmp, "παράρτημα για", "")
-	tmp = strings.ReplaceAll(tmp, "παράρτημα επιτραπέζιου παιχνιδιού", "")
-	tmp = strings.ReplaceAll(tmp, "επιτραπέζιο", "")
-	tmp = strings.ReplaceAll(tmp, "κάισσα", "")
-
-	fmt.Println(tmp)
-	return tmp
-}
-
 func Map(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	price, err := getPrice(db, args.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	name := transformName(price.Name)
+	name := boardgames.TransformName(price.Name)
 
 	boardgames, err := getBoardgameNames(db)
 	if err != nil {
@@ -276,19 +238,19 @@ func MapAll(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		updatePriceNotMapped(db, price)
 	}
 
-	boardgames, err := getBoardgameNames(db)
+	games, err := getBoardgameNames(db)
 	if err != nil {
 		return nil, err
 	}
 
-	fn := fuzzyFind(boardgames)
+	fn := fuzzyFind(games)
 
 	retval := []models.Price{}
 
 	l := len(prices)
 
 	for i, price := range prices {
-		name := transformName(price.Name)
+		name := boardgames.TransformName(price.Name)
 		ranks := fn(name)
 
 		if len(ranks) > 0 {
