@@ -45,6 +45,9 @@ type Config struct {
 		Cleanup    int    `yaml:"cleanup"`
 		Path       string `yaml:"path"`
 	} `yaml:"cache"`
+	Deta struct {
+		ProjectKey string `yaml:"project_key"`
+	} `yaml:"deta"`
 }
 
 var (

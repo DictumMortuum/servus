@@ -8,6 +8,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.1
 	github.com/antchfx/htmlquery v1.2.5 // indirect
 	github.com/antchfx/xmlquery v1.3.11 // indirect
+	github.com/deta/deta-go v1.0.0 // indirect
 	github.com/fhs/gompd v1.0.1
 	github.com/frankban/quicktest v1.14.3 // indirect
 	github.com/gin-gonic/gin v1.8.0
