@@ -90,7 +90,7 @@ func main() {
 		RequestHeaders:  "Origin, Authorization, Content-Type, Bearer, range",
 		ExposedHeaders:  "x-total-count, Content-Range",
 		MaxAge:          50 * time.Second,
-		Credentials:     true,
+		Credentials:     false,
 		ValidateHeaders: false,
 	}))
 

@@ -10,7 +10,7 @@ require (
 	github.com/antchfx/xmlquery v1.3.11 // indirect
 	github.com/fhs/gompd v1.0.1
 	github.com/frankban/quicktest v1.14.3 // indirect
-	github.com/gin-gonic/gin v1.7.7
+	github.com/gin-gonic/gin v1.8.0
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gocolly/colly/v2 v2.1.0
