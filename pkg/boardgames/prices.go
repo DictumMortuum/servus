@@ -61,7 +61,6 @@ func TransformName(s string) string {
 	tmp = strings.ReplaceAll(tmp, "κάισσα", "")
 	tmp = strings.ReplaceAll(tmp, "lcg", "")
 	tmp = strings.ReplaceAll(tmp, "επέκταση", "")
-	fmt.Println(tmp)
 	return tmp
 }
 
@@ -339,6 +338,7 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	args.IgnoreColumn("boardgame_name")
 	args.IgnoreColumn("store_name")
 	args.IgnoreColumn("transformed_name")
+	args.IgnoreColumn("key")
 
 	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = models.JsonNullInt64{
