@@ -13,14 +13,12 @@ func MapBGG(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []mapping{}
 
 	price, err := boardgames.GetPriceById(db, args.Id)
-	fmt.Println("1", err)
 	if err != nil {
 		return nil, err
 	}
 
 	name := boardgames.TransformName(price.Name)
 	bgg_results, err := bgg.Search(name)
-	fmt.Println("2", err)
 	if err != nil {
 		return nil, err
 	}

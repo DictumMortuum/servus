@@ -86,18 +86,7 @@ func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 		return nil, err
 	}
 
-	deta_db, err := deta.New("prices")
-	if err != nil {
-		return nil, err
-	}
-
 	rs.Key = fmt.Sprintf("%d", rs.Id)
-
-	err = deta.Populate(deta_db, rs)
-	if err != nil {
-		return nil, err
-	}
-
 	rs.TransformedName = TransformName(rs.Name)
 
 	return &rs, nil
