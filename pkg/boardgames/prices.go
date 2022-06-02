@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
+	"github.com/DictumMortuum/servus/pkg/boardgames/deta"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"regexp"
@@ -82,6 +83,18 @@ func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 			p.id = ? and
 			p.store_id = s.id
 	`, id).StructScan(&rs)
+	if err != nil {
+		return nil, err
+	}
+
+	deta_db, err := deta.New("prices")
+	if err != nil {
+		return nil, err
+	}
+
+	rs.Key = fmt.Sprintf("%d", rs.Id)
+
+	err = deta.Populate(deta_db, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -207,6 +220,21 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
+	if args.Resources["deta"] {
+		deta_db, err := deta.New("prices")
+		if err != nil {
+			return nil, err
+		}
+
+		for _, item := range rs {
+			item.Key = fmt.Sprintf("%d", item.Id)
+			err = deta.Populate(deta_db, item)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	if args.Resources["history"] {
 		retval := []models.Price{}
 
@@ -217,7 +245,6 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			}
 			retval = append(retval, item)
 		}
-
 		return retval, nil
 	} else {
 		retval := []models.Price{}

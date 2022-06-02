@@ -15,6 +15,7 @@ type HistoricPrice struct {
 
 type Price struct {
 	Id              int64           `db:"id" json:"id"`
+	Key             string          `json:"key"`
 	CrDate          time.Time       `db:"cr_date" json:"cr_date"`
 	Name            string          `db:"name" json:"name"`
 	TransformedName string          `json:"transformed_name"`
