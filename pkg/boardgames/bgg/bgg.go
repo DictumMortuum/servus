@@ -208,8 +208,6 @@ func BggSearch(c *gin.Context) {
 	c.BindJSON(&payload)
 
 	link := fmt.Sprintf("https://www.boardgamegeek.com/xmlapi2/search?query=%s&type=boardgame", url.QueryEscape(payload.Term))
-
-	fmt.Println(payload, link)
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		util.Error(c, err)

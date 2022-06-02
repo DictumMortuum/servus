@@ -2,7 +2,6 @@ package atlas
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/util"
@@ -89,7 +88,6 @@ func AtlasSearch(c *gin.Context) {
 	c.BindJSON(&payload)
 
 	link := "https://api.boardgameatlas.com/api/search?name=" + url.QueryEscape(payload.Term) + "&pretty=true&client_id=" + config.App.Atlas.ClientId
-	fmt.Println(link)
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		util.Error(c, err)

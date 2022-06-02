@@ -6,7 +6,6 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
-	"log"
 	"time"
 )
 
@@ -19,7 +18,6 @@ func MapBGG(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	name := boardgames.TransformName(price.Name)
-	log.Println(name)
 	bgg_results, err := bgg.Search(name)
 	if err != nil {
 		return nil, err
@@ -40,7 +38,6 @@ func SearchBGGTerm(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) 
 	rs := []mapping{}
 
 	name := boardgames.TransformName(args.Data["term"].(string))
-	log.Println(name)
 	bgg_results, err := bgg.Search(name)
 	if err != nil {
 		return nil, err
