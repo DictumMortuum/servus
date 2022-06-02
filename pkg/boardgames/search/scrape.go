@@ -29,6 +29,7 @@ var allowed_domains = []string{
 	"www.gameexplorers.gr",
 	"crystallotus.eu",
 	"avalongames.gr",
+	"rollnplay.gr",
 }
 
 func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, error) {
@@ -623,6 +624,47 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		})
 	})
 
+	collector.OnHTML(".woocommerce-pagination a.next", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://rollnplay.gr") {
+			return
+		}
+
+		link := e.Attr("href")
+		log.Println("Visiting: " + link)
+		queue.AddURL(link)
+	})
+
+	collector.OnHTML(".product.type-product", func(e *colly.HTMLElement) {
+		if !strings.Contains(e.Request.URL.String(), "https://rollnplay.gr") {
+			return
+		}
+
+		raw_price := e.ChildText(".price ins .amount")
+
+		if raw_price == "" {
+			raw_price = e.ChildText(".price .amount")
+		}
+
+		var stock int
+
+		if hasClass(e, "instock") {
+			stock = 0
+		} else if hasClass(e, "onbackorder") {
+			stock = 1
+		} else if hasClass(e, "outofstock") {
+			stock = 2
+		}
+
+		rs = append(rs, models.Price{
+			Name:       e.ChildText(".heading-title"),
+			StoreId:    26,
+			StoreThumb: e.ChildAttr(".has-back-image img", "data-src"),
+			Stock:      stock,
+			Price:      getPrice(raw_price),
+			Url:        e.ChildAttr(".heading-title a", "href"),
+		})
+	})
+
 	// // No Label X
 	// collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 	// 	if !strings.Contains(e.Request.URL.String(), "www.skroutz.gr") {
@@ -671,6 +713,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	queue.AddURL("https://www.gameexplorers.gr/kartes-epitrapezia/epitrapezia-paixnidia/items-grid-date-desc-1-60.html")
 	queue.AddURL("https://crystallotus.eu/collections/board-games")
 	queue.AddURL("https://avalongames.gr/index.php?route=product/category&path=59&limit=100")
+	queue.AddURL("https://rollnplay.gr/?product_cat=all-categories")
 	queue.Run(collector)
 
 	store_ids := []int64{}
