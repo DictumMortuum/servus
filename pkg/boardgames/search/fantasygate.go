@@ -1,13 +1,49 @@
 package search
 
 import (
+	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
+	"github.com/streadway/amqp"
 )
+
+func setupQueue(topic string) (*amqp.Connection, *amqp.Channel, *amqp.Queue, error) {
+	uri := config.App.Databases["rabbitmq"]
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	q, err := ch.QueueDeclare(
+		topic, // name
+		false, // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return conn, ch, &q, nil
+}
 
 func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	rs := []models.Price{}
+
+	conn, ch, q, err := setupQueue("prices2")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	defer ch.Close()
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.fantasygate.gr"),
@@ -48,7 +84,7 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 
 	collector.Wait()
 
-	err := updateBatch(db, 2)
+	err = updateBatch(db, 2)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +94,22 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		if err != nil {
 			return nil, err
 		}
+
+		body, err := item.ToGOB64()
+		if err != nil {
+			return nil, err
+		}
+
+		err = ch.Publish(
+			"",     // exchange
+			q.Name, // routing key
+			false,  // mandatory
+			false,  // immediate
+			amqp.Publishing{
+				ContentType: "application/json",
+				Body:        []byte(body),
+			},
+		)
 	}
 
 	return rs, nil
