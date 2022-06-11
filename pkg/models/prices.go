@@ -48,3 +48,21 @@ func (p Price) ToGOB64() (string, error) {
 	}
 	return base64.StdEncoding.EncodeToString(b.Bytes()), nil
 }
+
+func (p *Price) FromGOB64(str string) error {
+	by, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return err
+	}
+
+	b := bytes.Buffer{}
+	b.Write(by)
+	d := gob.NewDecoder(&b)
+
+	err = d.Decode(&p)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
