@@ -79,7 +79,7 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 	}
 
 	for _, item := range prices {
-		err = upsertPrice(db, item)
+		err = UpsertPrice(db, item)
 		if err != nil {
 			return nil, err
 		}

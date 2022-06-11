@@ -93,7 +93,7 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	}
 
 	for _, item := range prices {
-		err = upsertPrice(db, item)
+		err = UpsertPrice(db, item)
 		if err != nil {
 			return nil, err
 		}

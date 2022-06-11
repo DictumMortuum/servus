@@ -67,7 +67,7 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	}
 
 	for _, item := range rs {
-		err = upsertPrice(db, item)
+		err = UpsertPrice(db, item)
 		if err != nil {
 			return nil, err
 		}

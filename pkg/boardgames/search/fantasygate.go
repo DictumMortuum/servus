@@ -90,7 +90,7 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	}
 
 	for _, item := range rs {
-		err = upsertPrice(db, item)
+		err = UpsertPrice(db, item)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +106,7 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 			false,  // mandatory
 			false,  // immediate
 			amqp.Publishing{
-				ContentType: "application/json",
+				ContentType: "text/plain",
 				Body:        []byte(body),
 			},
 		)

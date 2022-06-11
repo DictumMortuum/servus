@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func upsertPrice(db *sqlx.DB, item models.Price) error {
+func UpsertPrice(db *sqlx.DB, item models.Price) error {
 	item.BoardgameId = models.JsonNullInt64{
 		Int64: -1,
 		Valid: false,
