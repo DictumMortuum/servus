@@ -8,10 +8,6 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/images"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
 	"github.com/DictumMortuum/servus/pkg/boardgames/search"
-	"github.com/DictumMortuum/servus/pkg/calendar"
-	"github.com/DictumMortuum/servus/pkg/calendar/generate"
-	"github.com/DictumMortuum/servus/pkg/calendar/parse"
-	"github.com/DictumMortuum/servus/pkg/calendar/validate"
 	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/food"
 	"github.com/DictumMortuum/servus/pkg/gas"
@@ -95,10 +91,8 @@ func main() {
 	}))
 
 	r.SetFuncMap(template.FuncMap{
-		"formatDate":       util.FormatDate,
-		"formatDay":        util.FormatDay,
-		"formatShift":      calendar.FormatShift,
-		"formatShiftColor": calendar.FormatShiftColor,
+		"formatDate": util.FormatDate,
+		"formatDay":  util.FormatDay,
 	})
 
 	r.LoadHTMLGlob(path_templates)
@@ -110,15 +104,6 @@ func main() {
 	r.GET("/version", func(c *gin.Context) {
 		c.FileFromFS("/assets/version.json", http.FS(staticFS))
 	})
-
-	cal := r.Group("/calendar")
-	{
-		cal.GET("/generate", generate.Handler)
-		cal.POST("/parse", parse.Handler)
-		cal.GET("/sync", parse.SyncToNextcloud)
-		cal.POST("/validate", validate.Validate)
-		cal.GET("/", parse.Render)
-	}
 
 	zt := r.Group("/zerotier")
 	{
