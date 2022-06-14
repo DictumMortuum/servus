@@ -6,8 +6,42 @@ import (
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"net/http"
+	"sync"
 )
+
+func C(f []func(*sqlx.DB, *models.QueryBuilder) (interface{}, error)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		var wg sync.WaitGroup
+
+		args, err := models.NewArgsFromContext(c)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+
+		database, err := db.Conn()
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+		defer database.Close()
+
+		for i := 1; i <= len(f); i++ {
+			wg.Add(1)
+			fn := f[i-1]
+			go func() {
+				defer wg.Done()
+				fn(database, args)
+			}()
+		}
+
+		wg.Wait()
+
+		c.JSON(http.StatusOK, nil)
+	}
+}
 
 func A(f []func(*sqlx.DB, *models.QueryBuilder) (interface{}, error)) func(*gin.Context) {
 	return func(c *gin.Context) {
