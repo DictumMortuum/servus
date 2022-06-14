@@ -8,9 +8,9 @@ import (
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	google "github.com/rocketlaunchr/google-search"
+	// google "github.com/rocketlaunchr/google-search"
 	"sort"
-	"strings"
+	// "strings"
 )
 
 func updatePrice(db *sqlx.DB, payload models.Price) (bool, error) {
@@ -160,22 +160,22 @@ func fuzzyFind(col []string) func(string) fuzzy.Ranks {
 	}
 }
 
-func googlesearch(s string) ([]string, error) {
-	retval := []string{}
+// func googlesearch(s string) ([]string, error) {
+// 	retval := []string{}
 
-	rs, err := google.Search(nil, s)
-	if err != nil {
-		return nil, err
-	}
+// 	rs, err := google.Search(nil, s)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	for _, item := range rs {
-		if strings.Contains(item.URL, "boardgamegeek") {
-			retval = append(retval, item.URL)
-		}
-	}
+// 	for _, item := range rs {
+// 		if strings.Contains(item.URL, "boardgamegeek") {
+// 			retval = append(retval, item.URL)
+// 		}
+// 	}
 
-	return retval, nil
-}
+// 	return retval, nil
+// }
 
 func Map(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	price, err := getPrice(db, args.Id)
@@ -220,12 +220,14 @@ func Map(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return atlas_results, nil
 	}
 
-	google_results, err := googlesearch(name)
-	if err != nil {
-		return nil, err
-	}
+	return atlas_results, nil
 
-	return google_results, nil
+	// google_results, err := googlesearch(name)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return google_results, nil
 }
 
 func MapAll(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
