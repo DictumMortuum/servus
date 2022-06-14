@@ -61,6 +61,7 @@ func TransformName(s string) string {
 	tmp = strings.ReplaceAll(tmp, "κάισσα", "")
 	tmp = strings.ReplaceAll(tmp, "lcg", "")
 	tmp = strings.ReplaceAll(tmp, "επέκταση", "")
+	tmp = strings.ReplaceAll(tmp, " en ", "")
 	return tmp
 }
 
