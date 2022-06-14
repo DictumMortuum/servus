@@ -91,8 +91,10 @@ func main() {
 	}))
 
 	r.SetFuncMap(template.FuncMap{
-		"formatDate": util.FormatDate,
-		"formatDay":  util.FormatDay,
+		"formatDate":       util.FormatDate,
+		"formatDay":        util.FormatDay,
+		"formatShift":      util.FormatShift,
+		"formatShiftColor": util.FormatShiftColor,
 	})
 
 	r.LoadHTMLGlob(path_templates)

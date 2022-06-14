@@ -1,10 +1,21 @@
 package util
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
 	"time"
+)
+
+const (
+	DAY_OFF         = -1
+	NORMAL_LEAVE    = -2
+	SICK_LEAVE      = -3
+	PUBLIC_HOLIDAY  = -4
+	PERENNIAL_LEAVE = -5
+	MARRIAGE_LEAVE  = -6
+	UNKNOWN_LEAVE   = -100
 )
 
 func stringToDateTimeHook(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
@@ -60,4 +71,46 @@ func FormatDate(t time.Time) string {
 
 func FormatDay(t time.Time) string {
 	return t.Format("Monday")
+}
+
+func FormatShiftColor(shift int) string {
+	if shift == 3 {
+		return "table-danger"
+	} else if shift == 23 {
+		return "table-primary"
+	} else if shift == DAY_OFF {
+		return "table-success"
+	} else if shift == NORMAL_LEAVE {
+		return "table-warning"
+	} else if shift == SICK_LEAVE {
+		return "table-warning"
+	} else if shift == PUBLIC_HOLIDAY {
+		return "table-warning"
+	} else if shift == PERENNIAL_LEAVE {
+		return "table-warning"
+	} else if shift == MARRIAGE_LEAVE {
+		return "table-warning"
+	} else {
+		return ""
+	}
+}
+
+func FormatShift(shift int) string {
+	if shift >= 0 {
+		return fmt.Sprintf("Βάρδια %d", shift)
+	} else if shift == DAY_OFF {
+		return "Ρεπό"
+	} else if shift == NORMAL_LEAVE {
+		return "Άδεια"
+	} else if shift == SICK_LEAVE {
+		return "Ασθένεια"
+	} else if shift == PUBLIC_HOLIDAY {
+		return "Αργία"
+	} else if shift == PERENNIAL_LEAVE {
+		return "Πολυετία"
+	} else if shift == MARRIAGE_LEAVE {
+		return "Άδεια γάμου"
+	} else {
+		return "Άγνωστο"
+	}
 }
