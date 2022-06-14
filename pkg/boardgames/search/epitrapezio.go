@@ -7,8 +7,8 @@ import (
 	"log"
 )
 
-func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	store_id := int64(2)
+func ScrapeEpitrapezio(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	store_id := int64(15)
 
 	log.Printf("Scraper %d started\n", store_id)
 
@@ -25,27 +25,32 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	}
 
 	collector := colly.NewCollector(
-		colly.AllowedDomains("www.fantasygate.gr"),
+		colly.AllowedDomains("epitrapez.io"),
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
 	)
 
-	collector.OnHTML(".sblock4", func(e *colly.HTMLElement) {
-		var stock int
-		raw_price := e.ChildText(".jshop_price")
+	collector.OnHTML("li.product.type-product", func(e *colly.HTMLElement) {
+		raw_price := e.ChildText(".price ins .amount")
 
-		if childHasClass(e, ".btn", "button_buy") {
+		if raw_price == "" {
+			raw_price = e.ChildText(".price .amount")
+		}
+
+		var stock int
+
+		if e.ChildText("a.add_to_cart_button") != "" {
 			stock = 0
 		} else {
 			stock = 2
 		}
 
 		item := models.Price{
-			Name:       e.ChildText(".name"),
+			Name:       e.ChildText(".woocommerce-loop-product__title"),
 			StoreId:    store_id,
-			StoreThumb: e.ChildAttr(".jshop_img", "src"),
+			StoreThumb: e.ChildAttr(".epz-product-thumbnail img", "data-src"),
 			Stock:      stock,
 			Price:      getPrice(raw_price),
-			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
+			Url:        e.ChildAttr(".woocommerce-LoopProduct-link", "href"),
 		}
 
 		err = insertQueueItem(ch, q, item)
@@ -54,18 +59,13 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		}
 	})
 
-	collector.Post("https://www.fantasygate.gr/strategygames", map[string]string{
-		"limit": "99999",
+	collector.OnHTML(".woocommerce-pagination a.next", func(e *colly.HTMLElement) {
+		link := e.Attr("href")
+		log.Println("Visiting: " + link)
+		collector.Visit(link)
 	})
 
-	collector.Post("https://www.fantasygate.gr/family-games", map[string]string{
-		"limit": "99999",
-	})
-
-	collector.Post("https://www.fantasygate.gr/cardgames", map[string]string{
-		"limit": "99999",
-	})
-
+	collector.Visit("https://epitrapez.io/product-category/epitrapezia/?Stock=allstock")
 	collector.Wait()
 
 	return nil, nil

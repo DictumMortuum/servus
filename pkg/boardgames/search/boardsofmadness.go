@@ -5,6 +5,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -37,6 +38,22 @@ func madnessAvailbilityToStock(s string) int {
 }
 
 func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	store_id := int64(16)
+
+	log.Printf("Scraper %d started\n", store_id)
+
+	rconn, ch, q, err := setupQueue("prices")
+	if err != nil {
+		return nil, err
+	}
+	defer rconn.Close()
+	defer ch.Close()
+
+	err = updateBatch(db, store_id)
+	if err != nil {
+		return nil, err
+	}
+
 	link := "https://boardsofmadness.com/wp-content/uploads/woo-product-feed-pro/xml/sVVFMsJLyEEtvbil4fbIOdm8b4ha7ewz.xml"
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -61,29 +78,21 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 		return nil, err
 	}
 
-	prices := []models.Price{}
 	for _, item := range rs.Products {
-		prices = append(prices, models.Price{
+		item := models.Price{
 			Name:       item.Name,
-			StoreId:    16,
+			StoreId:    store_id,
 			StoreThumb: item.ThumbUrl,
 			Stock:      madnessAvailbilityToStock(item.Stock),
 			Price:      getPrice(item.Price),
 			Url:        item.Link,
-		})
-	}
+		}
 
-	err = updateBatch(db, 16)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range prices {
-		err = UpsertPrice(db, item)
+		err = insertQueueItem(ch, q, item)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return prices, nil
+	return rs.Products, nil
 }

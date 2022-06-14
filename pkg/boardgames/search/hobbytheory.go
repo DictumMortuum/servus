@@ -5,6 +5,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -31,6 +32,22 @@ type product struct {
 }
 
 func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	store_id := int64(23)
+
+	log.Printf("Scraper %d started\n", store_id)
+
+	rconn, ch, q, err := setupQueue("prices")
+	if err != nil {
+		return nil, err
+	}
+	defer rconn.Close()
+	defer ch.Close()
+
+	err = updateBatch(db, store_id)
+	if err != nil {
+		return nil, err
+	}
+
 	link := "https://feed.syntogether.com/skroutz/xml?shop=hobbytheory.myshopify.com"
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
@@ -63,7 +80,6 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		"Θεματικά Επιτραπέζια Παιχνίδια",
 	}
 
-	prices := []models.Price{}
 	for _, item := range rs.Store.Products {
 		for _, category := range categories {
 			if item.Category == category {
@@ -75,29 +91,22 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 					stock = 2
 				}
 
-				prices = append(prices, models.Price{
+				item := models.Price{
 					Name:       item.Name,
-					StoreId:    23,
+					StoreId:    store_id,
 					StoreThumb: item.ThumbUrl,
 					Stock:      stock,
 					Price:      getPrice(item.Price),
 					Url:        item.Link,
-				})
+				}
+
+				err = insertQueueItem(ch, q, item)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 		}
 	}
 
-	err = updateBatch(db, 23)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range prices {
-		err = UpsertPrice(db, item)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return prices, nil
+	return nil, nil
 }

@@ -1,28 +1,36 @@
 package search
 
 import (
-	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/w3m"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"net/http"
 )
 
 func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	rs := []models.Price{}
+	store_id := int64(18)
+
+	log.Printf("Scraper %d started\n", store_id)
+
+	conn, ch, q, err := setupQueue("prices")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	defer ch.Close()
+
+	err = updateBatch(db, store_id)
+	if err != nil {
+		return nil, err
+	}
 
 	t := &http.Transport{}
 	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
 	c := colly.NewCollector()
 	c.WithTransport(t)
-
-	c.OnHTML(".col-tile", func(e *colly.HTMLElement) {
-		raw_price := e.ChildText(".ty-price")
-		name := e.ChildText(".product-title")
-		fmt.Println(name, raw_price)
-	})
 
 	c.OnHTML("a.ty-pagination__next", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
@@ -40,14 +48,19 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			stock = 2
 		}
 
-		rs = append(rs, models.Price{
+		item := models.Price{
 			Name:       e.ChildText(".product-title"),
-			StoreId:    18,
+			StoreId:    store_id,
 			StoreThumb: e.ChildAttr(".cm-image", "src"),
 			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".product-title", "href"),
-		})
+		}
+
+		err = insertQueueItem(ch, q, item)
+		if err != nil {
+			log.Println(err)
+		}
 	})
 
 	for _, url := range []string{"https://www.gamescom.gr/epitrapezia-el/", "https://www.gamescom.gr/epitrapezia-el/category-124/"} {
@@ -60,18 +73,6 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	}
 
 	c.Wait()
-
-	err := updateBatch(db, 18)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range rs {
-		err = UpsertPrice(db, item)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	return nil, nil
 }

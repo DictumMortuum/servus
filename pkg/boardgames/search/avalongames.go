@@ -1,14 +1,15 @@
 package search
 
 import (
+	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
 	"log"
 )
 
-func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	store_id := int64(2)
+func ScrapeAvalon(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	store_id := int64(25)
 
 	log.Printf("Scraper %d started\n", store_id)
 
@@ -25,15 +26,20 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	}
 
 	collector := colly.NewCollector(
-		colly.AllowedDomains("www.fantasygate.gr"),
+		colly.AllowedDomains("avalongames.gr"),
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
 	)
 
-	collector.OnHTML(".sblock4", func(e *colly.HTMLElement) {
-		var stock int
-		raw_price := e.ChildText(".jshop_price")
+	collector.OnHTML(".product-layout", func(e *colly.HTMLElement) {
+		raw_price := e.ChildText(".price-normal")
 
-		if childHasClass(e, ".btn", "button_buy") {
+		if raw_price == "" {
+			raw_price = e.ChildText(".price-new")
+		}
+
+		var stock int
+
+		if !hasClass(e, ".out-of-stock") {
 			stock = 0
 		} else {
 			stock = 2
@@ -42,7 +48,7 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		item := models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    store_id,
-			StoreThumb: e.ChildAttr(".jshop_img", "src"),
+			StoreThumb: e.ChildAttr(".product-img div img", "src"),
 			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".name a", "href")),
@@ -54,18 +60,16 @@ func ScrapeFantasyGate(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		}
 	})
 
-	collector.Post("https://www.fantasygate.gr/strategygames", map[string]string{
-		"limit": "99999",
+	collector.OnHTML(".pagination-results", func(e *colly.HTMLElement) {
+		pageCount := getPages(e.Text)
+		for i := 2; i <= pageCount; i++ {
+			link := fmt.Sprintf("https://avalongames.gr/index.php?route=product/category&path=59&limit=100&page=%d", i)
+			log.Println("Visiting: ", link)
+			collector.Visit(link)
+		}
 	})
 
-	collector.Post("https://www.fantasygate.gr/family-games", map[string]string{
-		"limit": "99999",
-	})
-
-	collector.Post("https://www.fantasygate.gr/cardgames", map[string]string{
-		"limit": "99999",
-	})
-
+	collector.Visit("https://avalongames.gr/index.php?route=product/category&path=59&limit=100")
 	collector.Wait()
 
 	return nil, nil
