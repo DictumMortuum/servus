@@ -110,6 +110,13 @@ func Ignore(price models.Price) bool {
 		"claymates",
 		"hasbro",
 		"trivia quiz",
+		"polly pocket",
+		"ρόλων",
+		"κουτί τράπουλας",
+		"παζλ",
+		"toploader",
+		"τράπουλα",
+		"gigamic",
 	}
 
 	for _, ignore := range ignored {
