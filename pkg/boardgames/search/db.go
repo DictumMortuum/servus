@@ -19,18 +19,18 @@ func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 	}
 
 	if id == nil {
-		_, id, err := create(db, item)
+		_, key, err := create(db, item)
 		if err != nil {
 			return -1, err
 		}
-		return id, nil
+		return key, nil
 	} else {
 		item.Id = id.Int64
-		_, id, err := update(db, item)
+		_, key, err := update(db, item)
 		if err != nil {
-			return id, err
+			return key, err
 		}
-		return id, nil
+		return id.Int64, nil
 	}
 }
 
