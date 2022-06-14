@@ -101,6 +101,15 @@ func Ignore(price models.Price) bool {
 		"desyllas",
 		"playing cards",
 		"tcg",
+		"jenga",
+		"memory game",
+		"tarot cards",
+		"tarot deck",
+		"chess set",
+		"roleplaying",
+		"claymates",
+		"hasbro",
+		"trivia quiz",
 	}
 
 	for _, ignore := range ignored {
