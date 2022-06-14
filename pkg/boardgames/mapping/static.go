@@ -34,7 +34,7 @@ func MapStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	match, err := getBoardgameName(db, price.Name)
+	match, err := getBoardgameName(db, boardgames.TransformName(price.Name))
 	if err != nil {
 		return nil, err
 	}
