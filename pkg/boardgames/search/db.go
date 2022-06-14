@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func UpsertPrice(db *sqlx.DB, item models.Price) error {
+func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 	item.BoardgameId = models.JsonNullInt64{
 		Int64: -1,
 		Valid: false,
@@ -15,23 +15,23 @@ func UpsertPrice(db *sqlx.DB, item models.Price) error {
 
 	id, err := findPrice(db, item)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if id == nil {
-		_, err := create(db, item)
+		_, id, err := create(db, item)
 		if err != nil {
-			return err
+			return -1, err
 		}
+		return id, nil
 	} else {
 		item.Id = id.Int64
-		_, err := update(db, item)
+		_, id, err := update(db, item)
 		if err != nil {
-			return err
+			return id, err
 		}
+		return id, nil
 	}
-
-	return nil
 }
 
 func normalize_dates(db *sqlx.DB) (bool, error) {
@@ -267,7 +267,7 @@ func updateBatch(db *sqlx.DB, store_id int64) error {
 	return nil
 }
 
-func update(db *sqlx.DB, payload models.Price) (bool, error) {
+func update(db *sqlx.DB, payload models.Price) (bool, int64, error) {
 	q := `
 		update
 			tboardgameprices
@@ -284,18 +284,23 @@ func update(db *sqlx.DB, payload models.Price) (bool, error) {
 
 	rs, err := db.NamedExec(q, payload)
 	if err != nil {
-		return false, err
+		return false, -1, err
 	}
 
 	rows, err := rs.RowsAffected()
 	if err != nil {
-		return false, err
+		return false, -1, err
 	}
 
-	return rows > 0, nil
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
 }
 
-func create(db *sqlx.DB, payload models.Price) (bool, error) {
+func create(db *sqlx.DB, payload models.Price) (bool, int64, error) {
 	q := `
 		insert into tboardgameprices (
 			boardgame_id,
@@ -323,15 +328,20 @@ func create(db *sqlx.DB, payload models.Price) (bool, error) {
 
 	rs, err := db.NamedExec(q, payload)
 	if err != nil {
-		return false, err
+		return false, -1, err
 	}
 
 	rows, err := rs.RowsAffected()
 	if err != nil {
-		return false, err
+		return false, -1, err
 	}
 
-	return rows > 0, nil
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
 }
 
 func UpdateMappings(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {

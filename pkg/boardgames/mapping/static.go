@@ -35,11 +35,35 @@ func MapStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	match, err := getBoardgameName(db, boardgames.TransformName(price.Name))
-	if err != nil {
-		return nil, err
+	if match != nil {
+		price.BoardgameId = models.JsonNullInt64{
+			Int64: match.BoardgameId,
+			Valid: true,
+		}
+
+		updatePrice(db, *price)
 	}
 
 	return match, nil
+}
+
+func MapPrice(db *sqlx.DB, id int64) error {
+	price, err := boardgames.GetPriceById(db, id)
+	if err != nil {
+		return err
+	}
+
+	match, err := getBoardgameName(db, boardgames.TransformName(price.Name))
+	if match != nil {
+		price.BoardgameId = models.JsonNullInt64{
+			Int64: match.BoardgameId,
+			Valid: true,
+		}
+
+		updatePrice(db, *price)
+	}
+
+	return nil
 }
 
 func Ignore(price models.Price) bool {
