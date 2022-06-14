@@ -184,6 +184,7 @@ func main() {
 			search.ScrapeRollnplay,
 			search.ScrapeVgames,
 			search.ScrapeXrysoFtero,
+			search.ScrapeGenx,
 		}))
 
 		rest.GET("/mapping2/all", generic.F(mapping.MapAll))
