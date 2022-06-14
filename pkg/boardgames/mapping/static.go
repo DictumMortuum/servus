@@ -42,11 +42,8 @@ func MapStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return match, nil
 }
 
-func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	prices, err := getPricesWithoutMappings(db)
-	if err != nil {
-		return nil, err
-	}
+func Ignore(price models.Price) bool {
+	tmp := strings.ToLower(price.Name)
 
 	ignored := []string{
 		"dobble",
@@ -78,24 +75,37 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		"κουτί για χαρτιά",
 		"orchard toys",
 		"desyllas",
+		"playing cards",
+		"tcg",
+	}
+
+	for _, ignore := range ignored {
+		if strings.Contains(tmp, ignore) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
+	prices, err := getPricesWithoutMappings(db)
+	if err != nil {
+		return nil, err
 	}
 
 	retval := []models.Price{}
 	l := len(prices)
 
 	for _, price := range prices {
-		tmp := strings.ToLower(price.Name)
-
-		for _, ignore := range ignored {
-			if strings.Contains(tmp, ignore) {
-				price.BoardgameId = models.JsonNullInt64{
-					Int64: 23953,
-					Valid: true,
-				}
-
-				updatePrice(db, price)
-				break
+		if Ignore(price) {
+			price.BoardgameId = models.JsonNullInt64{
+				Int64: 23953,
+				Valid: true,
 			}
+
+			updatePrice(db, price)
+			break
 		}
 	}
 
