@@ -2,9 +2,11 @@ package search
 
 import (
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/w3m"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"net/http"
 )
 
 func ScrapeMeepleOnBoard(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
@@ -24,12 +26,13 @@ func ScrapeMeepleOnBoard(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 		return nil, err
 	}
 
-	collector := colly.NewCollector(
-		colly.AllowedDomains("meepleonboard.gr"),
-		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
-	)
+	t := &http.Transport{}
+	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
 
-	collector.OnHTML("div.product-small.product-type-simple", func(e *colly.HTMLElement) {
+	collector := colly.NewCollector()
+	collector.WithTransport(t)
+
+	collector.OnHTML("div.product-small.purchasable", func(e *colly.HTMLElement) {
 		raw_price := e.ChildText(".amount")
 
 		var stock int
@@ -60,10 +63,16 @@ func ScrapeMeepleOnBoard(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	collector.OnHTML("a.next", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		log.Println("Visiting: " + link)
-		collector.Visit(link)
+		local_link, _ := w3m.BypassCloudflare(link)
+		collector.Visit(local_link)
 	})
 
-	collector.Visit("https://meepleonboard.gr/product-category/board-games")
+	local, err := w3m.BypassCloudflare("https://meepleonboard.gr/product-category/board-games")
+	if err != nil {
+		return nil, err
+	}
+
+	collector.Visit(local)
 	collector.Wait()
 
 	return nil, nil
