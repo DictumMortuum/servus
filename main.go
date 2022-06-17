@@ -150,6 +150,7 @@ func main() {
 	{
 		rest.GET("/scrape/database", generic.F(search.UpdateMappings))
 		rest.GET("/scrape", generic.C([]func(*sqlx.DB, *models.QueryBuilder) (interface{}, error){
+			search.ScrapeFantasyShop,
 			search.ScrapeAvalon,
 			search.ScrapeBoardsOfMadness,
 			search.ScrapeCrystalLotus,
