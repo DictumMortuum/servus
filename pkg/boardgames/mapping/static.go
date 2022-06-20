@@ -117,6 +117,14 @@ func Ignore(price models.Price) bool {
 		"toploader",
 		"τράπουλα",
 		"gigamic",
+		"50/50 games",
+		"brainbox",
+		"κουτί τράπουλας",
+		"τράπουλα μονή",
+		"ρόλων",
+		"as επιτραπέζιο",
+		"ultra pro",
+		"as games",
 	}
 
 	for _, ignore := range ignored {
