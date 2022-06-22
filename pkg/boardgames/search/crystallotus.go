@@ -2,9 +2,11 @@ package search
 
 import (
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/w3m"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -25,29 +27,26 @@ func ScrapeCrystalLotus(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 		return nil, err
 	}
 
-	collector := colly.NewCollector(
-		colly.AllowedDomains("crystallotus.eu"),
-		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
-	)
+	t := &http.Transport{}
+	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
+
+	collector := colly.NewCollector()
+	collector.WithTransport(t)
 
 	collector.OnHTML(".grid__item", func(e *colly.HTMLElement) {
-		link := e.ChildAttr(".product-card__image-with-placeholder-wrapper img", "data-src")
+		link := e.ChildAttr(".motion-reduce", "src")
 		if strings.HasPrefix(link, "//") {
 			link = "https:" + link
 		}
 
-		if strings.Contains(link, "{width}") {
-			link = strings.Replace(link, "{width}", "2048", -1)
-		}
-
 		raw_price := e.ChildText(".price__sale")
 		item := models.Price{
-			Name:       e.ChildText("a.grid-view-item__link"),
+			Name:       e.ChildText(".card-information__text"),
 			StoreId:    store_id,
 			StoreThumb: link,
 			Stock:      0,
 			Price:      getPrice(raw_price),
-			Url:        e.Request.AbsoluteURL(e.ChildAttr("a.grid-view-item__link", "href")),
+			Url:        "https://crystallotus.eu" + e.ChildAttr("a.card-information__text", "href"),
 		}
 
 		err = insertQueueItem(ch, q, item)
@@ -56,13 +55,19 @@ func ScrapeCrystalLotus(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 		}
 	})
 
-	collector.OnHTML(".pagination a", func(e *colly.HTMLElement) {
-		link := e.Request.AbsoluteURL(e.Attr("href"))
+	collector.OnHTML(".pagination__list li:last-child a", func(e *colly.HTMLElement) {
+		link := "https://crystallotus.eu" + e.Attr("href")
 		log.Println("Visiting: " + link)
-		collector.Visit(link)
+		local_link, _ := w3m.BypassCloudflare(link)
+		collector.Visit(local_link)
 	})
 
-	collector.Visit("https://crystallotus.eu/collections/board-games")
+	local, err := w3m.BypassCloudflare("https://crystallotus.eu/collections/board-games")
+	if err != nil {
+		return nil, err
+	}
+
+	collector.Visit(local)
 	collector.Wait()
 
 	return nil, nil
