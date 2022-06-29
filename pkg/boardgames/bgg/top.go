@@ -69,7 +69,7 @@ func GetTopBoardgames(col *gin.Context) {
 		raw_rank := e.ChildText(".collection_rank")
 		name := e.ChildText(".collection_objectname div a")
 		url := e.ChildAttr(".collection_objectname div a", "href")
-		// thumb := e.ChildAttr(".collection_thumbnail a img", "src")
+		thumb := e.ChildAttr(".collection_thumbnail a img", "src")
 		tokens := strings.Split(url, "/")
 
 		if len(tokens) == 4 {
@@ -77,10 +77,11 @@ func GetTopBoardgames(col *gin.Context) {
 			rank, _ := strconv.ParseInt(raw_rank, 10, 64)
 
 			d := map[string]interface{}{
-				"name": name,
-				"rank": rank,
-				"url":  url,
-				"id":   raw_id,
+				"name":    name,
+				"rank":    rank,
+				"url":     url,
+				"id":      raw_id,
+				"preview": thumb,
 			}
 
 			id, err := exists(database, d)
@@ -134,7 +135,7 @@ func exists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64,
 }
 
 func create(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
-	q := `insert into tboardgames (id,name,rank,configured) values (:id,:name,:rank,0)`
+	q := `insert into tboardgames (id,name,rank,configured,preview) values (:id,:name,:rank,0,:preview)`
 
 	rs, err := db.NamedExec(q, payload)
 	if err != nil {
@@ -155,7 +156,8 @@ func updateRank(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
 		update
 			tboardgames
 		set
-			rank = :rank
+			rank = :rank,
+			preview = :preview
 		where
 			id = :id
 	`

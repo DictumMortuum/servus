@@ -73,6 +73,7 @@ func GetPriceById(db *sqlx.DB, id int64) (*models.Price, error) {
 			p.*,
 			g.rank,
 			IFNULL(g.thumb,"") as thumb,
+			IFNULL(g.preview,"") as preview,
 			IFNULL(g.name,"") as boardgame_name,
 			s.name as store_name
 		from
@@ -168,6 +169,7 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			p.*,
 			g.rank,
 			IFNULL(g.thumb,"") as thumb,
+			IFNULL(g.preview,"") as preview,
 			IFNULL(g.name,"") as boardgame_name,
 			s.name as store_name
 		from

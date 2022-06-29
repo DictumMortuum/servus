@@ -178,6 +178,18 @@ func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		}
 	}
 
+	if val, ok := args.Data["preview"]; ok {
+		rs.Thumb = models.JsonNullString{
+			String: val.(string),
+			Valid:  true,
+		}
+	} else {
+		rs.Thumb = models.JsonNullString{
+			String: "",
+			Valid:  false,
+		}
+	}
+
 	if val, ok := args.Data["rank"]; ok {
 		rs.Rank = models.JsonNullInt64{
 			Int64: int64(val.(float64)),
@@ -247,6 +259,18 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 	}
 
 	if val, ok := args.Data["thumb"]; ok {
+		rs.Thumb = models.JsonNullString{
+			String: val.(string),
+			Valid:  true,
+		}
+	} else {
+		rs.Thumb = models.JsonNullString{
+			String: "",
+			Valid:  false,
+		}
+	}
+
+	if val, ok := args.Data["preview"]; ok {
 		rs.Thumb = models.JsonNullString{
 			String: val.(string),
 			Valid:  true,

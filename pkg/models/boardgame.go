@@ -13,5 +13,6 @@ type Boardgame struct {
 	Cost       JsonNullFloat64 `db:"cost" json:"cost"`
 	Rank       JsonNullInt64   `db:"rank" json:"rank"`
 	Thumb      JsonNullString  `db:"thumb" json:"thumb"`
+	Preview    JsonNullString  `db:"preview" json:"preview"`
 	Configured bool            `db:"configured" json:"configured"`
 }
