@@ -2,12 +2,13 @@ package search
 
 import (
 	"github.com/DictumMortuum/servus/pkg/config"
+	"github.com/DictumMortuum/servus/pkg/gob64"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/streadway/amqp"
 )
 
 func insertQueueItem(ch *amqp.Channel, q *amqp.Queue, item models.Price) error {
-	body, err := item.ToGOB64()
+	body, err := gob64.ToGOB64(item)
 	if err != nil {
 		return err
 	}
