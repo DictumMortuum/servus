@@ -298,7 +298,6 @@ func CreatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	}
 
 	rs.Levenshtein = 0
-	rs.Hamming = 0
 
 	query, err := args.Insert("tboardgameprices")
 	if err != nil {
@@ -331,6 +330,7 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	args.IgnoreColumn("store_name")
 	args.IgnoreColumn("transformed_name")
 	args.IgnoreColumn("key")
+	args.IgnoreColumn("store_thumb")
 
 	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = models.JsonNullInt64{
