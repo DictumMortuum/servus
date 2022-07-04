@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/db"
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/rabbitmq"
 	"github.com/DictumMortuum/servus/pkg/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gocolly/colly/v2"
@@ -54,6 +55,14 @@ func GetTopBoardgames(col *gin.Context) {
 	}
 	defer database.Close()
 
+	conn, ch, q, err := rabbitmq.SetupQueue("top")
+	if err != nil {
+		util.Error(col, err)
+		return
+	}
+	defer conn.Close()
+	defer ch.Close()
+
 	c := colly.NewCollector(
 		colly.AllowedDomains("boardgamegeek.com"),
 		colly.UserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"),
@@ -84,29 +93,35 @@ func GetTopBoardgames(col *gin.Context) {
 				"preview": thumb,
 			}
 
-			id, err := exists(database, d)
+			err = rabbitmq.InsertQueueItem(ch, q, d)
 			if err != nil {
 				util.Error(col, err)
 				return
 			}
 
-			if id == nil {
-				_, err := create(database, d)
-				if err != nil {
-					util.Error(col, err)
-					return
-				}
-			} else {
-				_, err := updateRank(database, d)
-				if err != nil {
-					util.Error(col, err)
-					return
-				}
-			}
+			// id, err := exists(database, d)
+			// if err != nil {
+			// 	util.Error(col, err)
+			// 	return
+			// }
+
+			// if id == nil {
+			// 	_, err := create(database, d)
+			// 	if err != nil {
+			// 		util.Error(col, err)
+			// 		return
+			// 	}
+			// } else {
+			// 	_, err := updateRank(database, d)
+			// 	if err != nil {
+			// 		util.Error(col, err)
+			// 		return
+			// 	}
+			// }
 		}
 	})
 
-	for i := 1; i <= 1335; i++ {
+	for i := 1; i <= 10; i++ {
 		c.Visit(fmt.Sprintf("https://boardgamegeek.com/browse/boardgame/page/%d", i))
 	}
 
