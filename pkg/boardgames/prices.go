@@ -330,7 +330,7 @@ func UpdatePrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	args.IgnoreColumn("store_name")
 	args.IgnoreColumn("transformed_name")
 	args.IgnoreColumn("key")
-	args.IgnoreColumn("store_thumb")
+	args.IgnoreColumn("preview")
 
 	if val, ok := args.Data["boardgame_id"]; ok {
 		rs.BoardgameId = models.JsonNullInt64{
