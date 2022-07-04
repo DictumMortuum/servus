@@ -39,10 +39,10 @@ func FetchBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 
 	for _, item := range tmp.Items {
 		d := map[string]interface{}{
-			"name":  item.Name.Value,
-			"rank":  getRank(item.Statistics.Ratings.Ranks.Ranks),
-			"id":    id,
-			"thumb": item.Image,
+			"name":    item.Name.Value,
+			"rank":    getRank(item.Statistics.Ratings.Ranks.Ranks),
+			"id":      id,
+			"preview": item.Image,
 		}
 
 		e, err := exists(db, d)
