@@ -35,4 +35,5 @@ type Price struct {
 	Batch            int64           `db:"batch" json:"-"`
 	Mapped           bool            `db:"mapped" json:"-"`
 	HistoricPrices   []HistoricPrice `json:"-"`
+	ProductId        string          `json:"-"`
 }
