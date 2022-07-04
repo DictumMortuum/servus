@@ -1,6 +1,7 @@
 package bgg
 
 import (
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
@@ -9,6 +10,47 @@ import (
 	"net/http"
 	"strconv"
 )
+
+func boardgameExists(db *sqlx.DB, payload map[string]interface{}) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `select id from tboardgames where id = :id`
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func FetchBoardgameIfNotExists(db *sqlx.DB, id models.JsonNullInt64) (*models.Boardgame, error) {
+	if id.Valid {
+		exists, err := boardgameExists(db, map[string]interface{}{
+			"id": id.Int64,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		if exists == nil {
+			_, err := FetchBoardgame(db, id.Int64)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return nil, nil
+}
 
 func FetchBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	var rs models.Boardgame

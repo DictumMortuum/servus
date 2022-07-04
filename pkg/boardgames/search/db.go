@@ -2,6 +2,7 @@ package search
 
 import (
 	"database/sql"
+	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"log"
@@ -12,6 +13,11 @@ func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 		item.BoardgameId = models.JsonNullInt64{
 			Int64: -1,
 			Valid: false,
+		}
+	} else {
+		_, err := bgg.FetchBoardgameIfNotExists(db, item.BoardgameId)
+		if err != nil {
+			return -1, err
 		}
 	}
 
