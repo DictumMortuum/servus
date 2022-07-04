@@ -211,7 +211,8 @@ func findPrice(db *sqlx.DB, payload models.Price) (*models.JsonNullInt64, error)
 			tboardgameprices
 		where
 			store_id = :store_id and
-			name = :name
+			name = :name and
+			extra_id = :extra_id
 	`
 
 	stmt, err := db.PrepareNamed(q)
@@ -232,7 +233,7 @@ func findPrice(db *sqlx.DB, payload models.Price) (*models.JsonNullInt64, error)
 }
 
 func exists(db *sqlx.DB, payload models.Price) (bool, error) {
-	q := `select 1 from tboardgameprices where store_id = :store_id and name = :name`
+	q := `select 1 from tboardgameprices where store_id = :store_id and name = :name and extra_id = :extra_id`
 
 	rows, err := db.NamedQuery(q, payload)
 	if err != nil {
@@ -311,7 +312,7 @@ func create(db *sqlx.DB, payload models.Price) (bool, int64, error) {
 			stock,
 			url,
 			levenshtein,
-			hamming,
+			extra_id,
 			batch
 		) values (
 			:boardgame_id,
@@ -322,7 +323,7 @@ func create(db *sqlx.DB, payload models.Price) (bool, int64, error) {
 			:stock,
 			:url,
 			:levenshtein,
-			:hamming,
+			:extra_id,
 			1
 		)`
 

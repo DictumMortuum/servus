@@ -20,7 +20,6 @@ func updatePrice(db *sqlx.DB, payload models.Price) (bool, error) {
 		set
 			boardgame_id = :boardgame_id,
 			levenshtein = :levenshtein,
-			hamming = :hamming,
 			batch = 1
 		where id = :id
 	`
@@ -268,7 +267,7 @@ func MapAll(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 				Valid: true,
 			}
 
-			price.Hamming = Hamming(price.Name, ranks[0].Target)
+			// price.Hamming = Hamming(price.Name, ranks[0].Target)
 			price.Levenshtein = ranks[0].Distance
 
 			updatePrice(db, price)

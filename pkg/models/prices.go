@@ -30,7 +30,7 @@ type Price struct {
 	Stock            int             `db:"stock" json:"stock"`
 	Url              string          `db:"url" json:"url"`
 	Levenshtein      int             `db:"levenshtein" json:"-"`
-	Hamming          int             `db:"hamming" json:"-"`
+	ExtraId          int             `db:"extra_id" json:"-"`
 	Rank             JsonNullInt64   `db:"rank" json:"rank"`
 	Batch            int64           `db:"batch" json:"-"`
 	Mapped           bool            `db:"mapped" json:"-"`
