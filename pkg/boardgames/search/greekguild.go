@@ -37,10 +37,10 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	}
 
 	for _, item := range rs.Items {
-		urls := url.FindStringSubmatch(item.Body)
+		urls := url.FindAllStringSubmatch(item.Body, -1)
 
-		if len(urls) > 1 {
-			productId := urls[1]
+		if len(urls) == 1 {
+			productId := urls[0][1]
 
 			item := models.Price{
 				Name:       item.Name,
