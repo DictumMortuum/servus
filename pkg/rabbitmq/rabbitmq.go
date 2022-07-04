@@ -1,13 +1,12 @@
-package search
+package rabbitmq
 
 import (
 	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/gob64"
-	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/streadway/amqp"
 )
 
-func insertQueueItem(ch *amqp.Channel, q *amqp.Queue, item models.Price) error {
+func InsertQueueItem(ch *amqp.Channel, q *amqp.Queue, item interface{}) error {
 	body, err := gob64.ToGOB64(item)
 	if err != nil {
 		return err
@@ -30,7 +29,7 @@ func insertQueueItem(ch *amqp.Channel, q *amqp.Queue, item models.Price) error {
 	return nil
 }
 
-func setupQueue(topic string) (*amqp.Connection, *amqp.Channel, *amqp.Queue, error) {
+func SetupQueue(topic string) (*amqp.Connection, *amqp.Channel, *amqp.Queue, error) {
 	uri := config.App.Databases["rabbitmq"]
 	conn, err := amqp.Dial(uri)
 	if err != nil {

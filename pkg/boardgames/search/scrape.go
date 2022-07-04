@@ -2,6 +2,7 @@ package search
 
 import (
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/rabbitmq"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/queue"
 	"github.com/jmoiron/sqlx"
@@ -46,7 +47,7 @@ func initializeScraper(pwd string) (*colly.Collector, *queue.Queue, error) {
 }
 
 func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	conn, ch, q, err := setupQueue("prices")
+	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
 		return nil, err
 	}

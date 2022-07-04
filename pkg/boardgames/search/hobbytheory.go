@@ -3,6 +3,7 @@ package search
 import (
 	"encoding/xml"
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/rabbitmq"
 	"github.com/jmoiron/sqlx"
 	"io/ioutil"
 	"log"
@@ -36,7 +37,7 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 
 	log.Printf("Scraper %d started\n", store_id)
 
-	rconn, ch, q, err := setupQueue("prices")
+	rconn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 					Url:        item.Link,
 				}
 
-				err = insertQueueItem(ch, q, item)
+				err = rabbitmq.InsertQueueItem(ch, q, item)
 				if err != nil {
 					log.Println(err)
 				}

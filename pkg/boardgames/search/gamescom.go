@@ -2,6 +2,7 @@ package search
 
 import (
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/rabbitmq"
 	"github.com/DictumMortuum/servus/pkg/w3m"
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
@@ -14,7 +15,7 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 
 	log.Printf("Scraper %d started\n", store_id)
 
-	conn, ch, q, err := setupQueue("prices")
+	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func ScrapeGamesCom(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			Url:        e.ChildAttr(".product-title", "href"),
 		}
 
-		err = insertQueueItem(ch, q, item)
+		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
 		}

@@ -3,6 +3,7 @@ package search
 import (
 	"encoding/xml"
 	"github.com/DictumMortuum/servus/pkg/models"
+	"github.com/DictumMortuum/servus/pkg/rabbitmq"
 	"github.com/jmoiron/sqlx"
 	"io/ioutil"
 	"log"
@@ -42,7 +43,7 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 
 	log.Printf("Scraper %d started\n", store_id)
 
-	rconn, ch, q, err := setupQueue("prices")
+	rconn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 			Url:        item.Link,
 		}
 
-		err = insertQueueItem(ch, q, item)
+		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			return nil, err
 		}
