@@ -8,7 +8,14 @@ import (
 )
 
 type Rs struct {
-	Price string
+	Price  string `json:"price"`
+	Object struct {
+		ImageSets struct {
+			Square struct {
+				Src string `json:"src@2x"`
+			} `json:"square100"`
+		} `json:"imageSets"`
+	} `json:"objectlink"`
 }
 
 func MarketProduct(id int64) (*Rs, error) {
