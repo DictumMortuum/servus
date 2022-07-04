@@ -8,12 +8,12 @@ import (
 )
 
 type GeeklistItem struct {
-	XMLName xml.Name `xml:"item" json:"-"`
-	Id      int64    `xml:"objectid,attr" json:"id"`
-	ItemId  int      `xml:"id,attr" json:"item_id"`
-	Name    string   `xml:"objectname,attr" json:"name"`
-	Date    string   `xml:"editdate,attr" json:"date"`
-	Body    string   `xml:"body" json:"body"`
+	XMLName  xml.Name `xml:"item" json:"-"`
+	ObjectId int64    `xml:"objectid,attr" json:"id"`
+	ItemId   int      `xml:"id,attr" json:"item_id"`
+	Name     string   `xml:"objectname,attr" json:"name"`
+	Date     string   `xml:"editdate,attr" json:"date"`
+	Body     string   `xml:"body" json:"body"`
 }
 
 type GeeklistRs struct {

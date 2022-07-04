@@ -8,9 +8,11 @@ import (
 )
 
 func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
-	item.BoardgameId = models.JsonNullInt64{
-		Int64: -1,
-		Valid: false,
+	if !item.BoardgameId.Valid {
+		item.BoardgameId = models.JsonNullInt64{
+			Int64: -1,
+			Valid: false,
+		}
 	}
 
 	id, err := findPrice(db, item)

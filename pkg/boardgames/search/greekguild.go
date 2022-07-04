@@ -50,6 +50,10 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 				Url:        fmt.Sprintf("https://boardgamegeek.com/geeklist/125657/greek-guilds-games-sale?itemid=%d", item.ItemId),
 				ExtraId:    item.ItemId,
 				ProductId:  productId,
+				BoardgameId: models.JsonNullInt64{
+					Int64: item.ObjectId,
+					Valid: true,
+				},
 			}
 
 			err = rabbitmq.InsertQueueItem(ch, q, item)
