@@ -16,8 +16,7 @@ var (
 
 func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(29)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	rconn, ch, q, err := rabbitmq.SetupQueue("prices-delay")
 	if err != nil {
@@ -26,11 +25,14 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	defer rconn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
+
+	//https://boardgamegeek.com/xmlapi2/geeklist/125657
 	rs, err := bgg.Geeklist(125657)
 	if err != nil {
 		return nil, err
@@ -39,7 +41,7 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	for _, item := range rs.Items {
 		urls := url.FindAllStringSubmatch(item.Body, -1)
 
-		if len(urls) == 1 || item.ObjectId == 23953 {
+		if len(urls) == 1 && item.ObjectId != 23953 {
 			productId := urls[0][1]
 
 			item := models.Price{
@@ -56,6 +58,7 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 				},
 			}
 
+			detected++
 			err = rabbitmq.InsertQueueItem(ch, q, item)
 			if err != nil {
 				return nil, err
@@ -63,7 +66,12 @@ func ScrapeGreekGuild(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 		}
 	}
 
-	return rs, nil
+	return map[string]interface{}{
+		"name":     "Greek Guild",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }
 
 // type GeeklistItem struct {

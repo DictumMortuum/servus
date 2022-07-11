@@ -10,8 +10,7 @@ import (
 
 func ScrapeMeeplePlanet(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(7)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeMeeplePlanet(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("meeple-planet.com"),
@@ -54,6 +55,7 @@ func ScrapeMeeplePlanet(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 			Url:        e.ChildAttr(".name a", "href"),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -70,5 +72,10 @@ func ScrapeMeeplePlanet(db *sqlx.DB, args *models.QueryBuilder) (interface{}, er
 	collector.Visit("https://meeple-planet.com/category/pre-orders")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Meeple Planet",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

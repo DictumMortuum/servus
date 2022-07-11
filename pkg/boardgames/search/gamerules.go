@@ -10,8 +10,7 @@ import (
 
 func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(4)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.thegamerules.com"),
@@ -61,6 +62,7 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 			Url:        e.ChildAttr(".name a", "href"),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -76,5 +78,10 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions,Board%20Games")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Game Rules",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

@@ -10,8 +10,7 @@ import (
 
 func ScrapeXrysoFtero(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(21)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeXrysoFtero(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("xrysoftero.gr"),
@@ -46,6 +47,7 @@ func ScrapeXrysoFtero(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 			Url:        e.ChildAttr("a.relative", "href"),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -61,5 +63,10 @@ func ScrapeXrysoFtero(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	collector.Visit("https://xrysoftero.gr/362-epitrapezia-paixnidia?resultsPerPage=48&q=%CE%9C%CE%AC%CF%81%CE%BA%CE%B1%5C-%CE%95%CE%BA%CE%B4%CF%8C%CF%84%CE%B7%CF%82-%CE%9A%CE%AC%CE%B9%CF%83%CF%83%CE%B1")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Xryso Ftero",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

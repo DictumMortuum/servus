@@ -40,8 +40,7 @@ func madnessAvailbilityToStock(s string) int {
 
 func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(16)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	rconn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -50,10 +49,12 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 	defer rconn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	link := "https://boardsofmadness.com/wp-content/uploads/woo-product-feed-pro/xml/sVVFMsJLyEEtvbil4fbIOdm8b4ha7ewz.xml"
 	req, err := http.NewRequest("GET", link, nil)
@@ -89,11 +90,17 @@ func ScrapeBoardsOfMadness(db *sqlx.DB, args *models.QueryBuilder) (interface{},
 			Url:        item.Link,
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return rs.Products, nil
+	return map[string]interface{}{
+		"name":     "Boards of Madness",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

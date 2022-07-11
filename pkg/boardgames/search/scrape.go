@@ -58,7 +58,7 @@ func Scrape(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 	store_ids := []int64{6, 5, 7, 4, 9, 8, 10, 15, 17, 3, 20, 12, 21, 22, 24, 25, 26}
 	for _, store_id := range store_ids {
-		err := updateBatch(db, store_id)
+		_, err := updateBatch(db, store_id)
 		if err != nil {
 			return nil, err
 		}

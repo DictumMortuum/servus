@@ -10,8 +10,7 @@ import (
 
 func ScrapeGenx(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(27)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeGenx(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.genx.gr"),
@@ -56,8 +57,7 @@ func ScrapeGenx(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".hover01 a", "href")),
 		}
 
-		log.Println(item)
-
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -73,5 +73,10 @@ func ScrapeGenx(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	collector.Visit("https://www.genx.gr/index.php?page=0&act=viewCat&catId=60&prdsPage=45")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Genx",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

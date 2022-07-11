@@ -256,7 +256,7 @@ func exists(db *sqlx.DB, payload models.Price) (bool, error) {
 	return false, nil
 }
 
-func updateBatch(db *sqlx.DB, store_id int64) error {
+func updateBatch(db *sqlx.DB, store_id int64) (int64, error) {
 	q := `
 		update
 			tboardgameprices
@@ -266,14 +266,19 @@ func updateBatch(db *sqlx.DB, store_id int64) error {
 			store_id = :store_id
 	`
 
-	_, err := db.NamedExec(q, map[string]interface{}{
+	rs, err := db.NamedExec(q, map[string]interface{}{
 		"store_id": store_id,
 	})
 	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+
+	return rows, nil
 }
 
 func update(db *sqlx.DB, payload models.Price) (bool, int64, error) {

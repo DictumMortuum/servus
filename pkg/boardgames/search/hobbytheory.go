@@ -34,8 +34,7 @@ type product struct {
 
 func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(23)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	rconn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -44,10 +43,12 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 	defer rconn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	link := "https://feed.syntogether.com/skroutz/xml?shop=hobbytheory.myshopify.com"
 	req, err := http.NewRequest("GET", link, nil)
@@ -101,6 +102,7 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 					Url:        item.Link,
 				}
 
+				detected++
 				err = rabbitmq.InsertQueueItem(ch, q, item)
 				if err != nil {
 					log.Println(err)
@@ -109,5 +111,10 @@ func ScrapeHobbyTheory(db *sqlx.DB, args *models.QueryBuilder) (interface{}, err
 		}
 	}
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Hobby Theory",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

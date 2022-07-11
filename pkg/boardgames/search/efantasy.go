@@ -10,8 +10,7 @@ import (
 
 func ScrapeEfantasy(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(8)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeEfantasy(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.efantasy.gr"),
@@ -52,6 +53,7 @@ func ScrapeEfantasy(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".product-title a", "href")),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -67,5 +69,10 @@ func ScrapeEfantasy(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	collector.Visit("https://www.efantasy.gr/en/products/%CE%B5%CF%80%CE%B9%CF%84%CF%81%CE%B1%CF%80%CE%AD%CE%B6%CE%B9%CE%B1-%CF%80%CE%B1%CE%B9%CF%87%CE%BD%CE%AF%CE%B4%CE%B9%CE%B1/sc-all")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "eFantasy",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

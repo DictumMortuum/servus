@@ -10,8 +10,7 @@ import (
 
 func ScrapePoliteia(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(12)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapePoliteia(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.politeianet.gr"),
@@ -45,6 +46,7 @@ func ScrapePoliteia(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			Url:        e.ChildAttr(".browse-product-title", "href"),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -60,5 +62,10 @@ func ScrapePoliteia(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	collector.Visit("https://www.politeianet.gr/index.php?option=com_virtuemart&category_id=948&page=shop.browse&subCatFilter=-1&langFilter=-1&pubdateFilter=-1&availabilityFilter=-1&discountFilter=-1&priceFilter=-1&pageFilter=-1&Itemid=721&limit=20&limitstart=0")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Politeia",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

@@ -10,8 +10,7 @@ import (
 
 func ScrapeKaissaEu(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	store_id := int64(6)
-
-	log.Printf("Scraper %d started\n", store_id)
+	detected := 0
 
 	conn, ch, q, err := rabbitmq.SetupQueue("prices")
 	if err != nil {
@@ -20,10 +19,12 @@ func ScrapeKaissaEu(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	defer conn.Close()
 	defer ch.Close()
 
-	err = updateBatch(db, store_id)
+	rows, err := updateBatch(db, store_id)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("Scraper %d started - resetting %d rows\n", store_id, rows)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.kaissa.eu"),
@@ -49,6 +50,7 @@ func ScrapeKaissaEu(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 			Url:        e.Request.AbsoluteURL(e.ChildAttr(".photo a", "href")),
 		}
 
+		detected++
 		err = rabbitmq.InsertQueueItem(ch, q, item)
 		if err != nil {
 			log.Println(err)
@@ -65,5 +67,10 @@ func ScrapeKaissaEu(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 	collector.Visit("https://www.kaissa.eu/products/epitrapezia-sta-agglika")
 	collector.Wait()
 
-	return nil, nil
+	return map[string]interface{}{
+		"name":     "Kaissa Eu",
+		"id":       store_id,
+		"scraped":  detected,
+		"resetted": rows,
+	}, nil
 }

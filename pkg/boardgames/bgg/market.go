@@ -16,6 +16,7 @@ type Rs struct {
 			} `json:"square100"`
 		} `json:"imageSets"`
 	} `json:"objectlink"`
+	Message string `json:"message"`
 }
 
 func MarketProduct(id int64) (*Rs, error) {

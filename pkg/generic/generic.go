@@ -27,18 +27,27 @@ func C(f []func(*sqlx.DB, *models.QueryBuilder) (interface{}, error)) func(*gin.
 		}
 		defer database.Close()
 
+		ch := make(chan interface{})
+
 		for i := 1; i <= len(f); i++ {
 			wg.Add(1)
 			fn := f[i-1]
 			go func() {
 				defer wg.Done()
-				fn(database, args)
+				rs, _ := fn(database, args)
+				ch <- rs
 			}()
+		}
+
+		results := make([]interface{}, len(f))
+
+		for i := range results {
+			results[i] = <-ch
 		}
 
 		wg.Wait()
 
-		c.JSON(http.StatusOK, nil)
+		c.JSON(http.StatusOK, results)
 	}
 }
 
