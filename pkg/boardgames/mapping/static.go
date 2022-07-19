@@ -70,6 +70,8 @@ func Ignore(price models.Price) bool {
 	tmp := strings.ToLower(price.Name)
 
 	ignored := []string{
+		"σετ ζαριών",
+		"oργανωτής επιτραπέζιων",
 		"dobble",
 		"gravitrax",
 		"story cubes",
@@ -77,6 +79,7 @@ func Ignore(price models.Price) bool {
 		"monopoly",
 		"desyllas",
 		"δεσύλλας",
+		"as company",
 		"δεσυλλας",
 		"σπαζοκεφαλιά",
 		"σπαζοκεφαλια",
