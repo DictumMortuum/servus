@@ -16,6 +16,7 @@ import (
 var (
 	ignore_brackets = regexp.MustCompile(`(?s)\((.*)\)`)
 	gamescom        = regexp.MustCompile(`\S+ Επιτραπέζιο (.*) για`)
+	epitrapezio     = regexp.MustCompile(`[^|]+| [0-9]+ Ετών`)
 )
 
 func TransformName(s string) string {
@@ -26,6 +27,12 @@ func TransformName(s string) string {
 		tmp = pre[1]
 	} else {
 		tmp = s
+	}
+
+	pre2 := epitrapezio.FindStringSubmatch(tmp)
+
+	if len(pre2) == 1 {
+		tmp = pre2[0]
 	}
 
 	tmp = ignore_brackets.ReplaceAllString(tmp, "")
