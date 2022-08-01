@@ -120,6 +120,12 @@ func CreateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, errors.New("please provide a 'play_id' parameter")
 	}
 
+	if val, ok := args.Data["boardgame_id"]; ok {
+		stats.BoardgameId = int64(val.(float64))
+	} else {
+		return nil, errors.New("please provide a 'boardgame_id' parameter")
+	}
+
 	if val, ok := args.Data["player_id"]; ok {
 		stats.PlayerId = int64(val.(float64))
 	} else {
@@ -162,6 +168,10 @@ func UpdateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 
 	if val, ok := args.Data["play_id"]; ok {
 		rs.PlayId = int64(val.(float64))
+	}
+
+	if val, ok := args.Data["boardgame_id"]; ok {
+		rs.BoardgameId = int64(val.(float64))
 	}
 
 	if val, ok := args.Data["player_id"]; ok {
