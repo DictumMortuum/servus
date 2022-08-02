@@ -2,44 +2,58 @@ package gnucash
 
 import (
 	"github.com/jmoiron/sqlx"
+	"strings"
 	"time"
 )
 
 type ExpensesRow struct {
 	Date time.Time `db:"start_of_month"`
+	Name string    `db:"name"`
 	Sum  float64   `db:"sum"`
 }
 
 func getExpenseByMonth(db *sqlx.DB, name string) ([]ExpensesRow, error) {
 	rs := []ExpensesRow{}
 
-	err := db.Select(&rs, `
-	select a.start_of_month, sum(a.sum) as sum from
-	(
-		select
-			DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
-			0 as sum
-		from
-			transactions t
-		union
-		select
-			DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
-			sum(1.0*s.value_num/s.value_denom) as sum
-		from
-			transactions t,
-			splits s,
-			accounts a
-		where
-			t.guid = s.tx_guid and
-			a.guid = s.account_guid and
-			a.account_type= "EXPENSE" and
-			a.name = ?
-		group by 1
+	names := strings.Split(name, ",")
+
+	sql := `
+		select a.start_of_month, name, sum(a.sum) as sum from
+		(
+			select
+				DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
+				"placeholder" as name,
+				0 as sum
+			from
+				transactions t
+			union
+			select
+				DATE_SUB(t.post_date,INTERVAL DAYOFMONTH(t.post_date)-1 DAY) as start_of_month,
+				a.name,
+				sum(1.0*s.value_num/s.value_denom) as sum
+			from
+				transactions t,
+				splits s,
+				accounts a
+			where
+				t.guid = s.tx_guid and
+				a.guid = s.account_guid and
+				a.name in (?)
+			group by 1, 2
+			order by 1
+		) a
+		group by 1, 2
 		order by 1
-	) a
-	group by 1
-	order by 1
-	`, name)
+	`
+
+	query, ids, err := sqlx.In(sql, names)
+	if err != nil {
+		query = sql
+	} else {
+		query = db.Rebind(query)
+	}
+
+	err = db.Select(&rs, query, ids...)
 	if err != nil {
 		return rs, err
 	}
