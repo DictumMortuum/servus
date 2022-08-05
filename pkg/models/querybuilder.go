@@ -34,6 +34,7 @@ type QueryBuilder struct {
 	RefKey    string
 	UseRaw    bool
 	RawId     string
+	RawIds    []string
 	Id        int64
 	Ids       []int64
 	FilterKey string
@@ -124,6 +125,8 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 			id, err := strconv.ParseInt(raw, 10, 64)
 			if err == nil {
 				rs.Ids = append(rs.Ids, id)
+			} else {
+				rs.RawIds = append(rs.RawIds, raw)
 			}
 			rs.RefKey = "id"
 		}
