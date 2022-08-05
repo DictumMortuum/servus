@@ -144,7 +144,11 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 			id, err := strconv.ParseInt(val[0], 10, 64)
 			if err == nil {
 				rs.RefKey = key
-				rs.Ids = append(rs.Ids, id)
+				if err == nil {
+					rs.Ids = append(rs.Ids, id)
+				} else {
+					rs.RawIds = append(rs.RawIds, val[0])
+				}
 			}
 		} else if key == "q" {
 			// this is a query
