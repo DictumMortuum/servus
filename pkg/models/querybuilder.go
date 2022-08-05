@@ -141,14 +141,12 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 	for key, val := range args {
 		if strings.HasSuffix(key, "id") && key != "id" {
 			// this is a reference
+			rs.RefKey = key
 			id, err := strconv.ParseInt(val[0], 10, 64)
 			if err == nil {
-				rs.RefKey = key
-				if err == nil {
-					rs.Ids = append(rs.Ids, id)
-				} else {
-					rs.RawIds = append(rs.RawIds, val[0])
-				}
+				rs.Ids = append(rs.Ids, id)
+			} else {
+				rs.RawIds = append(rs.RawIds, val[0])
 			}
 		} else if key == "q" {
 			// this is a query
@@ -166,6 +164,9 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 func (obj QueryBuilder) List(query string) (*bytes.Buffer, error) {
 	sql := query + `
 	{{ if gt (len .Ids) 0 }}
+	where
+		{{ .RefKey }} in (?)
+	{{ else if gt (len .RawIds) 0 }}
 	where
 		{{ .RefKey }} in (?)
 	{{ else if gt (len .FilterVal) 0 }}
