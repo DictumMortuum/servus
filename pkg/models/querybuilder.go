@@ -32,6 +32,8 @@ type QueryBuilder struct {
 	Range     []int64
 	Page      int64
 	RefKey    string
+	UseRaw    bool
+	RawId     string
 	Id        int64
 	Ids       []int64
 	FilterKey string
@@ -67,14 +69,16 @@ func (obj QueryBuilder) NewFromContext(c *gin.Context) (*QueryBuilder, error) {
 	}
 
 	arg := c.Params.ByName("id")
+	rs.RawId = arg
 
 	if arg != "" {
 		id, err := strconv.ParseInt(arg, 10, 64)
 		if err != nil {
-			return nil, err
+			rs.UseRaw = true
+		} else {
+			rs.Id = id
+			rs.UseRaw = false
 		}
-
-		rs.Id = id
 	}
 
 	if c.Request.Method == "POST" || c.Request.Method == "PUT" {
