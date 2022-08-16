@@ -7,6 +7,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/boardgames/images"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
+	"github.com/DictumMortuum/servus/pkg/boardgames/mathtrade"
 	"github.com/DictumMortuum/servus/pkg/boardgames/search"
 	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/food"
@@ -240,6 +241,7 @@ func main() {
 		rest.POST("/search/atlas", generic.F(mapping.SearchAtlasTerm))
 
 		rest.GET("/expense", generic.S("gnucash", gnucash.GetListExpenses))
+		rest.GET("/mathtrade/:id", mathtrade.Analyze)
 	}
 
 	gn := r.Group("/gnucash")
@@ -259,4 +261,5 @@ func main() {
 	r.GET("/expenses", gnucash.GetTopExpenses)
 	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")
+
 }
