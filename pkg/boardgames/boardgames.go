@@ -282,6 +282,10 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		}
 	}
 
+	if val, ok := args.Data["configure"]; ok {
+		rs.Configured = val.(bool)
+	}
+
 	sql, err := args.Update("tboardgames")
 	if err != nil {
 		return nil, err
