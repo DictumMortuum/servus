@@ -3,7 +3,6 @@ package boardgames
 import (
 	"bytes"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
@@ -189,60 +188,11 @@ func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 func CreateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Boardgame
 
-	if val, ok := args.Data["id"]; ok {
-		rs.Id = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'name' parameter")
-	}
-
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	} else {
-		return nil, errors.New("please provide a 'name' parameter")
-	}
-
-	if val, ok := args.Data["data"]; ok {
-		err := rs.Data.Scan(val)
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
 		if err != nil {
 			return nil, err
-		}
-	} else {
-		rs.Data = nil
-	}
-
-	if val, ok := args.Data["thumb"]; ok {
-		rs.Thumb = models.JsonNullString{
-			String: val.(string),
-			Valid:  true,
-		}
-	} else {
-		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
-		}
-	}
-
-	if val, ok := args.Data["preview"]; ok {
-		rs.Thumb = models.JsonNullString{
-			String: val.(string),
-			Valid:  true,
-		}
-	} else {
-		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
-		}
-	}
-
-	if val, ok := args.Data["rank"]; ok {
-		rs.Rank = models.JsonNullInt64{
-			Int64: int64(val.(float64)),
-			Valid: true,
-		}
-	} else {
-		rs.Rank = models.JsonNullInt64{
-			Int64: -1,
-			Valid: false,
 		}
 	}
 
@@ -279,55 +229,9 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		return nil, err
 	}
 
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	}
-
-	if val, ok := args.Data["data"]; ok {
-		err := rs.Data.Scan(val)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if val, ok := args.Data["rank"]; ok {
-		rs.Rank = models.JsonNullInt64{
-			Int64: int64(val.(float64)),
-			Valid: true,
-		}
-	} else {
-		rs.Rank = models.JsonNullInt64{
-			Int64: -1,
-			Valid: false,
-		}
-	}
-
-	if val, ok := args.Data["thumb"]; ok {
-		rs.Thumb = models.JsonNullString{
-			String: val.(string),
-			Valid:  true,
-		}
-	} else {
-		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
-		}
-	}
-
-	if val, ok := args.Data["preview"]; ok {
-		rs.Thumb = models.JsonNullString{
-			String: val.(string),
-			Valid:  true,
-		}
-	} else {
-		rs.Thumb = models.JsonNullString{
-			String: "",
-			Valid:  false,
-		}
-	}
-
-	if val, ok := args.Data["configured"]; ok {
-		rs.Configured = val.(bool)
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
 	}
 
 	sql, err := args.Update("tboardgames")
