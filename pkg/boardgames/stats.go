@@ -2,7 +2,6 @@ package boardgames
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
@@ -112,33 +111,14 @@ func GetListStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func CreateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var stats models.Stats
+	var rs models.Stats
 
-	if val, ok := args.Data["play_id"]; ok {
-		stats.PlayId = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'play_id' parameter")
-	}
-
-	if val, ok := args.Data["boardgame_id"]; ok {
-		stats.BoardgameId = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'boardgame_id' parameter")
-	}
-
-	if val, ok := args.Data["player_id"]; ok {
-		stats.PlayerId = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'player_id' parameter")
-	}
-
-	if val, ok := args.Data["data"]; ok {
-		err := stats.Data.Scan(val)
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		return nil, errors.New("please provide a 'data' parameter")
 	}
 
 	query, err := args.Insert("tboardgamestats")
@@ -146,18 +126,18 @@ func CreateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	rs, err := db.NamedExec(query.String(), &stats)
+	stats, err := db.NamedExec(query.String(), &rs)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := rs.LastInsertId()
+	id, err := stats.LastInsertId()
 	if err != nil {
 		return nil, err
 	}
 
-	stats.Id = id
-	return stats, nil
+	rs.Id = id
+	return rs, nil
 }
 
 func UpdateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
@@ -166,20 +146,9 @@ func UpdateStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	if val, ok := args.Data["play_id"]; ok {
-		rs.PlayId = int64(val.(float64))
-	}
-
-	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
-	}
-
-	if val, ok := args.Data["player_id"]; ok {
-		rs.PlayerId = int64(val.(float64))
-	}
-
-	if val, ok := args.Data["data"]; ok {
-		rs.Data.Scan(val)
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
 	}
 
 	sql, err := args.Update("tboardgamestats")
