@@ -282,7 +282,7 @@ func UpdateBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		}
 	}
 
-	if val, ok := args.Data["configure"]; ok {
+	if val, ok := args.Data["configured"]; ok {
 		rs.Configured = val.(bool)
 	}
 
