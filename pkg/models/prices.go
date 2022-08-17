@@ -37,3 +37,101 @@ type Price struct {
 	HistoricPrices   []HistoricPrice `json:"-"`
 	ProductId        string          `json:"-"`
 }
+
+func (rs *Price) Constructor() []func(map[string]interface{}, bool) error {
+	return []func(map[string]interface{}, bool) error{
+		rs.SetStoreId,
+		rs.SetPrice,
+		rs.SetStock,
+		rs.SetUrl,
+		rs.SetStoreThumb,
+		rs.SetBatch,
+		rs.SetLevenshtein,
+		rs.SetMapped,
+	}
+}
+
+func (rs *Price) SetBoardgameId(data map[string]interface{}, create bool) error {
+	id, err := getJsonNullInt64(data, "boardgame_id")
+	if err != nil {
+		return err
+	}
+
+	rs.BoardgameId = id
+	return nil
+}
+
+func (rs *Price) SetStoreId(data map[string]interface{}, create bool) error {
+	id, err := getInt64(data, "store_id")
+	if err != nil {
+		return err
+	}
+
+	rs.StoreId = id
+	return nil
+}
+
+func (rs *Price) SetPrice(data map[string]interface{}, create bool) error {
+	price, err := getFloat(data, "price")
+	if err != nil {
+		return err
+	}
+
+	rs.Price = price
+	return nil
+}
+
+func (rs *Price) SetStock(data map[string]interface{}, create bool) error {
+	stock, err := getInt(data, "stock")
+	if err != nil {
+		return err
+	}
+
+	rs.Stock = stock
+	return nil
+}
+
+func (rs *Price) SetUrl(data map[string]interface{}, create bool) error {
+	url, err := getString(data, "url")
+	if err != nil {
+		return err
+	}
+
+	rs.Url = url
+	return nil
+}
+
+func (rs *Price) SetStoreThumb(data map[string]interface{}, create bool) error {
+	store_thumb, err := getString(data, "store_thumb")
+	if err != nil {
+		return err
+	}
+
+	rs.StoreThumb = store_thumb
+	return nil
+}
+
+func (rs *Price) SetBatch(data map[string]interface{}, create bool) error {
+	batch, err := getInt64(data, "batch")
+	if err != nil {
+		return err
+	}
+
+	rs.Batch = batch
+	return nil
+}
+
+func (rs *Price) SetLevenshtein(data map[string]interface{}, create bool) error {
+	rs.Levenshtein = 0
+	return nil
+}
+
+func (rs *Price) SetMapped(data map[string]interface{}, create bool) error {
+	mapped, err := getBool(data, "mapped")
+	if err != nil {
+		return err
+	}
+
+	rs.Mapped = mapped
+	return nil
+}

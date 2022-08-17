@@ -35,6 +35,14 @@ func getInt(data map[string]interface{}, key string) (int, error) {
 	}
 }
 
+func getFloat(data map[string]interface{}, key string) (float64, error) {
+	if val, ok := data[key]; ok {
+		return val.(float64), nil
+	} else {
+		return -1, fmt.Errorf("please provide a '%s' parameter", key)
+	}
+}
+
 func getString(data map[string]interface{}, key string) (string, error) {
 	if val, ok := data[key]; ok {
 		return val.(string), nil
