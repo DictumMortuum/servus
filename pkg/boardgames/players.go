@@ -1,7 +1,6 @@
 package boardgames
 
 import (
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
@@ -57,16 +56,12 @@ func GetListPlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) 
 func CreatePlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Player
 
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	} else {
-		return nil, errors.New("please provide a 'name' parameter")
-	}
-
-	if val, ok := args.Data["surname"]; ok {
-		rs.Surname = val.(string)
-	} else {
-		return nil, errors.New("please provide a 'surname' parameter")
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	query, err := args.Insert("tboardgameplayers")
@@ -94,17 +89,14 @@ func UpdatePlayer(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
+	}
+
 	sql, err := args.Update("tboardgameplayers")
 	if err != nil {
 		return nil, err
-	}
-
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	}
-
-	if val, ok := args.Data["surname"]; ok {
-		rs.Surname = val.(string)
 	}
 
 	_, err = db.NamedExec(sql.String(), &rs)
