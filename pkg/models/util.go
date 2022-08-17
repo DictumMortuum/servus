@@ -2,7 +2,22 @@ package models
 
 import (
 	"fmt"
+	"time"
 )
+
+func getTime(data map[string]interface{}, key string) (time.Time, error) {
+	if val, ok := data["date"]; ok {
+		//"Mon Jan 02 2006 15:04:05 GMT-0700 (MST)"
+		t, err := time.Parse("2006-01-02", val.(string))
+		if err != nil {
+			return time.Now(), err
+		}
+
+		return t, nil
+	} else {
+		return time.Now(), fmt.Errorf("please provide a '%s' parameter", key)
+	}
+}
 
 func getInt64(data map[string]interface{}, key string) (int64, error) {
 	if val, ok := data[key]; ok {

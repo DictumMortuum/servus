@@ -2,14 +2,12 @@ package boardgames
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/boardgames/score"
 	"github.com/DictumMortuum/servus/pkg/boardgames/trueskill"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"text/template"
-	"time"
 )
 
 func getPlay(db *sqlx.DB, id int64) (*models.Play, error) {
@@ -125,25 +123,13 @@ func GetListPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 func CreatePlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Play
 
-	if val, ok := args.Data["date"]; ok {
-		//"Mon Jan 02 2006 15:04:05 GMT-0700 (MST)"
-		t, err := time.Parse("2006-01-02", val.(string))
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
 		if err != nil {
 			return nil, err
 		}
-
-		rs.Date = t
-	} else {
-		rs.Date = time.Now()
 	}
-
-	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'boardgame_id' parameter")
-	}
-
-	rs.CrDate = time.Now()
 
 	query, err := args.Insert("tboardgameplays")
 	if err != nil {
@@ -170,18 +156,14 @@ func UpdatePlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
+	}
+
 	sql, err := args.Update("tboardgameplays")
 	if err != nil {
 		return nil, err
-	}
-
-	if val, ok := args.Data["date"]; ok {
-		t, err := time.Parse("2006-01-02T15:04:05-0700", val.(string))
-		if err != nil {
-			return nil, err
-		}
-
-		rs.Date = t
 	}
 
 	_, err = db.NamedExec(sql.String(), &rs)

@@ -23,3 +23,36 @@ func (p Play) IsCooperative() bool {
 
 	return false
 }
+
+func (rs *Play) SetDate(data map[string]interface{}, create bool) error {
+	date, err := getTime(data, "date")
+	if err != nil {
+		return err
+	}
+
+	rs.Date = date
+	return nil
+}
+
+func (rs *Play) SetCrDate(data map[string]interface{}, create bool) error {
+	rs.CrDate = time.Now()
+	return nil
+}
+
+func (rs *Play) SetBoardgameId(data map[string]interface{}, create bool) error {
+	id, err := getInt64(data, "boardgame_id")
+	if err != nil {
+		return err
+	}
+
+	rs.BoardgameId = id
+	return nil
+}
+
+func (rs *Play) Constructor() []func(map[string]interface{}, bool) error {
+	return []func(map[string]interface{}, bool) error{
+		rs.SetBoardgameId,
+		rs.SetDate,
+		rs.SetCrDate,
+	}
+}
