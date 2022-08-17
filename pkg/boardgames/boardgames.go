@@ -84,15 +84,56 @@ func GetBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	return getBoardgame(db, args.Id)
 }
 
+func countBoardgames(db *sqlx.DB, args *models.QueryBuilder) (int, error) {
+	var tpl bytes.Buffer
+
+	sql := `
+		select
+			1
+		from
+			tboardgames b
+		{{ if gt (len .Ids) 0 }}
+		where b.{{ .RefKey }} in (?)
+		{{ else if eq .FilterKey "ranked"}}
+		where b.rank is not null
+		{{ else if gt (len .FilterVal) 0 }}
+		where b.{{ .FilterKey }} = "{{ .FilterVal }}"
+		{{ end }}
+		{{ if gt (len .Query) 0 }}
+		and b.name like "%{{ .Query }}%"
+		{{ end }}
+	`
+
+	t := template.Must(template.New("count").Parse(sql))
+	err := t.Execute(&tpl, args)
+	if err != nil {
+		return -1, err
+	}
+
+	query, ids, err := sqlx.In(tpl.String(), args.Ids)
+	if err != nil {
+		query = tpl.String()
+	} else {
+		query = db.Rebind(query)
+	}
+
+	var count []int
+	err = db.Select(&count, query, ids...)
+	if err != nil {
+		return -1, err
+	}
+
+	return len(count), nil
+}
+
 func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs []models.Boardgame
 
-	var count []int
-	err := db.Select(&count, "select 1 from tboardgames")
+	count, err := countBoardgames(db, args)
 	if err != nil {
 		return nil, err
 	}
-	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", len(count)))
+	args.Context.Header("X-Total-Count", fmt.Sprintf("%d", count))
 
 	sql := `
 		select
@@ -104,10 +145,13 @@ func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 			left join gnucash.splits s on s.tx_guid = b.tx_guid and s.account_guid = "3097dd8d65751277845bdda438cba937"
 		{{ if gt (len .Ids) 0 }}
 		where b.{{ .RefKey }} in (?)
-		{{ else if eq .FilterKey "ranked"}}
+		{{ else if eq .FilterKey "ranked" }}
 		where b.rank is not null
 		{{ else if gt (len .FilterVal) 0 }}
 		where b.{{ .FilterKey }} = "{{ .FilterVal }}"
+		{{ end }}
+		{{ if gt (len .Query) 0 }}
+		and b.name like "%{{ .Query }}%"
 		{{ end }}
 		group by 1
 		{{ if gt (len .Sort) 0 }}
