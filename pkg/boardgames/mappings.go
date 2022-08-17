@@ -1,7 +1,6 @@
 package boardgames
 
 import (
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
@@ -57,16 +56,12 @@ func GetListMapping(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 func CreateMapping(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 	var rs models.Mapping
 
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	} else {
-		return nil, errors.New("please provide a 'name' parameter")
-	}
-
-	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
-	} else {
-		return nil, errors.New("please provide a 'boardgame_id' parameter")
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	query, err := args.Insert("tboardgamepricesmap")
@@ -94,17 +89,14 @@ func UpdateMapping(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) 
 		return nil, err
 	}
 
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
+	}
+
 	sql, err := args.Update("tboardgamepricesmap")
 	if err != nil {
 		return nil, err
-	}
-
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
-	}
-
-	if val, ok := args.Data["boardgame_id"]; ok {
-		rs.BoardgameId = int64(val.(float64))
 	}
 
 	_, err = db.NamedExec(sql.String(), &rs)
