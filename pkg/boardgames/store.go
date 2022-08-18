@@ -1,7 +1,6 @@
 package boardgames
 
 import (
-	"errors"
 	"fmt"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
@@ -55,12 +54,14 @@ func GetListStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func CreateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var store models.Store
+	var rs models.Store
 
-	if val, ok := args.Data["name"]; ok {
-		store.Name = val.(string)
-	} else {
-		return nil, errors.New("please provide a 'name' parameter")
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		err := fn(args.Data, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	query, err := args.Insert("tboardgamestores")
@@ -68,18 +69,18 @@ func CreateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	rs, err := db.NamedExec(query.String(), &store)
+	store, err := db.NamedExec(query.String(), &rs)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := rs.LastInsertId()
+	id, err := store.LastInsertId()
 	if err != nil {
 		return nil, err
 	}
 
-	store.Id = id
-	return store, nil
+	rs.Id = id
+	return rs, nil
 }
 
 func UpdateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
@@ -88,8 +89,9 @@ func UpdateStore(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		return nil, err
 	}
 
-	if val, ok := args.Data["name"]; ok {
-		rs.Name = val.(string)
+	updateFns := rs.Constructor()
+	for _, fn := range updateFns {
+		fn(args.Data, false)
 	}
 
 	sql, err := args.Update("tboardgamestores")
