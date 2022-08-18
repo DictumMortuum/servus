@@ -1,15 +1,18 @@
 package config
 
 import (
+	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
+	"io"
 	"net/url"
 	"os"
 	"strings"
 )
 
 type Config struct {
-	Timezone string `yaml:"timezone"`
-	Database struct {
+	PathTemplates string
+	Timezone      string `yaml:"timezone"`
+	Database      struct {
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
 		Server   string `yaml:"server"`
@@ -54,8 +57,20 @@ var (
 	App *Config
 )
 
-func Read(path string) error {
-	file, err := os.Open(path)
+func Read() error {
+	mode := os.Getenv("GIN_MODE")
+	path_templates := "templates/*"
+	path_cfg := "servusrc"
+
+	if mode == "release" {
+		gin.DisableConsoleColor()
+		f, _ := os.Create("/var/log/servus.log")
+		gin.DefaultWriter = io.MultiWriter(f)
+		path_templates = "/usr/share/webapps/servus/*"
+		path_cfg = "/etc/servusrc"
+	}
+
+	file, err := os.Open(path_cfg)
 	if err != nil {
 		return err
 	}
@@ -67,6 +82,8 @@ func Read(path string) error {
 	if err != nil {
 		return err
 	}
+
+	App.PathTemplates = path_templates
 
 	return nil
 }

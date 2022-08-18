@@ -23,73 +23,25 @@ import (
 	"github.com/DictumMortuum/servus/pkg/weight"
 	"github.com/DictumMortuum/servus/pkg/zerotier"
 	"github.com/gin-gonic/gin"
-	"github.com/itsjamie/gin-cors"
 	"github.com/jmoiron/sqlx"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
-	"os"
-	"time"
 )
-
-// SetConfig gin Middlware to push some config values
-func SetConfig() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("CorsOrigin", "*")
-		c.Set("Verbose", true)
-		c.Next()
-	}
-}
-
-// Options common response for rest options
-func Options(c *gin.Context) {
-	Origin := c.MustGet("CorsOrigin").(string)
-
-	c.Writer.Header().Set("Access-Control-Allow-Origin", Origin)
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET,DELETE,POST,PUT")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	c.Next()
-}
 
 //go:embed assets
 var staticFS embed.FS
 
 func main() {
-	mode := os.Getenv("GIN_MODE")
-	path_templates := "templates/*"
-	path_cfg := "servusrc"
-
-	if mode == "release" {
-		gin.DisableConsoleColor()
-		f, _ := os.Create("/var/log/servus.log")
-		gin.DefaultWriter = io.MultiWriter(f)
-		path_templates = "/usr/share/webapps/servus/*"
-		path_cfg = "/etc/servusrc"
-	}
-
-	err := config.Read(path_cfg)
+	r, err := generic.SetupMainRouter()
 	if err != nil {
-		return
+		log.Fatal(err)
 	}
 
 	apiCache, err := CacheInit()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	r := gin.Default()
-	r.Use(SetConfig())
-	r.Use(cors.Middleware(cors.Config{
-		Origins:         "*",
-		Methods:         "GET, PUT, POST, DELETE",
-		RequestHeaders:  "Origin, Authorization, Content-Type, Bearer, range",
-		ExposedHeaders:  "x-total-count, Content-Range",
-		MaxAge:          50 * time.Second,
-		Credentials:     false,
-		ValidateHeaders: false,
-	}))
 
 	r.SetFuncMap(template.FuncMap{
 		"formatDate":       util.FormatDate,
@@ -98,7 +50,7 @@ func main() {
 		"formatShiftColor": util.FormatShiftColor,
 	})
 
-	r.LoadHTMLGlob(path_templates)
+	r.LoadHTMLGlob(config.App.PathTemplates)
 
 	r.GET("/assets/*filepath", func(c *gin.Context) {
 		c.FileFromFS(c.Request.URL.Path, http.FS(staticFS))
@@ -261,5 +213,4 @@ func main() {
 	r.GET("/expenses", gnucash.GetTopExpenses)
 	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")
-
 }
