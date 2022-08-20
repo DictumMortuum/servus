@@ -57,10 +57,14 @@ var (
 	App *Config
 )
 
-func Read() error {
+func Read(path string) error {
 	mode := os.Getenv("GIN_MODE")
 	path_templates := "templates/*"
 	path_cfg := "servusrc"
+
+	if path != "" {
+		path_cfg = path
+	}
 
 	if mode == "release" {
 		gin.DisableConsoleColor()

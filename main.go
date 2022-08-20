@@ -33,7 +33,7 @@ import (
 var staticFS embed.FS
 
 func main() {
-	r, err := generic.SetupMainRouter()
+	r, err := generic.SetupMainRouter("")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -27,8 +27,8 @@ func Options(c *gin.Context) {
 	c.Next()
 }
 
-func SetupMainRouter() (*gin.Engine, error) {
-	err := config.Read()
+func SetupMainRouter(path string) (*gin.Engine, error) {
+	err := config.Read(path)
 	if err != nil {
 		return nil, err
 	}

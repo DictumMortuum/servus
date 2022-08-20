@@ -4,6 +4,10 @@ VERSION=v$(shell cat assets/version.json | jq .version)
 format:
 	gofmt -s -w .
 
+test:
+#	go test $(wildcard ./pkg/*) -v
+	go test ./pkg/boardgames -v
+
 version:
 	git tag -f $(VERSION)
 
