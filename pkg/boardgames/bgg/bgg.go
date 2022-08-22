@@ -49,14 +49,15 @@ type BggStats struct {
 type BggName struct {
 	XMLName xml.Name `xml:"name" json:"-"`
 	Value   string   `xml:"value,attr" json:"value"`
+	Type    string   `xml:"type,attr" json:"type"`
 }
 
 type Item struct {
-	XMLName    xml.Name `xml:"item" json:"-"`
-	Statistics BggStats `xml:"statistics"`
-	Name       BggName  `xml:"name"`
-	Thumbnail  string   `xml:"thumbnail"`
-	Image      string   `xml:"image"`
+	XMLName    xml.Name  `xml:"item" json:"-"`
+	Statistics BggStats  `xml:"statistics"`
+	Name       []BggName `xml:"name"`
+	Thumbnail  string    `xml:"thumbnail"`
+	Image      string    `xml:"image"`
 }
 
 type BggThing struct {

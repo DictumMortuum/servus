@@ -80,8 +80,16 @@ func FetchBoardgame(db *sqlx.DB, id int64) (*models.Boardgame, error) {
 	}
 
 	for _, item := range tmp.Items {
+		var name string
+
+		for _, n := range item.Name {
+			if n.Type == "primary" {
+				name = n.Value
+			}
+		}
+
 		d := map[string]interface{}{
-			"name":    item.Name.Value,
+			"name":    name,
 			"rank":    getRank(item.Statistics.Ratings.Ranks.Ranks),
 			"id":      id,
 			"preview": item.Image,
