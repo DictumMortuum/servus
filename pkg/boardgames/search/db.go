@@ -2,11 +2,205 @@ package search
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"log"
 )
+
+func UpsertHistory(db *sqlx.DB, item models.HistoricPrice) (int64, error) {
+	id, err := findHistory(db, item)
+	if err != nil {
+		return -1, err
+	}
+
+	if id == nil {
+		_, key, err := createHistory(db, item)
+		if err != nil {
+			return -1, err
+		}
+		return key, nil
+	} else {
+		item.Id = id.Int64
+		_, key, err := updateHistory(db, item)
+		if err != nil {
+			return key, err
+		}
+		return id.Int64, nil
+	}
+}
+
+func findHistory(db *sqlx.DB, payload models.HistoricPrice) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `
+		select
+			id
+		from
+			tboardgamepriceshistory
+		where
+			boardgame_id = :boardgame_id and
+			store_id = :store_id and
+			cr_date = date_add(date_add(LAST_DAY(:cr_date), interval 1 day), interval -1 month)
+	`
+
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func updateHistory(db *sqlx.DB, payload models.HistoricPrice) (bool, int64, error) {
+	q := `
+		update
+			tboardgamepriceshistory
+		set
+			price = :price,
+			stock = :stock,
+			cr_date = date_add(date_add(LAST_DAY(:cr_date), interval 1 day), interval -1 month)
+		where
+			boardgame_id = :boardgame_id and
+			store_id = :store_id
+	`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, -1, err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
+}
+
+func createHistory(db *sqlx.DB, payload models.HistoricPrice) (bool, int64, error) {
+	q := `
+		insert into	tboardgamepriceshistory (
+			boardgame_id,
+			cr_date,
+			price,
+			stock,
+			store_id
+		) values (
+			:boardgame_id,
+			date_add(date_add(LAST_DAY(:cr_date), interval 1 day), interval -1 month),
+			:price,
+			:stock,
+			:store_id
+		)`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, -1, err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
+}
+
+func UpsertMapping(db *sqlx.DB, item models.Mapping) (int64, error) {
+	id, err := findMapping(db, item)
+	if err != nil {
+		return -1, err
+	}
+
+	if id == nil {
+		_, key, err := createMapping(db, item)
+		if err != nil {
+			return -1, err
+		}
+		return key, nil
+	}
+
+	return -1, errors.New("could not upsert mapping")
+}
+
+func findMapping(db *sqlx.DB, payload models.Mapping) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `
+		select
+			id
+		from
+			tboardgamepricesmap
+		where
+			boardgame_id = :boardgame_id and
+			name = :name
+	`
+
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func createMapping(db *sqlx.DB, payload models.Mapping) (bool, int64, error) {
+	q := `
+		insert into tboardgamepricesmap (
+			boardgame_id,
+			name
+		) values (
+			:boardgame_id,
+			:name
+		)`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, -1, err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
+}
 
 func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 	if !item.BoardgameId.Valid {
@@ -27,19 +221,127 @@ func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 	}
 
 	if id == nil {
-		_, key, err := create(db, item)
+		_, key, err := createPrice(db, item)
 		if err != nil {
 			return -1, err
 		}
 		return key, nil
 	} else {
 		item.Id = id.Int64
-		_, key, err := update(db, item)
+		_, key, err := updatePrice(db, item)
 		if err != nil {
 			return key, err
 		}
 		return id.Int64, nil
 	}
+}
+
+func findPrice(db *sqlx.DB, payload models.Price) (*models.JsonNullInt64, error) {
+	var id models.JsonNullInt64
+
+	q := `
+		select
+			id
+		from
+			tboardgameprices
+		where
+			store_id = :store_id and
+			name = :name and
+			extra_id = :extra_id
+	`
+
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&id, payload)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
+}
+
+func updatePrice(db *sqlx.DB, payload models.Price) (bool, int64, error) {
+	q := `
+		update
+			tboardgameprices
+		set
+			store_thumb = :store_thumb,
+			price = :price,
+			stock = :stock,
+			url = :url,
+			batch = 1,
+			cr_date = NOW()
+		where
+			id = :id
+	`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, -1, err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
+}
+
+func createPrice(db *sqlx.DB, payload models.Price) (bool, int64, error) {
+	q := `
+		insert into tboardgameprices (
+			boardgame_id,
+			name,
+			store_id,
+			store_thumb,
+			price,
+			stock,
+			url,
+			levenshtein,
+			extra_id,
+			batch
+		) values (
+			:boardgame_id,
+			:name,
+			:store_id,
+			:store_thumb,
+			:price,
+			:stock,
+			:url,
+			:levenshtein,
+			:extra_id,
+			1
+		)`
+
+	rs, err := db.NamedExec(q, payload)
+	if err != nil {
+		return false, -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return false, -1, err
+	}
+
+	id, err := rs.LastInsertId()
+	if err != nil {
+		return false, -1, err
+	}
+
+	return rows > 0, id, nil
 }
 
 func normalize_dates(db *sqlx.DB) (bool, error) {
@@ -209,53 +511,6 @@ func delete_redundant_history(db *sqlx.DB) (int64, error) {
 	return rows, nil
 }
 
-func findPrice(db *sqlx.DB, payload models.Price) (*models.JsonNullInt64, error) {
-	var id models.JsonNullInt64
-
-	q := `
-		select
-			id
-		from
-			tboardgameprices
-		where
-			store_id = :store_id and
-			name = :name and
-			extra_id = :extra_id
-	`
-
-	stmt, err := db.PrepareNamed(q)
-	if err != nil {
-		return nil, err
-	}
-	defer stmt.Close()
-
-	err = stmt.Get(&id, payload)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return &id, nil
-}
-
-func exists(db *sqlx.DB, payload models.Price) (bool, error) {
-	q := `select 1 from tboardgameprices where store_id = :store_id and name = :name and extra_id = :extra_id`
-
-	rows, err := db.NamedQuery(q, payload)
-	if err != nil {
-		return false, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		return true, nil
-	}
-
-	return false, nil
-}
-
 func updateBatch(db *sqlx.DB, store_id int64) (int64, error) {
 	q := `
 		update
@@ -279,83 +534,6 @@ func updateBatch(db *sqlx.DB, store_id int64) (int64, error) {
 	}
 
 	return rows, nil
-}
-
-func update(db *sqlx.DB, payload models.Price) (bool, int64, error) {
-	q := `
-		update
-			tboardgameprices
-		set
-			store_thumb = :store_thumb,
-			price = :price,
-			stock = :stock,
-			url = :url,
-			batch = 1,
-			cr_date = NOW()
-		where
-			id = :id
-	`
-
-	rs, err := db.NamedExec(q, payload)
-	if err != nil {
-		return false, -1, err
-	}
-
-	rows, err := rs.RowsAffected()
-	if err != nil {
-		return false, -1, err
-	}
-
-	id, err := rs.LastInsertId()
-	if err != nil {
-		return false, -1, err
-	}
-
-	return rows > 0, id, nil
-}
-
-func create(db *sqlx.DB, payload models.Price) (bool, int64, error) {
-	q := `
-		insert into tboardgameprices (
-			boardgame_id,
-			name,
-			store_id,
-			store_thumb,
-			price,
-			stock,
-			url,
-			levenshtein,
-			extra_id,
-			batch
-		) values (
-			:boardgame_id,
-			:name,
-			:store_id,
-			:store_thumb,
-			:price,
-			:stock,
-			:url,
-			:levenshtein,
-			:extra_id,
-			1
-		)`
-
-	rs, err := db.NamedExec(q, payload)
-	if err != nil {
-		return false, -1, err
-	}
-
-	rows, err := rs.RowsAffected()
-	if err != nil {
-		return false, -1, err
-	}
-
-	id, err := rs.LastInsertId()
-	if err != nil {
-		return false, -1, err
-	}
-
-	return rows > 0, id, nil
 }
 
 func UpdateMappings(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
