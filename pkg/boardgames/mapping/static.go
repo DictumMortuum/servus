@@ -128,6 +128,7 @@ func Ignore(price models.Price) bool {
 		"as επιτραπέζιο",
 		"ultra pro",
 		"as games",
+		"οργανωτής επιτραπέζιων παιχνιδιών",
 	}
 
 	for _, ignore := range ignored {
