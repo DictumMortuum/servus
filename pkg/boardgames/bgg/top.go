@@ -195,6 +195,7 @@ func update(db *sqlx.DB, payload map[string]interface{}) (bool, error) {
 		update
 			tboardgames
 		set
+			name = :name,
 			rank = :rank,
 			thumb = :thumb
 		where
