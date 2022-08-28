@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/Kagami/go-avif v0.1.0
-	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/deta/deta-go v1.0.0
 	github.com/fhs/gompd v1.0.1
 	github.com/gin-gonic/gin v1.8.1
@@ -17,15 +16,16 @@ require (
 	github.com/mafredri/go-trueskill v0.0.0-20190101120706-fc89fbba5a88
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f
 	github.com/streadway/amqp v1.0.0
 	github.com/tealeg/xlsx/v3 v3.2.4
+	github.com/ziutek/telnet v0.0.0-20180329124119-c3b780dc415b
 	gopkg.in/tucnak/telebot.v2 v2.4.1
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/xurls/v2 v2.4.0
 )
 
 require (
+	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/antchfx/htmlquery v1.2.5 // indirect
 	github.com/antchfx/xmlquery v1.3.11 // indirect
@@ -67,5 +67,4 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
