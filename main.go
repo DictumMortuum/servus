@@ -203,7 +203,7 @@ func main() {
 
 	rt := r.Group("/router")
 	{
-		rt.GET("/reset", router.Reset)
+		rt.POST("/reset", router.Reset)
 	}
 
 	r.POST("/weight", weight.AddWeight)
