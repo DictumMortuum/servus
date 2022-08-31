@@ -202,7 +202,7 @@ func createMapping(db *sqlx.DB, payload models.Mapping) (bool, int64, error) {
 	return rows > 0, id, nil
 }
 
-func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
+func UpsertPrice(db *sqlx.DB, item models.Price) (int64, bool, error) {
 	if !item.BoardgameId.Valid {
 		item.BoardgameId = models.JsonNullInt64{
 			Int64: -1,
@@ -211,28 +211,28 @@ func UpsertPrice(db *sqlx.DB, item models.Price) (int64, error) {
 	} else {
 		_, err := bgg.FetchBoardgameIfNotExists(db, item.BoardgameId)
 		if err != nil {
-			return -1, err
+			return -1, false, err
 		}
 	}
 
 	id, err := findPrice(db, item)
 	if err != nil {
-		return -1, err
+		return -1, false, err
 	}
 
 	if id == nil {
 		_, key, err := createPrice(db, item)
 		if err != nil {
-			return -1, err
+			return -1, false, err
 		}
-		return key, nil
+		return key, false, nil
 	} else {
 		item.Id = id.Int64
 		_, key, err := updatePrice(db, item)
 		if err != nil {
-			return key, err
+			return key, true, err
 		}
-		return id.Int64, nil
+		return id.Int64, true, nil
 	}
 }
 
