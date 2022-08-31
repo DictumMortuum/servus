@@ -41,6 +41,7 @@ type Price struct {
 func (rs *Price) Constructor() []func(map[string]interface{}, bool) error {
 	return []func(map[string]interface{}, bool) error{
 		rs.SetStoreId,
+		rs.SetBoardgameId,
 		rs.SetPrice,
 		rs.SetStock,
 		rs.SetUrl,
