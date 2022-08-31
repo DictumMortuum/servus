@@ -129,6 +129,28 @@ func Ignore(price models.Price) bool {
 		"ultra pro",
 		"as games",
 		"οργανωτής επιτραπέζιων παιχνιδιών",
+		"funko",
+		"qwixx",
+		"τα νησάκια της γνώσης",
+		"κυνήγι ερωτήσεων",
+		"shuffle fun",
+		"ridley's games room",
+		"ζάρια",
+		"chess",
+		"ubongo",
+		"cluedo",
+		"ελληνική ιστορία",
+		"κουίζ",
+		"τα νησάκια της γνώσης",
+		"recollect?",
+		"what do you meme",
+		"mattel",
+		"time's up!",
+		"quantik",
+		"kerflip",
+		"quarto classic",
+		"jungle speed",
+		"scrabble",
 	}
 
 	for _, ignore := range ignored {
@@ -157,7 +179,7 @@ func MapAllStatic(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			}
 
 			updatePrice(db, price)
-			break
+			// break
 		}
 	}
 
