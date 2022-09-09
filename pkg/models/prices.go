@@ -34,6 +34,7 @@ type Price struct {
 	Rank             JsonNullInt64   `db:"rank" json:"rank"`
 	Batch            int64           `db:"batch" json:"-"`
 	Mapped           bool            `db:"mapped" json:"-"`
+	Ignored          bool            `db:"ignored"`
 	HistoricPrices   []HistoricPrice `json:"-"`
 	ProductId        string          `json:"-"`
 }
@@ -49,6 +50,7 @@ func (rs *Price) Constructor() []func(map[string]interface{}, bool) error {
 		rs.SetBatch,
 		rs.SetLevenshtein,
 		rs.SetMapped,
+		rs.SetIgnored,
 	}
 }
 
@@ -134,5 +136,15 @@ func (rs *Price) SetMapped(data map[string]interface{}, create bool) error {
 	}
 
 	rs.Mapped = mapped
+	return nil
+}
+
+func (rs *Price) SetIgnored(data map[string]interface{}, create bool) error {
+	ignored, err := getBool(data, "ignored")
+	if err != nil {
+		return err
+	}
+
+	rs.Ignored = ignored
 	return nil
 }

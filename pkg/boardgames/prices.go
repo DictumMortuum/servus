@@ -140,7 +140,8 @@ func countPrices(db *sqlx.DB, args *models.QueryBuilder) (int, error) {
 			left join tboardgames g on g.id = p.boardgame_id,
 			tboardgamestores s
 		where
-			p.store_id = s.id
+			p.store_id = s.id and
+			p.ignored = 0
 		{{ if gt (len .FilterVal) 0 }}
 			and p.{{ .FilterKey }} = {{ .FilterVal }}
 		{{ end }}
@@ -183,7 +184,8 @@ func GetListPrice(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 			left join tboardgames g on g.id = p.boardgame_id,
 			tboardgamestores s
 		where
-			p.store_id = s.id
+			p.store_id = s.id and
+			p.ignored = 0
 		{{ if gt (len .Ids) 0 }}
 			and p.{{ .RefKey }} in (?)
 		{{ else if gt (len .FilterVal) 0 }}
