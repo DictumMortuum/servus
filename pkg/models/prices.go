@@ -34,7 +34,7 @@ type Price struct {
 	Rank             JsonNullInt64   `db:"rank" json:"rank"`
 	Batch            int64           `db:"batch" json:"-"`
 	Mapped           bool            `db:"mapped" json:"-"`
-	Ignored          bool            `db:"ignored"`
+	Ignored          bool            `db:"ignored" json:"ignored"`
 	HistoricPrices   []HistoricPrice `json:"-"`
 	ProductId        string          `json:"-"`
 }
