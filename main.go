@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"github.com/DictumMortuum/servus/pkg/boardgames"
-	"github.com/DictumMortuum/servus/pkg/boardgames/atlas"
 	"github.com/DictumMortuum/servus/pkg/boardgames/bgg"
 	"github.com/DictumMortuum/servus/pkg/boardgames/images"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
@@ -34,11 +33,6 @@ var staticFS embed.FS
 
 func main() {
 	r, err := generic.SetupMainRouter("")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	apiCache, err := CacheInit()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,9 +80,9 @@ func main() {
 
 	bg := r.Group("/boardgames")
 	{
-		bg.POST("/search/:hash", CacheCheck(apiCache), atlas.AtlasSearch)
-		bg.POST("/get/:hash", CacheCheck(apiCache), bgg.BggGet)
-		bg.POST("/bggsearch/:hash", CacheCheck(apiCache), bgg.BggSearch)
+		// bg.POST("/search/:hash", CacheCheck(apiCache), atlas.AtlasSearch)
+		// bg.POST("/get/:hash", CacheCheck(apiCache), bgg.BggGet)
+		// bg.POST("/bggsearch/:hash", CacheCheck(apiCache), bgg.BggSearch)
 		bg.GET("/top", bgg.GetTopBoardgames)
 		bg.GET("/top/art", bgg.FetchTopArt)
 	}
@@ -210,6 +204,5 @@ func main() {
 	r.POST("/food", food.Scrape)
 	r.POST("/links", links.AddLink)
 	r.GET("/expenses", gnucash.GetTopExpenses)
-	r.GET("/cache", CacheSave(apiCache))
 	r.Run("127.0.0.1:1234")
 }

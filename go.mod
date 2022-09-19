@@ -16,7 +16,6 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.5
 	github.com/mafredri/go-trueskill v0.0.0-20190101120706-fc89fbba5a88
 	github.com/microcosm-cc/bluemonday v1.0.20
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/streadway/amqp v1.0.0
 	github.com/tealeg/xlsx/v3 v3.2.4
 	github.com/ziutek/telnet v0.0.0-20180329124119-c3b780dc415b
