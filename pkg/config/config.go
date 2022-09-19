@@ -1,66 +1,65 @@
 package config
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v2"
+	"github.com/heetch/confita"
+	"github.com/heetch/confita/backend/file"
 	"io"
-	"net/url"
 	"os"
-	"strings"
 )
 
 type Config struct {
 	PathTemplates string
-	Timezone      string `yaml:"timezone"`
+	Timezone      string `config:"timezone"`
 	Database      struct {
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
-		Server   string `yaml:"server"`
-		Port     string `yaml:"port"`
-	} `yaml:"database"`
+		Username string `config:"username"`
+		Password string `config:"password"`
+		Server   string `config:"server"`
+		Port     string `config:"port"`
+	} `config:"database"`
 	Databases map[string]string
 	Zerotier  struct {
-		Token   string `yaml:"token"`
-		Network string `yaml:"network"`
-	} `yaml:"zerotier"`
+		Token   string `config:"token"`
+		Network string `config:"network"`
+	} `config:"zerotier"`
 	Mpd struct {
-		Server string `yaml:"server"`
-		Port   string `yaml:"port"`
-	}
+		Server string `config:"server"`
+	} `config:"mpd"`
 	Mealie struct {
-		Token string `yaml:"token"`
-	} `yaml:"mealie"`
+		Token string `config:"token"`
+	} `config:"mealie"`
 	Telegram struct {
-		Enabled bool     `yaml:"enabled" default:"false"`
-		Token   string   `yaml:"token"`
-		Users   []string `yaml:"users"`
-	}
+		Enabled bool     `config:"enabled" default:"false"`
+		Token   string   `config:"token"`
+		Users   []string `config:"users"`
+	} `config:"telegram"`
 	Calendar struct {
-		Username string `yaml:"username"`
-		Password string `yaml:"password"`
-		Server   string `yaml:"server"`
-	} `yaml:"calendar"`
+		Username string `config:"username"`
+		Password string `config:"password"`
+		Server   string `config:"server"`
+	} `config:"calendar"`
 	Atlas struct {
-		ClientId string `yaml:"client_id"`
-	} `yaml:"atlas"`
+		ClientId string `config:"client_id"`
+	} `config:"atlas"`
 	Cache struct {
-		Expiration int    `yaml:"expiration"`
-		Cleanup    int    `yaml:"cleanup"`
-		Path       string `yaml:"path"`
-	} `yaml:"cache"`
+		Expiration int    `config:"expiration"`
+		Cleanup    int    `config:"cleanup"`
+		Path       string `config:"path"`
+	} `config:"cache"`
 	Deta struct {
-		ProjectKey string `yaml:"project_key"`
-	} `yaml:"deta"`
+		ProjectKey string `config:"project_key"`
+	} `config:"deta"`
 }
 
 var (
-	App *Config
+	App Config
 )
 
 func Read(path string) error {
 	mode := os.Getenv("GIN_MODE")
 	path_templates := "templates/*"
-	path_cfg := "servusrc"
+	path_cfg := "servusrc.yml"
 
 	if path != "" {
 		path_cfg = path
@@ -71,18 +70,14 @@ func Read(path string) error {
 		f, _ := os.Create("/var/log/servus.log")
 		gin.DefaultWriter = io.MultiWriter(f)
 		path_templates = "/usr/share/webapps/servus/*"
-		path_cfg = "/etc/servusrc"
+		path_cfg = "/etc/servusrc.yml"
 	}
 
-	file, err := os.Open(path_cfg)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+	loader := confita.NewLoader(
+		file.NewBackend(path_cfg),
+	)
 
-	d := yaml.NewDecoder(file)
-
-	err = d.Decode(&App)
+	err := loader.Load(context.Background(), &App)
 	if err != nil {
 		return err
 	}
@@ -90,26 +85,4 @@ func Read(path string) error {
 	App.PathTemplates = path_templates
 
 	return nil
-}
-
-func (c *Config) GetMariaDBConnection(db string) string {
-	rs := []string{
-		c.Database.Username,
-		":",
-		c.Database.Password,
-		"@tcp(",
-		c.Database.Server,
-		":",
-		c.Database.Port,
-		")/",
-		db,
-		"?parseTime=true",
-		"&loc=" + url.QueryEscape(c.Timezone),
-	}
-
-	return strings.Join(rs, "")
-}
-
-func (c *Config) GetMPDConnection() string {
-	return c.Mpd.Server + ":" + c.Mpd.Port
 }

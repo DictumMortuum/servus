@@ -11,8 +11,8 @@ func Conn() (*sqlx.DB, error) {
 }
 
 func DatabaseConnect(database string) (*sqlx.DB, error) {
-	url := config.App.GetMariaDBConnection(database)
-	db, err := sqlx.Connect("mysql", url)
+	uri := config.App.Databases["mariadb"]
+	db, err := sqlx.Connect("mysql", uri)
 	if err != nil {
 		return nil, err
 	}

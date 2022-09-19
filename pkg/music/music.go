@@ -64,7 +64,7 @@ func playlist(conn *mpd.Client, list string) (*mpd.Attrs, error) {
 func Playlist(c *gin.Context) {
 	list := c.Param("playlist")
 
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -97,7 +97,7 @@ func Playlist(c *gin.Context) {
 }
 
 func Stop(c *gin.Context) {
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -114,7 +114,7 @@ func Stop(c *gin.Context) {
 }
 
 func Toggle(c *gin.Context) {
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -151,7 +151,7 @@ func Toggle(c *gin.Context) {
 }
 
 func Next(c *gin.Context) {
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -168,7 +168,7 @@ func Next(c *gin.Context) {
 }
 
 func Previous(c *gin.Context) {
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -185,7 +185,7 @@ func Previous(c *gin.Context) {
 }
 
 func Current(c *gin.Context) {
-	conn, err := mpd.Dial("tcp", config.App.GetMPDConnection())
+	conn, err := mpd.Dial("tcp", config.App.Mpd.Server)
 	if err != nil {
 		util.Error(c, err)
 		return
