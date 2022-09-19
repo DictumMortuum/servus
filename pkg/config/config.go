@@ -12,14 +12,8 @@ import (
 type Config struct {
 	PathTemplates string
 	Timezone      string `config:"timezone"`
-	Database      struct {
-		Username string `config:"username"`
-		Password string `config:"password"`
-		Server   string `config:"server"`
-		Port     string `config:"port"`
-	} `config:"database"`
-	Databases map[string]string
-	Zerotier  struct {
+	Databases     map[string]string
+	Zerotier      struct {
 		Token   string `config:"token"`
 		Network string `config:"network"`
 	} `config:"zerotier"`
@@ -34,11 +28,6 @@ type Config struct {
 		Token   string   `config:"token"`
 		Users   []string `config:"users"`
 	} `config:"telegram"`
-	Calendar struct {
-		Username string `config:"username"`
-		Password string `config:"password"`
-		Server   string `config:"server"`
-	} `config:"calendar"`
 	Atlas struct {
 		ClientId string `config:"client_id"`
 	} `config:"atlas"`
