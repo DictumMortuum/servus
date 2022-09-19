@@ -70,7 +70,7 @@ func Read(path string) error {
 		f, _ := os.Create("/var/log/servus.log")
 		gin.DefaultWriter = io.MultiWriter(f)
 		path_templates = "/usr/share/webapps/servus/*"
-		path_cfg = "/etc/servusrc.yml"
+		path_cfg = "/etc/conf.d/servusrc.yml"
 	}
 
 	loader := confita.NewLoader(
