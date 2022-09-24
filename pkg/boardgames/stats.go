@@ -57,7 +57,7 @@ func GetStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func GetListStats(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var rs []models.Stats
+	rs := []models.Stats{}
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgamestats")

@@ -48,7 +48,7 @@ func GetPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func GetListPlay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var rs []models.Play
+	rs := []models.Play{}
 
 	var count []int
 	err := db.Select(&count, "select 1 from tboardgameplays")
