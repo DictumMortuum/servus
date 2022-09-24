@@ -126,7 +126,7 @@ func countBoardgames(db *sqlx.DB, args *models.QueryBuilder) (int, error) {
 }
 
 func GetListBoardgame(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var rs []models.Boardgame
+	rs := []models.Boardgame{}
 
 	count, err := countBoardgames(db, args)
 	if err != nil {
