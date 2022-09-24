@@ -8,6 +8,7 @@ type Play struct {
 	Id                int64     `db:"id" json:"id"`
 	BoardgameId       int64     `db:"boardgame_id" json:"boardgame_id"`
 	BoardgameSettings Json      `db:"data" json:"boardgame_data"`
+	PlaySettings      Json      `db:"play_data" json:"play_data"`
 	CrDate            time.Time `db:"cr_date" json:"cr_date"`
 	Date              time.Time `db:"date" json:"date"`
 	Boardgame         string    `db:"name" json:"boardgame"`
@@ -25,7 +26,7 @@ func (p Play) IsCooperative() bool {
 }
 
 func (p Play) Teams() []int {
-	if val, ok := p.BoardgameSettings["teams"]; ok {
+	if val, ok := p.PlaySettings["teams"]; ok {
 		return val.([]int)
 	}
 
