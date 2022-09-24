@@ -24,6 +24,14 @@ func (p Play) IsCooperative() bool {
 	return false
 }
 
+func (p Play) Teams() []int {
+	if val, ok := p.BoardgameSettings["teams"]; ok {
+		return val.([]int)
+	}
+
+	return nil
+}
+
 func (rs *Play) SetDate(data map[string]interface{}, create bool) error {
 	date, err := getTime(data, "date")
 	if err != nil {
