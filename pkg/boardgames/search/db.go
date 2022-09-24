@@ -7,6 +7,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"time"
 )
 
 func UpsertHistory(db *sqlx.DB, item models.HistoricPrice) (int64, error) {
@@ -477,6 +478,87 @@ func delete_redundant_prices(db *sqlx.DB) (int64, error) {
 	return rows, nil
 }
 
+type HistoryResult struct {
+	StoreId     int64     `db:"store_id"`
+	BoardgameId int64     `db:"boardgame_id"`
+	CrDate      time.Time `db:"cr_date" `
+	N           int       `db:"n"`
+}
+
+func delete_redundant_history2(db *sqlx.DB) error {
+	var rs []HistoryResult
+
+	err := db.Select(&rs, "select store_id, boardgame_id, cr_date, count(*) n from tboardgamepriceshistory group by 1, 2, 3")
+	if err != nil {
+		return err
+	}
+
+	for _, item := range rs {
+		if item.N > 1 {
+			max, err := delete_history_duplicates(db, &item)
+			if err != nil {
+				return err
+			}
+
+			log.Println(max, item)
+		}
+	}
+
+	return nil
+}
+
+func delete_history_duplicates(db *sqlx.DB, payload *HistoryResult) (int64, error) {
+	var max_id int64
+
+	q := `
+		select
+			max(id)
+		from
+			tboardgamepriceshistory
+		where
+			boardgame_id = :boardgame_id and
+			store_id = :store_id and
+			cr_date = :cr_date
+	`
+	stmt, err := db.PrepareNamed(q)
+	if err != nil {
+		return -1, err
+	}
+	defer stmt.Close()
+
+	err = stmt.Get(&max_id, payload)
+	if err != nil {
+		return -1, err
+	}
+
+	d := `
+		delete from
+			tboardgamepriceshistory
+		where
+			boardgame_id = :boardgame_id and
+			store_id = :store_id and
+			cr_date = :cr_date and
+			id != :id
+	`
+
+	rs, err := db.NamedExec(d, map[string]interface{}{
+		"store_id":     payload.StoreId,
+		"boardgame_id": payload.BoardgameId,
+		"cr_date":      payload.CrDate,
+		"id":           max_id,
+	})
+	if err != nil {
+		return -1, err
+	}
+
+	rows, err := rs.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+
+	return rows, nil
+}
+
 func delete_redundant_history(db *sqlx.DB) (int64, error) {
 	q := `
 		delete from
@@ -567,13 +649,19 @@ func UpdateMappings(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error)
 		}
 	}
 
-	count = 1
-	for count > 0 {
-		count, err = delete_redundant_history(db)
-		log.Println("Found:", count)
-		if err != nil {
-			return nil, err
-		}
+	// count = 1
+	// for count > 0 {
+	// 	count, err = delete_redundant_history(db)
+	// 	log.Println("Found:", count)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+
+	// delete 23953 from history
+	err = delete_redundant_history2(db)
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, nil
