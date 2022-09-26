@@ -25,12 +25,24 @@ func (p Play) IsCooperative() bool {
 	return false
 }
 
-func (p Play) Teams() []int {
+func (p Play) GetTeams() [][]int64 {
+	rs := [][]int64{}
+
 	if val, ok := p.PlaySettings["teams"]; ok {
-		return val.([]int)
+		raw_teams := val.([]interface{})
+
+		for _, raw_team := range raw_teams {
+			team := []int64{}
+
+			for _, item := range raw_team.([]interface{}) {
+				team = append(team, int64(item.(float64)))
+			}
+
+			rs = append(rs, team)
+		}
 	}
 
-	return nil
+	return rs
 }
 
 func (rs *Play) SetDate(data map[string]interface{}, create bool) error {
