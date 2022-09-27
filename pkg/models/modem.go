@@ -1,6 +1,7 @@
 package models
 
 type Modem struct {
+	Host        string  `json:"host"`
 	Uptime      int64   `json:"uptime"`
 	Status      bool    `json:"status"`
 	VoipStatus  bool    `json:"voip_status"`
