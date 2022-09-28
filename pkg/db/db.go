@@ -7,11 +7,11 @@ import (
 )
 
 func Conn() (*sqlx.DB, error) {
-	return DatabaseConnect("servus")
+	return DatabaseConnect("mariadb")
 }
 
 func DatabaseConnect(database string) (*sqlx.DB, error) {
-	uri := config.App.Databases["mariadb"]
+	uri := config.App.Databases[database]
 	db, err := sqlx.Connect("mysql", uri)
 	if err != nil {
 		return nil, err
