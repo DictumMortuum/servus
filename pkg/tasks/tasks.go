@@ -255,6 +255,40 @@ func syncList(db *sqlx.DB, list List) error {
 	return nil
 }
 
+func syncList2(db *sqlx.DB, list List) error {
+	for _, item := range list.Items {
+		payload := Wish{
+			Id:         item.Id,
+			CalendarId: list.Id,
+			Owner:      list.User,
+			Status:     item.Status,
+			Desc:       item.Description,
+			Title:      item.Title,
+		}
+
+		_, err := db.NamedExec(`
+		insert into wishes (
+			url,
+			reserved,
+			person_id,
+			name,
+			type
+		) values (
+			:description,
+			false,
+			2,
+			:title,
+			''
+		)
+	`, &payload)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func SyncTasks(c *gin.Context) {
 	list := c.Param("list")
 
@@ -265,7 +299,7 @@ func SyncTasks(c *gin.Context) {
 	}
 	defer db1.Close()
 
-	db2, err := DB.DatabaseTypeConnect("postgres")
+	db2, err := DB.DatabaseTypeConnect("postgres", "supabase")
 	if err != nil {
 		util.Error(c, err)
 		return
@@ -279,18 +313,18 @@ func SyncTasks(c *gin.Context) {
 	}
 
 	for _, l := range rs {
-		err := syncList(db2, l)
+		err := syncList2(db2, l)
 		if err != nil {
 			util.Error(c, err)
 			return
 		}
 	}
 
-	err = deleteRedundant(db2, rs)
-	if err != nil {
-		util.Error(c, err)
-		return
-	}
+	// err = deleteRedundant(db2, rs)
+	// if err != nil {
+	// 	util.Error(c, err)
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, &rs)
 }

@@ -6,9 +6,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func DatabaseTypeConnect(database string) (*sqlx.DB, error) {
+func DatabaseTypeConnect(t string, database string) (*sqlx.DB, error) {
 	uri := config.App.Databases[database]
-	db, err := sqlx.Connect(database, uri)
+	db, err := sqlx.Connect(t, uri)
 	if err != nil {
 		return nil, err
 	}
