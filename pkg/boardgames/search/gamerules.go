@@ -41,22 +41,19 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 
 		var stock int
 
-		if !hasClass(e, "out-of-stock") {
+		switch e.ChildText(".c--stock-label") {
+		case "Εκτός αποθέματος":
 			stock = 0
-		} else {
-			stat := e.ChildText(".stat-1")
-
-			if stat == "Preorder" {
-				stock = 1
-			} else {
-				stock = 2
-			}
+		case "Άμεσα Διαθέσιμο":
+			stock = 2
+		default:
+			stock = 1
 		}
 
 		item := models.Price{
 			Name:       e.ChildText(".name"),
 			StoreId:    store_id,
-			StoreThumb: e.ChildAttr(".product-img div img", "data-src"),
+			StoreThumb: e.ChildAttr(".product-img div img", "src"),
 			Stock:      stock,
 			Price:      getPrice(raw_price),
 			Url:        e.ChildAttr(".name a", "href"),
@@ -75,7 +72,8 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		collector.Visit(link)
 	})
 
-	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions,Board%20Games")
+	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions&fq=15")
+	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Games&fq=15")
 	collector.Wait()
 
 	return map[string]interface{}{
