@@ -7,7 +7,9 @@ import (
 	"github.com/gocolly/colly/v2"
 	"github.com/jmoiron/sqlx"
 	"log"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 func ScrapeMysteryBay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
@@ -34,10 +36,6 @@ func ScrapeMysteryBay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 	)
 
 	collector.OnHTML("li[data-hook=product-list-grid-item]", func(e *colly.HTMLElement) {
-		if !strings.Contains(e.Request.URL.String(), "") {
-			return
-		}
-
 		raw_price := e.ChildText("span[data-hook=product-item-price-to-pay]")
 		raw_url := e.ChildAttr("[data-hook=product-item-images]", "style")
 		urls := getURL(raw_url)
@@ -51,7 +49,7 @@ func ScrapeMysteryBay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 		// style="background-image:url(https://static.wixstatic.com/media/9dcd7c_df5e66ff7168447ab10021bfa739a4cc~mv2.png/v1/fill/w_100,h_100,al_c,usm_0.66_1.00_0.01/9dcd7c_df5e66ff7168447ab10021bfa739a4cc~mv2.png);background-size:contain" data-hook="">
 		var stock int
 
-		if e.ChildText("span[data-hook=product-item-ribbon-new]") == "PRE-ORDER" {
+		if e.ChildText("span[data-hook=product-item-ribbon]") == "PRE-ORDER" {
 			stock = 1
 		} else {
 			if e.ChildAttr("button[data-hook=product-item-add-to-cart-button]", "aria-disabled") == "true" {
@@ -77,16 +75,31 @@ func ScrapeMysteryBay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 		}
 	})
 
-	collector.OnHTML(".pagination-results", func(e *colly.HTMLElement) {
-		pageCount := getPages(e.Text)
-		for i := 2; i <= pageCount; i++ {
-			link := fmt.Sprintf("https://avalongames.gr/index.php?route=product/category&path=59&limit=100&page=%d", i)
-			log.Println("Visiting: ", link)
-			collector.Visit(link)
+	collector.OnHTML("a.skOBQqy", func(e *colly.HTMLElement) {
+		page := strings.Split(e.Attr("data-hook"), "-")
+
+		if len(page) > 1 {
+			l, _ := strconv.Atoi(page[1])
+
+			for i := 1; i <= l; i++ {
+				link := fmt.Sprintf("%s%d", getPage(e.Request.AbsoluteURL("")), i)
+				log.Println("Visiting: " + link)
+				collector.Visit(link)
+			}
 		}
 	})
 
-	collector.Visit("https://www.mystery-bay.com/epitrapezia-paixnidia?page=36")
+	collector.Visit("https://www.mystery-bay.com/diaxeirisis-poron?page=1")
+	collector.Visit("https://www.mystery-bay.com/stratigikis?page=1")
+	collector.Visit("https://www.mystery-bay.com/fantasias?page=1")
+	collector.Visit("https://www.mystery-bay.com/mystirioy-tromoy?page=1")
+	collector.Visit("https://www.mystery-bay.com/paixnidia-me-miniatoyres-dungeon-cr?page=1")
+	collector.Visit("https://www.mystery-bay.com/oikogeneiaka?page=1")
+	collector.Visit("https://www.mystery-bay.com/tis-pareas?page=1")
+	collector.Visit("https://www.mystery-bay.com/paixnidia-me-kartes-zaria?page=1")
+	collector.Visit("https://www.mystery-bay.com/lcg?page=1")
+	collector.Visit("https://www.mystery-bay.com/war-games?page=1")
+	// collector.Visit("https://www.mystery-bay.com/pre-orders")
 	collector.Wait()
 
 	return map[string]interface{}{
@@ -95,4 +108,10 @@ func ScrapeMysteryBay(db *sqlx.DB, args *models.QueryBuilder) (interface{}, erro
 		"scraped":  detected,
 		"resetted": rows,
 	}, nil
+}
+
+func getPage(url string) string {
+	return strings.TrimRightFunc(url, func(r rune) bool {
+		return unicode.IsNumber(r)
+	})
 }
