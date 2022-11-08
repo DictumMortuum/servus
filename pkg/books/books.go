@@ -64,7 +64,7 @@ func CreateBook(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 		}
 	}
 
-	query, err := args.Insert("tboardgameBooks")
+	query, err := args.Insert("tbooks")
 	if err != nil {
 		return nil, err
 	}
