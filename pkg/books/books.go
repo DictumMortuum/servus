@@ -22,7 +22,7 @@ func GetBook(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
 }
 
 func GetListBook(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error) {
-	var rs []models.Book
+	rs := []models.Book{}
 
 	var count []int
 	err := db.Select(&count, "select 1 from tbooks")
