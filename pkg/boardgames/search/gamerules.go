@@ -43,9 +43,9 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 
 		switch e.ChildText(".c--stock-label") {
 		case "Εκτός αποθέματος":
-			stock = 0
-		case "Άμεσα Διαθέσιμο":
 			stock = 2
+		case "Άμεσα Διαθέσιμο":
+			stock = 0
 		default:
 			stock = 1
 		}
@@ -72,8 +72,8 @@ func ScrapeGameRules(db *sqlx.DB, args *models.QueryBuilder) (interface{}, error
 		collector.Visit(link)
 	})
 
-	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions&fq=15")
-	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Games&fq=15")
+	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Game%20Expansions")
+	collector.Visit("https://www.thegamerules.com/epitrapezia-paixnidia?fa132=Board%20Games")
 	collector.Wait()
 
 	return map[string]interface{}{
