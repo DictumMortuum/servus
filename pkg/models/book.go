@@ -5,6 +5,7 @@ type Book struct {
 	Name      string `db:"name" json:"name"`
 	Isbn      string `db:"isbn" json:"isbn"`
 	Publisher string `db:"publisher" json:"publisher"`
+	Writer    string `db:"writer" json:"writer"`
 }
 
 func (rs *Book) SetName(data map[string]interface{}, create bool) error {
@@ -14,6 +15,16 @@ func (rs *Book) SetName(data map[string]interface{}, create bool) error {
 	}
 
 	rs.Name = name
+	return nil
+}
+
+func (rs *Book) SetWriter(data map[string]interface{}, create bool) error {
+	writer, err := getString(data, "writer")
+	if err != nil {
+		return err
+	}
+
+	rs.Writer = writer
 	return nil
 }
 
@@ -42,5 +53,6 @@ func (rs *Book) Constructor() []func(map[string]interface{}, bool) error {
 		rs.SetName,
 		rs.SetIsbn,
 		rs.SetPublisher,
+		rs.SetWriter,
 	}
 }
