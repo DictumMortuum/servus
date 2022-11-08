@@ -8,6 +8,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/boardgames/mapping"
 	"github.com/DictumMortuum/servus/pkg/boardgames/mathtrade"
 	"github.com/DictumMortuum/servus/pkg/boardgames/search"
+	"github.com/DictumMortuum/servus/pkg/books"
 	"github.com/DictumMortuum/servus/pkg/config"
 	"github.com/DictumMortuum/servus/pkg/food"
 	"github.com/DictumMortuum/servus/pkg/gas"
@@ -169,6 +170,12 @@ func main() {
 		rest.POST("/mapping", generic.F(boardgames.CreateMapping))
 		rest.PUT("/mapping/:id", generic.F(boardgames.UpdateMapping))
 		rest.DELETE("/mapping/:id", generic.F(boardgames.DeleteMapping))
+
+		rest.GET("/book/:id", generic.F(books.GetBook))
+		rest.GET("/book", generic.F(books.GetListBook))
+		rest.POST("/book", generic.F(books.CreateBook))
+		rest.PUT("/book/:id", generic.F(books.UpdateBook))
+		rest.DELETE("/book/:id", generic.F(books.DeleteBook))
 
 		rest.GET("/history/:id", generic.F(boardgames.GetHistoricPrice))
 		rest.GET("/history", generic.F(boardgames.GetListHistoricPrice))
