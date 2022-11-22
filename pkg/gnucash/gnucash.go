@@ -37,7 +37,10 @@ func countSince(createdAtTime time.Time) (int, int) {
 }
 
 func GetExpenseByMonth(c *gin.Context) {
+	var rs []ExpensesRow
 	expense := c.Param("expense")
+	raw_from := c.Query("from")
+	raw_to := c.Query("to")
 
 	database, err := db.DatabaseConnect("gnucash")
 	if err != nil {
@@ -46,10 +49,18 @@ func GetExpenseByMonth(c *gin.Context) {
 	}
 	defer database.Close()
 
-	rs, err := getExpenseByMonth(database, expense)
-	if err != nil {
-		util.Error(c, err)
-		return
+	if raw_from != "" && raw_to != "" {
+		rs, err = getExpenseByMonthWithDateFilter(database, expense, raw_from, raw_to)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
+	} else {
+		rs, err = getExpenseByMonth(database, expense)
+		if err != nil {
+			util.Error(c, err)
+			return
+		}
 	}
 
 	months, days := countSince(rs[0].Date)
