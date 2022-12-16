@@ -10,6 +10,7 @@ type Boardgame struct {
 	Name       string          `db:"name" json:"name"`
 	Date       time.Time       `json:"validUntil"`
 	Data       Json            `db:"data" json:"data"`
+	BggData    Json            `db:"bgg_data" json:"bgg_data"`
 	Guid       JsonNullString  `db:"tx_guid" json:"tx_guid"`
 	Cost       JsonNullFloat64 `db:"cost" json:"cost"`
 	Rank       JsonNullInt64   `db:"rank" json:"rank"`
