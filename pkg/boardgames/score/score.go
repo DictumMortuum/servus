@@ -56,6 +56,11 @@ func DatabaseScore(play models.Play) (func(models.Stats) float64, error) {
 		score := 0.0
 		base := 0.01
 
+		if val, ok := stats.Data["score"].(float64); ok {
+			score += val
+			return score
+		}
+
 		for _, col := range s.Columns {
 			if col.Tiebreak != "" {
 				factor := col.Factor
@@ -159,7 +164,29 @@ func getFuncs(play models.Play) (func(models.Stats) float64, func([]models.Stats
 }
 
 func DefaultScore(stats models.Stats) float64 {
-	return stats.Data["score"].(float64)
+	// val, ok := stats.Data["score"]
+	if val, ok := stats.Data["score"].(float64); ok {
+		return val
+	} else {
+		if val, ok := stats.Data["winner"].(bool); ok {
+			if val == true {
+				return 1
+			} else {
+				return 0
+			}
+		} else {
+			return 0
+		}
+	}
+
+	return 0
+}
+
+func DefaultSort(stats []models.Stats) func(i, j int) bool {
+	return func(i, j int) bool {
+		return stats[i].Data["score"].(float64) < stats[j].Data["score"].(float64)
+		// return DefaultScore(stats[i]) < DefaultScore(stats[j])
+	}
 }
 
 func Calculate(db *sqlx.DB, play models.Play) (*models.Play, error) {
@@ -174,6 +201,14 @@ func Calculate(db *sqlx.DB, play models.Play) (*models.Play, error) {
 	}
 
 	scoreFunc, sortFunc := getFuncs(play)
+	if scoreFunc == nil {
+		scoreFunc = DefaultScore
+	}
+
+	if sortFunc == nil {
+		sortFunc = DefaultSort
+	}
+
 	if scoreFunc == nil || sortFunc == nil {
 		e := fmt.Sprintf("Could not find sort or score function for boardgame %s\n", play.Boardgame)
 		return nil, errors.New(e)
@@ -184,7 +219,8 @@ func Calculate(db *sqlx.DB, play models.Play) (*models.Play, error) {
 		item.Data["score"] = scoreFunc(item)
 		rs = append(rs, item)
 	}
-	sort.Slice(rs, sortFunc(rs))
+	// sort.Slice(rs, sortFunc(rs))
+	sort.Slice(rs, DefaultSort(rs))
 
 	play.Stats = rs
 

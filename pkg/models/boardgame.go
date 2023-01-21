@@ -6,17 +6,23 @@ import (
 )
 
 type Boardgame struct {
-	Id         int64           `db:"id" json:"id"`
-	Name       string          `db:"name" json:"name"`
-	Date       time.Time       `json:"validUntil"`
-	Data       Json            `db:"data" json:"data"`
-	BggData    Json            `db:"bgg_data" json:"bgg_data"`
-	Guid       JsonNullString  `db:"tx_guid" json:"tx_guid"`
-	Cost       JsonNullFloat64 `db:"cost" json:"cost"`
-	Rank       JsonNullInt64   `db:"rank" json:"rank"`
-	Thumb      JsonNullString  `db:"thumb" json:"thumb"`
-	Preview    JsonNullString  `db:"preview" json:"preview"`
-	Configured bool            `db:"configured" json:"configured"`
+	Id             int64           `db:"id" json:"id"`
+	Name           string          `db:"name" json:"name"`
+	Date           time.Time       `json:"validUntil"`
+	Data           Json            `db:"data" json:"data"`
+	BggData        Json            `db:"bgg_data" json:"bgg_data"`
+	Guid           JsonNullString  `db:"tx_guid" json:"tx_guid"`
+	Cost           JsonNullFloat64 `db:"cost" json:"cost"`
+	Rank           JsonNullInt64   `db:"rank" json:"rank"`
+	Thumb          JsonNullString  `db:"thumb" json:"thumb"`
+	Preview        JsonNullString  `db:"preview" json:"preview"`
+	Configured     bool            `db:"configured" json:"configured"`
+	BggDataNotNull bool            `db:"bgg_data_not_null" json:"bgg_data_not_null"`
+	RankNotNull    bool            `db:"rank_not_null" json:"rank_not_null"`
+	Year           JsonNullInt64   `db:"year" json:"year"`
+	MinPlayers     JsonNullInt64   `db:"min_players" json:"minplayers"`
+	MaxPlayers     JsonNullInt64   `db:"max_players" json:"maxplayers"`
+	Square200      JsonNullString  `db:"square200" json:"square200"`
 }
 
 func (rs *Boardgame) SetName(data map[string]interface{}, create bool) error {

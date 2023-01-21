@@ -59,13 +59,19 @@ func calculateWithoutTeams(ts *trueskill.Config, play models.Play, players map[i
 
 	play.Probability = probability * 100
 	play.Draws = draws
-
 	return play
 }
 
-func generateTeam(players map[int64]trueskill.Player, team []int64) trueskill.Player {
+func generateTeam(ts *trueskill.Config, players map[int64]trueskill.Player, team []int64) trueskill.Player {
 	mu := 0.0
 	sigma := 0.0
+
+	for _, id := range team {
+		_, ok := players[id]
+		if !ok {
+			players[id] = ts.NewPlayer()
+		}
+	}
 
 	for _, id := range team {
 		player := players[id]
@@ -107,7 +113,7 @@ func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int6
 	data := []Data{}
 	for _, team := range play.GetTeams() {
 		data = append(data, Data{
-			Trueskill: generateTeam(players, team),
+			Trueskill: generateTeam(ts, players, team),
 			Score:     getTeamScore(play, team),
 			Team:      team,
 		})
@@ -151,7 +157,6 @@ func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int6
 
 	play.Probability = probability * 100
 	play.Draws = draws
-
 	return play
 }
 

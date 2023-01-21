@@ -5,16 +5,18 @@ import (
 )
 
 type Play struct {
-	Id                int64     `db:"id" json:"id"`
-	BoardgameId       int64     `db:"boardgame_id" json:"boardgame_id"`
-	BoardgameSettings Json      `db:"data" json:"boardgame_data"`
-	PlaySettings      Json      `db:"play_data" json:"play_data"`
-	CrDate            time.Time `db:"cr_date" json:"cr_date"`
-	Date              time.Time `db:"date" json:"date"`
-	Boardgame         string    `db:"name" json:"boardgame"`
-	Stats             []Stats   `json:"stats"`
-	Probability       float64   `json:"probability"`
-	Draws             []bool    `json:"draws"`
+	Id                int64         `db:"id" json:"id"`
+	BoardgameId       int64         `db:"boardgame_id" json:"boardgame_id"`
+	LocationId        JsonNullInt64 `db:"location_id" json:"location_id"`
+	BoardgameSettings Json          `db:"data" json:"boardgame_data"`
+	PlaySettings      Json          `db:"play_data" json:"play_data"`
+	CrDate            time.Time     `db:"cr_date" json:"cr_date"`
+	Date              time.Time     `db:"date" json:"date"`
+	Boardgame         string        `db:"name" json:"boardgame"`
+	Stats             []Stats       `json:"stats"`
+	Probability       float64       `json:"probability"`
+	Draws             []bool        `json:"draws"`
+	PlayData          Json          `db:"play_data" json:"play_data"`
 }
 
 func (p Play) IsCooperative() bool {

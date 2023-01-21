@@ -1,10 +1,11 @@
 package models
 
 type Player struct {
-	Id      int64  `db:"id" json:"id"`
-	Name    string `db:"name" json:"name"`
-	Surname string `db:"surname" json:"surname"`
-	Email   string `db:"email" json:"email"`
+	Id      int64          `db:"id" json:"id"`
+	Name    string         `db:"name" json:"name"`
+	Surname string         `db:"surname" json:"surname"`
+	Email   string         `db:"email" json:"email"`
+	Uuid    JsonNullString `db:"uuid" json:"uuid"`
 }
 
 func (rs *Player) SetName(data map[string]interface{}, create bool) error {
