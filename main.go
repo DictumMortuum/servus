@@ -17,6 +17,7 @@ import (
 	"github.com/DictumMortuum/servus/pkg/links"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/DictumMortuum/servus/pkg/music"
+	"github.com/DictumMortuum/servus/pkg/ntfy"
 	"github.com/DictumMortuum/servus/pkg/router"
 	"github.com/DictumMortuum/servus/pkg/tasks"
 	"github.com/DictumMortuum/servus/pkg/util"
@@ -211,5 +212,6 @@ func main() {
 	r.POST("/food", food.Scrape)
 	r.POST("/links", links.AddLink)
 	r.GET("/expenses", gnucash.GetTopExpenses)
+	r.POST("/ntfy", ntfy.Send)
 	r.Run("127.0.0.1:1234")
 }
