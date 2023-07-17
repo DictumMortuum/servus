@@ -4,7 +4,7 @@ type Player struct {
 	Id      int64          `db:"id" json:"id"`
 	Name    string         `db:"name" json:"name"`
 	Surname string         `db:"surname" json:"surname"`
-	Email   string         `db:"email" json:"email"`
+	Email   JsonNullString `db:"email" json:"email"`
 	Uuid    JsonNullString `db:"uuid" json:"uuid"`
 }
 
