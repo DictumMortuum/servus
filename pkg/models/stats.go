@@ -67,5 +67,5 @@ func (rs *Stats) SetData(data map[string]interface{}, create bool) error {
 		return nil
 	}
 
-	return errors.New("Could not find 'data' parameter.")
+	return errors.New("could not find 'data' parameter")
 }

@@ -45,7 +45,7 @@ func (rs *Boardgame) SetData(data map[string]interface{}, create bool) error {
 		return nil
 	}
 
-	return errors.New("Could not find 'data' parameter.")
+	return errors.New("could not find 'data' parameter")
 }
 
 func (rs *Boardgame) SetRank(data map[string]interface{}, create bool) error {

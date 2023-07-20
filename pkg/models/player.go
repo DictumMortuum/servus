@@ -34,7 +34,7 @@ func (rs *Player) SetEmail(data map[string]interface{}, create bool) error {
 		return err
 	}
 
-	rs.Email = email
+	rs.Email = NewJsonNullString(email)
 	return nil
 }
 

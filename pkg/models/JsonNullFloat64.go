@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -31,7 +31,7 @@ func (obj *JsonNullFloat64) Scan(val interface{}) error {
 		obj.Float64 = v
 		return nil
 	default:
-		return errors.New(fmt.Sprintf("Unsupported type: %T", v))
+		return fmt.Errorf("unsupported type: %T", v)
 	}
 }
 

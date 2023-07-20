@@ -16,7 +16,7 @@ type Play struct {
 	Stats             []Stats       `json:"stats"`
 	Probability       float64       `json:"probability"`
 	Draws             []bool        `json:"draws"`
-	PlayData          Json          `db:"play_data" json:"play_data"`
+	// PlayData          Json          `db:"play_data" json:"play_data"`
 }
 
 func (p Play) IsCooperative() bool {

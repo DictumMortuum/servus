@@ -8,15 +8,15 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Json map[string]interface{}
+type JsonArray []interface{}
 
-func (obj *Json) Scan(val interface{}) error {
+func (obj *JsonArray) Scan(val interface{}) error {
 	switch v := val.(type) {
 	case []byte:
 		return json.Unmarshal(v, &obj)
 	case string:
 		return json.Unmarshal([]byte(v), &obj)
-	case map[string]interface{}:
+	case []interface{}:
 		*obj = v
 		return nil
 	case nil:
@@ -26,11 +26,11 @@ func (obj *Json) Scan(val interface{}) error {
 	}
 }
 
-func (obj Json) Value() (driver.Value, error) {
+func (obj JsonArray) Value() (driver.Value, error) {
 	return json.Marshal(obj)
 }
 
-func (obj Json) Unmarshal(to interface{}) error {
+func (obj JsonArray) Unmarshal(to interface{}) error {
 	bytes, err := json.Marshal(obj)
 	if err != nil {
 		return err
