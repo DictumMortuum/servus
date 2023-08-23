@@ -9,6 +9,7 @@ type Boardgame struct {
 	Id             int64           `db:"id" json:"id"`
 	Name           string          `db:"name" json:"name"`
 	Date           time.Time       `json:"validUntil"`
+	UpdatedAt      time.Time       `db:"updated_at"`
 	Data           Json            `db:"data" json:"data"`
 	BggData        Json            `db:"bgg_data" json:"bgg_data"`
 	Guid           JsonNullString  `db:"tx_guid" json:"tx_guid"`

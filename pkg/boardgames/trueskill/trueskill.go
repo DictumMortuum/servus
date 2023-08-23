@@ -1,12 +1,13 @@
 package trueskill
 
 import (
+	"sort"
+
 	"github.com/DictumMortuum/servus/pkg/models"
 	trueskill "github.com/mafredri/go-trueskill"
-	"sort"
 )
 
-func calculateWithoutTeams(ts *trueskill.Config, play models.Play, players map[int64]trueskill.Player) models.Play {
+func calculateWithoutTeams(ts *trueskill.Config, play *models.Play, players map[int64]trueskill.Player) *models.Play {
 	// Reverse the array, so that winner is on the top.
 	for i, j := 0, len(play.Stats)-1; i < j; i, j = i+1, j-1 {
 		play.Stats[i], play.Stats[j] = play.Stats[j], play.Stats[i]
@@ -97,7 +98,7 @@ func getTeamScore(play models.Play, team []int64) float64 {
 	return -1
 }
 
-func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int64]trueskill.Player) models.Play {
+func calculateWithTeams(ts *trueskill.Config, play *models.Play, players map[int64]trueskill.Player) *models.Play {
 	m := map[int64]int{}
 	for i, stat := range play.Stats {
 		m[stat.PlayerId] = i
@@ -111,10 +112,10 @@ func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int6
 	}
 
 	data := []Data{}
-	for _, team := range play.GetTeams() {
+	for _, team := range play.GetTeams("teams") {
 		data = append(data, Data{
 			Trueskill: generateTeam(ts, players, team),
-			Score:     getTeamScore(play, team),
+			Score:     getTeamScore(*play, team),
 			Team:      team,
 		})
 	}
@@ -122,6 +123,11 @@ func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int6
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].Score > data[j].Score
 	})
+
+	newTeams := [][]int64{}
+	for _, team := range data {
+		newTeams = append(newTeams, team.Team)
+	}
 
 	// Generate a list of draws, if there are any
 	draws := []bool{}
@@ -157,6 +163,7 @@ func calculateWithTeams(ts *trueskill.Config, play models.Play, players map[int6
 
 	play.Probability = probability * 100
 	play.Draws = draws
+	play.PlaySettings["teams2"] = newTeams
 	return play
 }
 
@@ -170,13 +177,13 @@ func Calculate(plays []models.Play) []models.Play {
 			continue
 		}
 
-		teams := plays[idx].GetTeams()
+		teams := plays[idx].GetTeams("teams")
 		if len(teams) > 0 {
-			rs = append(rs, calculateWithTeams(&ts, plays[idx], players))
+			rs = append(rs, *calculateWithTeams(&ts, &plays[idx], players))
 		} else {
-			rs = append(rs, calculateWithoutTeams(&ts, plays[idx], players))
+			rs = append(rs, *calculateWithoutTeams(&ts, &plays[idx], players))
 		}
 	}
 
-	return plays
+	return rs
 }

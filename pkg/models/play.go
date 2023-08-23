@@ -27,10 +27,10 @@ func (p Play) IsCooperative() bool {
 	return false
 }
 
-func (p Play) GetTeams() [][]int64 {
+func (p Play) GetTeams(id string) [][]int64 {
 	rs := [][]int64{}
 
-	if val, ok := p.PlaySettings["teams"]; ok {
+	if val, ok := p.PlaySettings[id]; ok {
 		raw_teams := val.([]interface{})
 
 		for _, raw_team := range raw_teams {

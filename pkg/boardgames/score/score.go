@@ -3,9 +3,10 @@ package score
 import (
 	"errors"
 	"fmt"
+	"sort"
+
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
-	"sort"
 )
 
 type column struct {
@@ -231,9 +232,9 @@ func CalculateAll(db *sqlx.DB, plays []models.Play) ([]models.Play, error) {
 	rs := []models.Play{}
 
 	for _, play := range plays {
-		if play.IsCooperative() {
-			continue
-		}
+		// if play.IsCooperative() {
+		// 	continue
+		// }
 
 		scored, err := Calculate(db, play)
 		if err != nil {

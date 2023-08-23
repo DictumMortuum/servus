@@ -1,11 +1,14 @@
 package boardgames
 
 import (
+	"encoding/json"
+	"fmt"
+	"sort"
+
 	"github.com/DictumMortuum/servus/pkg/boardgames/score"
 	"github.com/DictumMortuum/servus/pkg/boardgames/trueskill"
 	"github.com/DictumMortuum/servus/pkg/models"
 	"github.com/jmoiron/sqlx"
-	"sort"
 )
 
 func getBoardgamesWithPlays(db *sqlx.DB) ([]int64, error) {
@@ -194,6 +197,96 @@ func GetTrueskillOverall(db *sqlx.DB, args *models.QueryBuilder) (interface{}, e
 	}
 
 	trueskill_plays := trueskill.Calculate(scored_plays)
+
+	for _, play := range trueskill_plays {
+		players := []int64{}
+		for _, stat := range play.Stats {
+			players = append(players, stat.PlayerId)
+		}
+
+		var teams [][]int64
+		if val, ok := play.PlaySettings["teams2"]; ok {
+			teams = val.([][]int64)
+		}
+
+		var winners []int64
+		if len(teams) > 0 {
+			winners = teams[0]
+		} else {
+			winners = []int64{play.Stats[0].PlayerId}
+			for i, draw := range play.Draws {
+				if draw {
+					winners = append(winners, play.Stats[i+1].PlayerId)
+				} else {
+					break
+				}
+			}
+		}
+
+		payload := map[string]interface{}{
+			"winners": winners,
+			"players": players,
+			"draws":   play.Draws,
+		}
+
+		if len(teams) > 0 {
+			payload["teams"] = teams
+		}
+
+		json, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+
+		sql := fmt.Sprintf(`
+			update tboardgameplays set play_data = '%s' where id = ?
+		`, string(json))
+
+		_, err = db.Exec(sql, play.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, play := range scored_plays {
+		if !play.IsCooperative() {
+			continue
+		}
+
+		players := []int64{}
+		for _, stat := range play.Stats {
+			players = append(players, stat.PlayerId)
+		}
+
+		winners := []int64{}
+		for i, stat := range play.Stats {
+			if val, ok := stat.Data["won"]; ok {
+				if val.(bool) {
+					winners = append(winners, play.Stats[i].PlayerId)
+				}
+			}
+		}
+
+		payload := map[string]interface{}{
+			"cooperative": true,
+			"players":     players,
+			"winners":     winners,
+		}
+
+		json, err := json.Marshal(payload)
+		if err != nil {
+			return nil, err
+		}
+
+		sql := fmt.Sprintf(`
+			update tboardgameplays set play_data = '%s' where id = ?
+		`, string(json))
+
+		_, err = db.Exec(sql, play.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	rs = append(rs, list{
 		Name:  "Overall",
