@@ -170,7 +170,7 @@ func DefaultScore(stats models.Stats) float64 {
 		return val
 	} else {
 		if val, ok := stats.Data["winner"].(bool); ok {
-			if val == true {
+			if val {
 				return 1
 			} else {
 				return 0
