@@ -179,8 +179,6 @@ func DefaultScore(stats models.Stats) float64 {
 			return 0
 		}
 	}
-
-	return 0
 }
 
 func DefaultSort(stats []models.Stats) func(i, j int) bool {

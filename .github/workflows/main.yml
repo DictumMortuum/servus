@@ -1,0 +1,15 @@
+on: [push, workflow_dispatch]
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    name: "📦 Trigger Project Test"
+    environment: default
+    steps:
+    - uses: passeidireto/trigger-external-workflow-action@main
+      env:
+        PAYLOAD_REPO: "servus"
+        PAYLOAD_ARCH: "aarch64"
+      with:
+        repository: DictumMortuum/pacman
+        event: package
+        github_pat: ${{ secrets.PAT }}
